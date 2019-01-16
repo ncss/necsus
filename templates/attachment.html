@@ -1,0 +1,17 @@
+{% if attachment.title %}
+  <h4>{{ attachment.title }}</h4>
+{% endif %}
+
+{% if attachment.text %}
+  <h4>{{ attachment.text }}</h4>
+{% endif %}
+
+{% if attachment.image_url %}
+  <img src="{{ attachment.image_url }}">
+{% endif %}
+
+{% for action in attachment.actions %}
+  {% if action.type == 'buttons' %}
+    {% include 'buttons.html' %}
+  {% endif %}
+{% endfor %}

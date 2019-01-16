@@ -1,0 +1,10 @@
+<h3>{{ message.author }}</h3>
+<div>{{ message.text }}</div>
+
+<ol>
+  {% for attachment in message.attachments %}
+    <li>
+        {% include 'attachment.html' %}
+    </li>
+  {% endfor %}
+</ol>

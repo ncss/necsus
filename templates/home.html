@@ -1,0 +1,12 @@
+<ol>
+  {% for message in messages %}
+    <li>
+      {% include 'message.html' %}
+    </li>
+  {% endfor %}
+</ol>
+
+<form method="POST">
+  <input id="author" name="author" type="hidden" value="{{ author.id }}">
+  <input id="text" name="text" placeholder="Type your message here" autofocus>
+</form>

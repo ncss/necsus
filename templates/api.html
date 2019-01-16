@@ -1,0 +1,28 @@
+<form action="/api/endpoint" method="post">
+  <h2>Command Endpoints</h2>
+
+  {% for command, url in endpoints.items() %}
+    <p>
+      <input id="command" name="command"
+      placeholder="/command"
+      {% if command %}value="{{ command }}"{% endif %}>
+      <input id="url" name="url"
+      placeholder="http://localhost:5000/endpoint"
+      {% if url %}value="{{ url }}"{% endif %}>
+    </p>
+  {% endfor %}
+
+  <input id="command" name="command"
+  placeholder="/command">
+  <input id="url" name="url"
+  placeholder="http://localhost:5000/endpoint">
+</form>
+
+<form action="/api/endpoint" method="post">
+  <h2>Interactivity Endpoint</h2>
+
+  <input id="endpoint" name="endpoint"
+  type="hidden" value="interactivity">
+  <input id="url" name="url"
+  placeholder="http://localhost:5000/interactivity">
+</form>
