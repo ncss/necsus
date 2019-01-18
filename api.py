@@ -1,6 +1,8 @@
 from flask import request, jsonify
 from neccsus import app, db
 
+import events 
+
 @app.route('/api/endpoint', methods=['POST'])
 def endpoint():
   url = request.values.get('url')
@@ -21,5 +23,5 @@ def get_message():
 @app.route('/api/actions/message', methods=['POST'])
 def post_message():
   message = dict(request.values)
-  message_result = db.messages.add(**message)
+  message_result = events.trigger_message_post(message)
   return jsonify(message_result)

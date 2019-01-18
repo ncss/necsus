@@ -1,7 +1,7 @@
 from flask import request, redirect, render_template
 from neccsus import app, db
+import events
 import commands
-import interactivity 
 
 @app.route('/', methods=['GET'])
 def home():
@@ -13,14 +13,11 @@ def home():
 def home_message():
   message = dict(request.values)
 
-  if message.get('reponse_type') == 'in_channel':
-    message_result = db.messages.add(**message)
-
-  command = commands.parse(message['text'])
+  command = commands.parse(message.get('text'))
   if command:
-    name, text = command 
-    reply_message = commands.run(name, text)
-    reply_message_result = db.messages.add(**reply_message)
+    events.trigger_command(message, command)
+  else:
+    events.trigger_message_post(message)
 
   return redirect('/', code=302)
 
@@ -32,8 +29,7 @@ def api():
 @app.route('/interaction', methods=['POST'])
 def interaction():
   params = dict(request.values)
-  reply_message = interactivity.interact(params)
-  reply_message_result = db.messages.add(**reply_message)
+  events.trigger_interaction(params)
 
   return redirect('/', code=302)
 
