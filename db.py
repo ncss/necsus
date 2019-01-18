@@ -53,7 +53,7 @@ members.add(id='kenni')
 members.add(id='neccsus')
 members.add(id='neccsus-bot')
 
-messages.add(author='necssus', text='Hello, World!')
+messages.add(author='neccsus', text='Hello, World!')
 messages.add(author='kenni', text='Yo!')
 
 endpoints.set(url='http://localhost:5000/neccsus/command', endpoint='command', command='neccsus-bot')

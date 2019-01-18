@@ -6,7 +6,7 @@ def trigger_command(message, command):
   if message.get('reponse_type') == 'in_channel':
     command_result = db.messages.add(**message)
 
-  name, text = command 
+  name, text = command
   reply_message = commands.run(name, text)
   reply_message_result = db.messages.add(**reply_message)
 
