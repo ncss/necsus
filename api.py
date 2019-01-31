@@ -1,4 +1,5 @@
 from flask import request, jsonify
+from crossdomain import crossdomain
 from neccsus import app, db
 
 import events 
@@ -10,6 +11,7 @@ def endpoint():
   return jsonify(endpoint)
 
 @app.route('/api/actions/message', methods=['GET'])
+@crossdomain(origin='*')
 def get_message():
   message_id = request.values.get('id')
 
@@ -21,12 +23,14 @@ def get_message():
     return jsonify(messages)
 
 @app.route('/api/actions/message', methods=['POST'])
+@crossdomain(origin='*')
 def post_message():
   message = dict(request.values)
   message_result = events.trigger_message_post(message)
   return jsonify(message_result)
 
 @app.route('/api/actions/command', methods=['POST'])
+@crossdomain(origin='*')
 def do_command():
   message = dict(request.values)
   command = commands.parse(message.get('text'))
