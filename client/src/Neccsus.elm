@@ -1,17 +1,30 @@
 import Browser exposing (Document)
+
 import Html exposing (Html)
+import Html.Attributes as Attr
+import Html.Events exposing (on)
 
 import Http
 import Json.Decode as D exposing (Decoder)
+import Json.Encode as E exposing (Value)
 
-type Model = Loading | Messages (List Message) | Error String
+type alias Model =
+  { messages : RemoteMessages
+  , newMessage : String
+  }
+
+type RemoteMessages = Loading | Messages (List Message) | Error String
+
 type alias Message =
   { author : String
   , text : String
   }
 
-type Msg =
-  LoadedMessages (Result Http.Error (List Message))
+type Msg
+  = LoadedRemoteMessages (Result Http.Error (List Message))
+  | LoadedRemoteMessage (Result Http.Error (Message))
+  | UpdateNewMessage String
+  | SubmitNewMessage String
 
 main =
   Browser.document
@@ -23,15 +36,33 @@ main =
 
 init : () -> (Model, Cmd Msg)
 init flags =
-  (Loading, getMessages)
+  (initModel, getMessages)
+
+initModel : Model
+initModel =
+  { messages = Loading
+  , newMessage = ""
+  }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    LoadedMessages (Ok messages) ->
-      (Messages messages, Cmd.none)
-    LoadedMessages (Err error) ->
-      (Error "something went bad", Cmd.none)
+    LoadedRemoteMessages (Ok messages) ->
+      ({ model | messages = Messages messages }, Cmd.none)
+    LoadedRemoteMessages (Err error) ->
+      ({ model | messages = Error "something went bad" }, Cmd.none)
+    LoadedRemoteMessage (Ok message) ->
+      case model.messages of
+        Messages messages ->
+          ({ model | messages = Messages <| messages++[message] }, Cmd.none)
+        _ ->
+          ({ model | messages = Messages [message] }, Cmd.none)
+    LoadedRemoteMessage (Err error) ->
+      ({ model | messages = Error "something went bad" }, Cmd.none)
+    UpdateNewMessage message ->
+      ({ model | newMessage = message }, Cmd.none)
+    SubmitNewMessage message ->
+      ({ model | newMessage = "" }, postMessage { author = "kenni", text = message })
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -41,7 +72,7 @@ view : Model -> Document Msg
 view model =
   { title = "NeCCSus"
   , body =
-    [ case model of
+    [ case model.messages of
       Loading ->
         Html.text "Loading messages"
       Error message ->
@@ -49,6 +80,13 @@ view model =
       Messages messages ->
         Html.ol []
           <| List.map ((\message -> Html.li [] [ message ]) << viewMessage) messages
+    , Html.input
+      [ Attr.placeholder "Type your message here"
+      , Attr.value model.newMessage
+      , onKeyPress UpdateNewMessage
+      , onEnterKey SubmitNewMessage
+      ]
+      []
     ]
   }
 
@@ -62,8 +100,16 @@ viewMessage message =
 getMessages : Cmd Msg
 getMessages =
   Http.get
-    { url = "http://localhost:5005/api/actions/message"
-    , expect = Http.expectJson LoadedMessages decodeMessages
+    { url = "/api/actions/message"
+    , expect = Http.expectJson LoadedRemoteMessages decodeMessages
+    }
+
+postMessage : Message -> Cmd Msg
+postMessage message =
+  Http.post
+    { url = "/api/actions/message"
+    , body = messageBody message
+    , expect = Http.expectJson LoadedRemoteMessage decodeMessage
     }
 
 decodeMessages : Decoder (List Message)
@@ -75,3 +121,52 @@ decodeMessage =
   D.map2 Message
     (D.field "author" D.string)
     (D.field "text" D.string)
+
+messageBody : Message -> Http.Body
+messageBody message =
+  Http.multipartBody
+    [ Http.stringPart "author" message.author
+    , Http.stringPart "text" message.text
+    ]
+
+onKeyPress : (String -> Msg) -> Html.Attribute Msg
+onKeyPress func =
+  on "keypress"
+    <| D.map func decodeValue
+
+onEnterKey : (String -> Msg) -> Html.Attribute Msg
+onEnterKey func =
+  on "keypress"
+    <| D.map func decodeValueOnEnter
+  
+decodeValueOnEnter : Decoder String
+decodeValueOnEnter =
+  D.map2 Tuple.pair
+    decodeKey
+    decodeValue
+  |> D.andThen
+    (\(key, value) ->
+      case key of
+        "Enter" -> D.succeed value
+        _ -> D.fail "ignoring keyboard event"
+    )
+
+decodeKey : Decoder String
+decodeKey =
+  D.field "key" D.string
+
+decodeValue : Decoder String
+decodeValue =
+  D.at ["target", "value"] D.string
+
+traceDecoder : String -> Decoder msg -> Decoder msg
+traceDecoder message decoder =
+    D.value
+    |> D.andThen
+      (\value ->
+        case D.decodeValue decoder value of
+          Ok decoded ->
+            D.succeed decoded
+          Err err ->
+            D.fail <| Debug.log message <| D.errorToString err
+      )
