@@ -9,6 +9,10 @@ def home():
   messages = db.messages.list()
   return render_template('home.html', author=author, messages=messages)
 
+@app.route('/client', methods=['GET'])
+def client():
+  return open('client/index.html').read()
+
 @app.route('/', methods=['POST'])
 def home_message():
   message = dict(request.values)

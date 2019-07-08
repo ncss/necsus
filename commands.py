@@ -15,17 +15,23 @@ def parse(text):
 def run(name, text):
   author = db.members.find('kenni')
   endpoint_url = db.endpoints.find(command=name)
-  params = {
-    'author': author.get('id'),
-    'command': name,
-    'text': text,
-  }
-  reply = requests.post(endpoint_url, params=params)
+  if endpoint_url:
+    params = {
+      'author': author.get('id'),
+      'command': name,
+      'text': text,
+    }
+    reply = requests.post(endpoint_url, params=params)
 
-  if reply.status_code == requests.codes.ok:
-    return reply.json() 
+    if reply.status_code == requests.codes.ok:
+      return reply.json()
+    else:
+      return {
+        'author': 'neccsus',
+        'text': f'Something went wrong. There was a {reply.status_code} error',
+      }
   else:
     return {
       'author': 'neccsus',
-      'text': f'Something went wrong. There was a {reply.status_code} error',
+      'text': f'I don\'t understand the "{name}" command.',
     }

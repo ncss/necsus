@@ -20,6 +20,12 @@ type alias Message =
   , text : String
   }
 
+type alias Command =
+  { author : String
+  , command : String
+  , text : String
+  }
+
 type Msg
   = LoadedRemoteMessages (Result Http.Error (List Message))
   | LoadedRemoteMessage (Result Http.Error (Message))
@@ -62,7 +68,22 @@ update msg model =
     UpdateNewMessage message ->
       ({ model | newMessage = message }, Cmd.none)
     SubmitNewMessage message ->
-      ({ model | newMessage = "" }, postMessage { author = "kenni", text = message })
+      ({ model | newMessage = "" },
+        if String.startsWith "/" message then
+          let
+            commandRaw = String.words message
+            command = commandRaw
+              |> List.head
+              |> Maybe.withDefault ""
+              |> String.dropLeft 1
+            content = commandRaw
+              |> List.drop 1
+              |> String.join " "
+          in
+            postCommand { author = "kenni", command = command, text = content }
+        else
+          postMessage { author = "kenni", text = message }
+      )
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -112,6 +133,14 @@ postMessage message =
     , expect = Http.expectJson LoadedRemoteMessage decodeMessage
     }
 
+postCommand : Command -> Cmd Msg
+postCommand command =
+  Http.post
+    { url = "/api/actions/command"
+    , body = commandBody command
+    , expect = Http.expectJson LoadedRemoteMessage decodeMessage
+    }
+
 decodeMessages : Decoder (List Message)
 decodeMessages =
   D.list decodeMessage
@@ -127,6 +156,14 @@ messageBody message =
   Http.multipartBody
     [ Http.stringPart "author" message.author
     , Http.stringPart "text" message.text
+    ]
+
+commandBody : Command -> Http.Body
+commandBody command =
+  Http.multipartBody
+    [ Http.stringPart "author" command.author
+    , Http.stringPart "command" command.command
+    , Http.stringPart "text" command.text
     ]
 
 onKeyPress : (String -> Msg) -> Html.Attribute Msg
