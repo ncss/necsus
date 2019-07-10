@@ -2,7 +2,7 @@ import Browser exposing (Document)
 
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events exposing (on)
+import Html.Events exposing (on, onInput)
 
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -11,6 +11,7 @@ import Json.Encode as E exposing (Value)
 type alias Model =
   { messages : RemoteMessages
   , newMessage : String
+  , endpoint : String
   }
 
 type RemoteMessages = Loading | Messages (List Message) | Error String
@@ -24,6 +25,7 @@ type alias Command =
   { author : String
   , command : String
   , text : String
+  , endpoint : String
   }
 
 type Msg
@@ -31,6 +33,7 @@ type Msg
   | LoadedRemoteMessage (Result Http.Error (Message))
   | UpdateNewMessage String
   | SubmitNewMessage String
+  | UpdateEndpoint String
 
 main =
   Browser.document
@@ -48,6 +51,7 @@ initModel : Model
 initModel =
   { messages = Loading
   , newMessage = ""
+  , endpoint = ""
   }
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -80,10 +84,12 @@ update msg model =
               |> List.drop 1
               |> String.join " "
           in
-            postCommand { author = "kenni", command = command, text = content }
+            postCommand { author = "kenni", command = command, text = content, endpoint = model.endpoint }
         else
           postMessage { author = "kenni", text = message }
       )
+    UpdateEndpoint endpoint ->
+      ({ model | endpoint = endpoint }, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -93,7 +99,17 @@ view : Model -> Document Msg
 view model =
   { title = "NeCCSus"
   , body =
-    [ case model.messages of
+    [ Html.div
+      []
+      [ Html.text "Endpoint: "
+      , Html.input
+        [ Attr.placeholder "URL"
+        , onKeyPress UpdateEndpoint
+        , onInput UpdateEndpoint
+        ]
+        []
+      ]
+    , case model.messages of
       Loading ->
         Html.text "Loading messages"
       Error message ->
@@ -164,6 +180,7 @@ commandBody command =
     [ Http.stringPart "author" command.author
     , Http.stringPart "command" command.command
     , Http.stringPart "text" command.text
+    , Http.stringPart "endpoint" command.endpoint
     ]
 
 onKeyPress : (String -> Msg) -> Html.Attribute Msg

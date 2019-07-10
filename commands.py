@@ -12,13 +12,17 @@ def parse(text):
   else:
     return None
 
-def run(name, text):
+def run(command, text, endpoint=None):
   author = db.members.find('kenni')
-  endpoint_url = db.endpoints.find(command=name)
+  if endpoint:
+    endpoint_url = endpoint
+  else:
+    endpoint_url = db.endpoints.find(command=command)
+
   if endpoint_url:
     params = {
       'author': author.get('id'),
-      'command': name,
+      'command': command,
       'text': text,
     }
     reply = requests.post(endpoint_url, params=params)
@@ -33,5 +37,5 @@ def run(name, text):
   else:
     return {
       'author': 'neccsus',
-      'text': f'I don\'t understand the "{name}" command.',
+      'text': f'I don\'t understand the "{command}" command.',
     }

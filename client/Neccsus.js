@@ -5864,7 +5864,7 @@ var author$project$Main$getMessages = elm$http$Http$get(
 		url: '/api/actions/message'
 	});
 var author$project$Main$Loading = {$: 'Loading'};
-var author$project$Main$initModel = {messages: author$project$Main$Loading, newMessage: ''};
+var author$project$Main$initModel = {endpoint: '', messages: author$project$Main$Loading, newMessage: ''};
 var author$project$Main$init = function (flags) {
 	return _Utils_Tuple2(author$project$Main$initModel, author$project$Main$getMessages);
 };
@@ -5895,7 +5895,8 @@ var author$project$Main$commandBody = function (command) {
 			[
 				A2(elm$http$Http$stringPart, 'author', command.author),
 				A2(elm$http$Http$stringPart, 'command', command.command),
-				A2(elm$http$Http$stringPart, 'text', command.text)
+				A2(elm$http$Http$stringPart, 'text', command.text),
+				A2(elm$http$Http$stringPart, 'endpoint', command.endpoint)
 			]));
 };
 var elm$http$Http$post = function (r) {
@@ -6047,7 +6048,7 @@ var author$project$Main$update = F2(
 						model,
 						{newMessage: message}),
 					elm$core$Platform$Cmd$none);
-			default:
+			case 'SubmitNewMessage':
 				var message = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -6068,16 +6069,26 @@ var author$project$Main$update = F2(
 									'',
 									elm$core$List$head(commandRaw)));
 							return author$project$Main$postCommand(
-								{author: 'kenni', command: command, text: content});
+								{author: 'kenni', command: command, endpoint: model.endpoint, text: content});
 						} else {
 							return author$project$Main$postMessage(
 								{author: 'kenni', text: message});
 						}
 					}());
+			default:
+				var endpoint = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{endpoint: endpoint}),
+					elm$core$Platform$Cmd$none);
 		}
 	});
 var author$project$Main$SubmitNewMessage = function (a) {
 	return {$: 'SubmitNewMessage', a: a};
+};
+var author$project$Main$UpdateEndpoint = function (a) {
+	return {$: 'UpdateEndpoint', a: a};
 };
 var author$project$Main$UpdateNewMessage = function (a) {
 	return {$: 'UpdateNewMessage', a: a};
@@ -6205,10 +6216,53 @@ var elm$html$Html$Attributes$stringProperty = F2(
 	});
 var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$html$Html$Events$targetValue = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			elm$html$Html$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
+};
 var author$project$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('Endpoint: '),
+						A2(
+						elm$html$Html$input,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$placeholder('URL'),
+								author$project$Main$onKeyPress(author$project$Main$UpdateEndpoint),
+								elm$html$Html$Events$onInput(author$project$Main$UpdateEndpoint)
+							]),
+						_List_Nil)
+					])),
 				function () {
 				var _n0 = model.messages;
 				switch (_n0.$) {
