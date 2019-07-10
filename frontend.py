@@ -1,20 +1,25 @@
-from flask import request, redirect, render_template
+from flask import request, redirect, render_template, send_from_directory
 from neccsus import app, db
 import events
 import commands
 
-@app.route('/', methods=['GET'])
-def home():
+@app.route('/')
+@app.route('/client')
+def client():
+  return send_from_directory('client', 'index.html')
+
+@app.route('/client/<path:path>')
+def client_path(path):
+  return send_from_directory('client', path)
+
+@app.route('/form', methods=['GET'])
+def form_page():
   author = db.members.find('kenni')
   messages = db.messages.list()
   return render_template('home.html', author=author, messages=messages)
 
-@app.route('/client', methods=['GET'])
-def client():
-  return open('client/index.html').read()
-
-@app.route('/', methods=['POST'])
-def home_message():
+@app.route('/form', methods=['POST'])
+def form_accept():
   message = dict(request.values)
 
   command = commands.parse(message.get('text'))
