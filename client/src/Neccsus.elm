@@ -8,32 +8,8 @@ import Http
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 
-type alias Model =
-  { messages : RemoteMessages
-  , newMessage : String
-  , endpoint : String
-  }
-
-type RemoteMessages = Loading | Messages (List Message) | Error String
-
-type alias Message =
-  { author : String
-  , text : String
-  }
-
-type alias Command =
-  { author : String
-  , command : String
-  , text : String
-  , endpoint : String
-  }
-
-type Msg
-  = LoadedRemoteMessages (Result Http.Error (List Message))
-  | LoadedRemoteMessage (Result Http.Error (Message))
-  | UpdateNewMessage String
-  | SubmitNewMessage String
-  | UpdateEndpoint String
+import Model exposing (..)
+import Elements
 
 main =
   Browser.document
@@ -49,14 +25,17 @@ init flags =
 
 initModel : Model
 initModel =
-  { messages = Loading
-  , newMessage = ""
+  { tab = MessagesTab
+  , messages = Loading
+  , newMessage = NewMessage ""
   , endpoint = ""
   }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    SwitchTab tab ->
+      ({ model | tab = tab }, Cmd.none)
     LoadedRemoteMessages (Ok messages) ->
       ({ model | messages = Messages messages }, Cmd.none)
     LoadedRemoteMessages (Err error) ->
@@ -70,9 +49,15 @@ update msg model =
     LoadedRemoteMessage (Err error) ->
       ({ model | messages = Error "something went bad" }, Cmd.none)
     UpdateNewMessage message ->
-      ({ model | newMessage = message }, Cmd.none)
+      ({ model | newMessage =
+        case model.newMessage of
+          SubmittingMessage ->
+            NewMessage ""
+          NewMessage oldMessage ->
+            NewMessage message
+       }, Cmd.none)
     SubmitNewMessage message ->
-      ({ model | newMessage = "" },
+      ({ model | newMessage = SubmittingMessage },
         if String.startsWith "/" message then
           let
             commandRaw = String.words message
@@ -98,41 +83,8 @@ subscriptions model =
 view : Model -> Document Msg
 view model =
   { title = "NeCCSus"
-  , body =
-    [ Html.div
-      []
-      [ Html.text "Endpoint: "
-      , Html.input
-        [ Attr.placeholder "URL"
-        , onKeyPress UpdateEndpoint
-        , onInput UpdateEndpoint
-        ]
-        []
-      ]
-    , case model.messages of
-      Loading ->
-        Html.text "Loading messages"
-      Error message ->
-        Html.text message
-      Messages messages ->
-        Html.ol []
-          <| List.map ((\message -> Html.li [] [ message ]) << viewMessage) messages
-    , Html.input
-      [ Attr.placeholder "Type your message here"
-      , Attr.value model.newMessage
-      , onKeyPress UpdateNewMessage
-      , onEnterKey SubmitNewMessage
-      ]
-      []
-    ]
+  , body = [ Elements.html model ]
   }
-
-viewMessage : Message -> Html Msg
-viewMessage message =
-  Html.div []
-    [ Html.h4 [] [ Html.text message.author ]
-    , Html.div [] [ Html.text message.text ]
-    ]
 
 getMessages : Cmd Msg
 getMessages =
@@ -182,45 +134,3 @@ commandBody command =
     , Http.stringPart "text" command.text
     , Http.stringPart "endpoint" command.endpoint
     ]
-
-onKeyPress : (String -> Msg) -> Html.Attribute Msg
-onKeyPress func =
-  on "keypress"
-    <| D.map func decodeValue
-
-onEnterKey : (String -> Msg) -> Html.Attribute Msg
-onEnterKey func =
-  on "keypress"
-    <| D.map func decodeValueOnEnter
-  
-decodeValueOnEnter : Decoder String
-decodeValueOnEnter =
-  D.map2 Tuple.pair
-    decodeKey
-    decodeValue
-  |> D.andThen
-    (\(key, value) ->
-      case key of
-        "Enter" -> D.succeed value
-        _ -> D.fail "ignoring keyboard event"
-    )
-
-decodeKey : Decoder String
-decodeKey =
-  D.field "key" D.string
-
-decodeValue : Decoder String
-decodeValue =
-  D.at ["target", "value"] D.string
-
-traceDecoder : String -> Decoder msg -> Decoder msg
-traceDecoder message decoder =
-    D.value
-    |> D.andThen
-      (\value ->
-        case D.decodeValue decoder value of
-          Ok decoded ->
-            D.succeed decoded
-          Err err ->
-            D.fail <| Debug.log message <| D.errorToString err
-      )
