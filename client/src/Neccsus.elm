@@ -1,3 +1,5 @@
+port module Neccsus exposing (..)
+
 import Browser exposing (Document)
 
 import Html exposing (Html)
@@ -30,6 +32,15 @@ initModel =
   , newMessage = NewMessage ""
   , endpoint = ""
   }
+
+port cache : Value -> Cmd msg
+port uncache : (Value -> msg) -> Sub msg
+
+cacheEncoder : String -> Value
+cacheEncoder endpoint = E.string endpoint
+
+cacheDecoder : Decoder (Maybe String)
+cacheDecoder = D.nullable D.string
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -74,11 +85,15 @@ update msg model =
           postMessage { author = "kenni", text = message }
       )
     UpdateEndpoint endpoint ->
-      ({ model | endpoint = endpoint }, Cmd.none)
+      ({ model | endpoint = endpoint }, cache <| cacheEncoder endpoint)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  uncache
+    <| D.decodeValue cacheDecoder
+      >> Result.withDefault (Nothing)
+      >> Maybe.withDefault ""
+      >> UpdateEndpoint
 
 view : Model -> Document Msg
 view model =

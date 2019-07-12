@@ -5,8 +5,24 @@
   <main></main>
   <script src="/client/Neccsus.js"></script>
   <script>
-    var app = Elm.Main.init({ node: document.querySelector('main') })
-    // you can use ports and stuff here
+    /*
+      Elm app
+    */
+    var app = Elm.Neccsus.init({
+      node: document.querySelector('main')
+    })
+    
+    /*
+      Local storage port
+    */
+    // Send to Elm
+    var cache = localStorage.getItem('cache');
+    app.ports.uncache.send(cache);
+
+    // Retrieve from Elm
+    app.ports.cache.subscribe(function(data) {
+      localStorage.setItem('cache', data);
+    });
   </script>
 </body>
 </html>

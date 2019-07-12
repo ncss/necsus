@@ -4623,6 +4623,9 @@ function _Browser_load(url)
 		}
 	}));
 }
+var author$project$Model$LoadedRemoteMessages = function (a) {
+	return {$: 'LoadedRemoteMessages', a: a};
+};
 var author$project$Model$Message = F2(
 	function (author, text) {
 		return {author: author, text: text};
@@ -5105,16 +5108,13 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$Main$decodeMessage = A3(
+var author$project$Neccsus$decodeMessage = A3(
 	elm$json$Json$Decode$map2,
 	author$project$Model$Message,
 	A2(elm$json$Json$Decode$field, 'author', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'text', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$list = _Json_decodeList;
-var author$project$Main$decodeMessages = elm$json$Json$Decode$list(author$project$Main$decodeMessage);
-var author$project$Model$LoadedRemoteMessages = function (a) {
-	return {$: 'LoadedRemoteMessages', a: a};
-};
+var author$project$Neccsus$decodeMessages = elm$json$Json$Decode$list(author$project$Neccsus$decodeMessage);
 var elm$core$Result$mapError = F2(
 	function (f, result) {
 		if (result.$ === 'Ok') {
@@ -5996,9 +5996,9 @@ var elm$http$Http$get = function (r) {
 	return elm$http$Http$request(
 		{body: elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
 };
-var author$project$Main$getMessages = elm$http$Http$get(
+var author$project$Neccsus$getMessages = elm$http$Http$get(
 	{
-		expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessages, author$project$Main$decodeMessages),
+		expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessages, author$project$Neccsus$decodeMessages),
 		url: '/api/actions/message'
 	});
 var author$project$Model$Loading = {$: 'Loading'};
@@ -6006,19 +6006,78 @@ var author$project$Model$MessagesTab = {$: 'MessagesTab'};
 var author$project$Model$NewMessage = function (a) {
 	return {$: 'NewMessage', a: a};
 };
-var author$project$Main$initModel = {
+var author$project$Neccsus$initModel = {
 	endpoint: '',
 	messages: author$project$Model$Loading,
 	newMessage: author$project$Model$NewMessage(''),
 	tab: author$project$Model$MessagesTab
 };
-var author$project$Main$init = function (flags) {
-	return _Utils_Tuple2(author$project$Main$initModel, author$project$Main$getMessages);
+var author$project$Neccsus$init = function (flags) {
+	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
 };
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
-var author$project$Main$subscriptions = function (model) {
-	return elm$core$Platform$Sub$none;
+var author$project$Model$UpdateEndpoint = function (a) {
+	return {$: 'UpdateEndpoint', a: a};
+};
+var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$null = _Json_decodeNull;
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
+var elm$json$Json$Decode$nullable = function (decoder) {
+	return elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				elm$json$Json$Decode$null(elm$core$Maybe$Nothing),
+				A2(elm$json$Json$Decode$map, elm$core$Maybe$Just, decoder)
+			]));
+};
+var author$project$Neccsus$cacheDecoder = elm$json$Json$Decode$nullable(elm$json$Json$Decode$string);
+var elm$json$Json$Decode$value = _Json_decodeValue;
+var author$project$Neccsus$uncache = _Platform_incomingPort('uncache', elm$json$Json$Decode$value);
+var elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (result.$ === 'Ok') {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
+	});
+var elm$json$Json$Decode$decodeValue = _Json_run;
+var author$project$Neccsus$subscriptions = function (model) {
+	return author$project$Neccsus$uncache(
+		A2(
+			elm$core$Basics$composeR,
+			elm$json$Json$Decode$decodeValue(author$project$Neccsus$cacheDecoder),
+			A2(
+				elm$core$Basics$composeR,
+				elm$core$Result$withDefault(elm$core$Maybe$Nothing),
+				A2(
+					elm$core$Basics$composeR,
+					elm$core$Maybe$withDefault(''),
+					author$project$Model$UpdateEndpoint))));
+};
+var author$project$Model$Error = function (a) {
+	return {$: 'Error', a: a};
+};
+var author$project$Model$Messages = function (a) {
+	return {$: 'Messages', a: a};
+};
+var author$project$Model$SubmittingMessage = {$: 'SubmittingMessage'};
+var author$project$Neccsus$cache = _Platform_outgoingPort('cache', elm$core$Basics$identity);
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Neccsus$cacheEncoder = function (endpoint) {
+	return elm$json$Json$Encode$string(endpoint);
+};
+var author$project$Model$LoadedRemoteMessage = function (a) {
+	return {$: 'LoadedRemoteMessage', a: a};
 };
 var elm$http$Http$multipartBody = function (parts) {
 	return A2(
@@ -6027,7 +6086,7 @@ var elm$http$Http$multipartBody = function (parts) {
 		_Http_toFormData(parts));
 };
 var elm$http$Http$stringPart = _Http_pair;
-var author$project$Main$commandBody = function (command) {
+var author$project$Neccsus$commandBody = function (command) {
 	return elm$http$Http$multipartBody(
 		_List_fromArray(
 			[
@@ -6037,22 +6096,19 @@ var author$project$Main$commandBody = function (command) {
 				A2(elm$http$Http$stringPart, 'endpoint', command.endpoint)
 			]));
 };
-var author$project$Model$LoadedRemoteMessage = function (a) {
-	return {$: 'LoadedRemoteMessage', a: a};
-};
 var elm$http$Http$post = function (r) {
 	return elm$http$Http$request(
 		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
 };
-var author$project$Main$postCommand = function (command) {
+var author$project$Neccsus$postCommand = function (command) {
 	return elm$http$Http$post(
 		{
-			body: author$project$Main$commandBody(command),
-			expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessage, author$project$Main$decodeMessage),
+			body: author$project$Neccsus$commandBody(command),
+			expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessage, author$project$Neccsus$decodeMessage),
 			url: '/api/actions/command'
 		});
 };
-var author$project$Main$messageBody = function (message) {
+var author$project$Neccsus$messageBody = function (message) {
 	return elm$http$Http$multipartBody(
 		_List_fromArray(
 			[
@@ -6060,21 +6116,14 @@ var author$project$Main$messageBody = function (message) {
 				A2(elm$http$Http$stringPart, 'text', message.text)
 			]));
 };
-var author$project$Main$postMessage = function (message) {
+var author$project$Neccsus$postMessage = function (message) {
 	return elm$http$Http$post(
 		{
-			body: author$project$Main$messageBody(message),
-			expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessage, author$project$Main$decodeMessage),
+			body: author$project$Neccsus$messageBody(message),
+			expect: A2(elm$http$Http$expectJson, author$project$Model$LoadedRemoteMessage, author$project$Neccsus$decodeMessage),
 			url: '/api/actions/message'
 		});
 };
-var author$project$Model$Error = function (a) {
-	return {$: 'Error', a: a};
-};
-var author$project$Model$Messages = function (a) {
-	return {$: 'Messages', a: a};
-};
-var author$project$Model$SubmittingMessage = {$: 'SubmittingMessage'};
 var elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -6105,15 +6154,6 @@ var elm$core$List$head = function (list) {
 		return elm$core$Maybe$Nothing;
 	}
 };
-var elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$core$String$length = _String_length;
@@ -6128,7 +6168,7 @@ var elm$core$String$dropLeft = F2(
 	});
 var elm$core$String$startsWith = _String_startsWith;
 var elm$core$String$words = _String_words;
-var author$project$Main$update = F2(
+var author$project$Neccsus$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'SwitchTab':
@@ -6233,10 +6273,10 @@ var author$project$Main$update = F2(
 									elm$core$Maybe$withDefault,
 									'',
 									elm$core$List$head(commandRaw)));
-							return author$project$Main$postCommand(
+							return author$project$Neccsus$postCommand(
 								{author: 'kenni', command: command, endpoint: model.endpoint, text: content});
 						} else {
-							return author$project$Main$postMessage(
+							return author$project$Neccsus$postMessage(
 								{author: 'kenni', text: message});
 						}
 					}());
@@ -6246,7 +6286,8 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{endpoint: endpoint}),
-					elm$core$Platform$Cmd$none);
+					author$project$Neccsus$cache(
+						author$project$Neccsus$cacheEncoder(endpoint)));
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
@@ -6568,7 +6609,6 @@ var author$project$Elements$decodeValueOnEnter = A2(
 		author$project$Elements$decodeShift,
 		author$project$Elements$decodeKey,
 		author$project$Elements$decodeValue));
-var elm$json$Json$Decode$map = _Json_map1;
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6646,7 +6686,6 @@ var elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -7561,9 +7600,6 @@ var author$project$Elements$messagesTab = function (model) {
 			]));
 };
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
-var author$project$Model$UpdateEndpoint = function (a) {
-	return {$: 'UpdateEndpoint', a: a};
-};
 var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
 	return {$: 'LabelOnLeft', a: a};
 };
@@ -13778,7 +13814,7 @@ var author$project$Elements$html = function (model) {
 		author$project$Elements$stylesheet,
 		author$project$Elements$elements(model));
 };
-var author$project$Main$view = function (model) {
+var author$project$Neccsus$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
@@ -13974,7 +14010,7 @@ var elm$url$Url$fromString = function (str) {
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
 var elm$browser$Browser$document = _Browser_document;
-var author$project$Main$main = elm$browser$Browser$document(
-	{init: author$project$Main$init, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
-_Platform_export({'Main':{'init':author$project$Main$main(
+var author$project$Neccsus$main = elm$browser$Browser$document(
+	{init: author$project$Neccsus$init, subscriptions: author$project$Neccsus$subscriptions, update: author$project$Neccsus$update, view: author$project$Neccsus$view});
+_Platform_export({'Neccsus':{'init':author$project$Neccsus$main(
 	elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
