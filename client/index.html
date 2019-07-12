@@ -23,6 +23,14 @@
     app.ports.cache.subscribe(function(data) {
       localStorage.setItem('cache', data);
     });
+
+    /*
+      Speech synthesis port
+    */
+    app.ports.speak.subscribe(function(text) {
+      var utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    });
   </script>
 </body>
 </html>

@@ -26,6 +26,7 @@ type Style
   | TabSelectedStyle
   | TabContentStyle
   | InputStyle
+  | CheckboxStyle
   | MessageListStyle
   | MessageStyle
   | SettingsStyle
@@ -148,11 +149,23 @@ settingsTab : Model -> Element Style variation Msg
 settingsTab model =
   Element.table SettingsStyle []
     [ [ Input.text InputStyle []
+        { onChange = UpdateUsername
+        , value = model.username
+        , label = labelLeft <| Element.bold "Name"
+        , options = []
+        } 
+      , Input.text InputStyle []
         { onChange = UpdateEndpoint
         , value = model.endpoint
         , label = labelLeft <| Element.bold "Endpoint"
         , options = []
         } 
+      , Input.checkbox CheckboxStyle []
+        { onChange = UpdateSpeechSynthesis
+        , checked = model.speechSynthesis
+        , label = Element.bold "Speech Synthesis"
+        , options = []
+        }
       ]
     ]
 

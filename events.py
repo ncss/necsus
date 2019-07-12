@@ -2,11 +2,11 @@ from neccsus import db
 import commands
 import interactivity
 
-def trigger_command(message, command, text, endpoint=None):
+def trigger_command(message, command, text, endpoint=None, user=None):
   if message.get('reponse_type') == 'in_channel':
     command_result = db.messages.add(**message)
 
-  reply_message = commands.run(command, text, endpoint)
+  reply_message = commands.run(command, text, endpoint, user)
   reply_message_result = db.messages.add(**reply_message)
 
   return reply_message

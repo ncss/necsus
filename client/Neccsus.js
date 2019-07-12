@@ -6010,7 +6010,9 @@ var author$project$Neccsus$initModel = {
 	endpoint: '',
 	messages: author$project$Model$Loading,
 	newMessage: author$project$Model$NewMessage(''),
-	tab: author$project$Model$MessagesTab
+	speechSynthesis: false,
+	tab: author$project$Model$MessagesTab,
+	username: 'user'
 };
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
@@ -6124,6 +6126,8 @@ var author$project$Neccsus$postMessage = function (message) {
 			url: '/api/actions/message'
 		});
 };
+var author$project$Neccsus$speak = _Platform_outgoingPort('speak', elm$json$Json$Encode$string);
+var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -6214,7 +6218,7 @@ var author$project$Neccsus$update = F2(
 											_List_fromArray(
 												[message])))
 								}),
-							elm$core$Platform$Cmd$none);
+							(model.speechSynthesis && (!_Utils_eq(message.author, model.username))) ? author$project$Neccsus$speak(message.text) : elm$core$Platform$Cmd$none);
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -6274,13 +6278,20 @@ var author$project$Neccsus$update = F2(
 									'',
 									elm$core$List$head(commandRaw)));
 							return author$project$Neccsus$postCommand(
-								{author: 'kenni', command: command, endpoint: model.endpoint, text: content});
+								{author: model.username, command: command, endpoint: model.endpoint, text: content});
 						} else {
 							return author$project$Neccsus$postMessage(
-								{author: 'kenni', text: message});
+								{author: model.username, text: message});
 						}
 					}());
-			default:
+			case 'UpdateUsername':
+				var username = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{username: username}),
+					elm$core$Platform$Cmd$none);
+			case 'UpdateEndpoint':
 				var endpoint = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -6288,6 +6299,13 @@ var author$project$Neccsus$update = F2(
 						{endpoint: endpoint}),
 					author$project$Neccsus$cache(
 						author$project$Neccsus$cacheEncoder(endpoint)));
+			default:
+				var value = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{speechSynthesis: value}),
+					elm$core$Platform$Cmd$none);
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
@@ -7599,7 +7617,106 @@ var author$project$Elements$messagesTab = function (model) {
 				])
 			]));
 };
+var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Model$UpdateSpeechSynthesis = function (a) {
+	return {$: 'UpdateSpeechSynthesis', a: a};
+};
+var author$project$Model$UpdateUsername = function (a) {
+	return {$: 'UpdateUsername', a: a};
+};
+var mdgriffith$style_elements$Element$Attributes$spacing = function (x) {
+	return A2(mdgriffith$style_elements$Element$Internal$Model$Spacing, x, x);
+};
+var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
+	return {$: 'VAlign', a: a};
+};
+var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
+var mdgriffith$style_elements$Element$Attributes$verticalCenter = mdgriffith$style_elements$Element$Internal$Model$VAlign(mdgriffith$style_elements$Element$Internal$Model$VerticalCenter);
+var elm$html$Html$Events$targetChecked = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'checked']),
+	elm$json$Json$Decode$bool);
+var elm$html$Html$Events$onCheck = function (tagger) {
+	return A2(
+		elm$html$Html$Events$on,
+		'change',
+		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
+};
+var mdgriffith$style_elements$Element$Events$onCheck = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onCheck);
+var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
+	return {$: 'LabelOnRight', a: a};
+};
+var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
+var mdgriffith$style_elements$Element$Input$checked = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$checked);
+var mdgriffith$style_elements$Element$Input$checkbox = F3(
+	function (style, attributes, input) {
+		var isDisabled = A2(
+			elm$core$List$any,
+			elm$core$Basics$eq(mdgriffith$style_elements$Element$Input$Disabled),
+			input.options);
+		var withDisabled = function (attrs) {
+			return isDisabled ? A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$class('disabled-input'),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$style_elements$Element$Input$disabledAttr(true),
+					attrs)) : A2(elm$core$List$cons, mdgriffith$style_elements$Element$Input$pointer, attrs);
+		};
+		var forErrors = function (opt) {
+			if (opt.$ === 'ErrorOpt') {
+				var err = opt.a;
+				return elm$core$Maybe$Just(err);
+			} else {
+				return elm$core$Maybe$Nothing;
+			}
+		};
+		var errs = A2(elm$core$List$filterMap, forErrors, input.options);
+		var withError = function (attrs) {
+			return (!elm$core$List$isEmpty(errs)) ? A2(
+				elm$core$List$cons,
+				A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-invalid', 'true'),
+				attrs) : attrs;
+		};
+		var inputElem = _List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Internal$Model$Element(
+				{
+					absolutelyPositioned: elm$core$Maybe$Nothing,
+					attrs: A2(
+						elm$core$Basics$composeL,
+						A2(
+							elm$core$Basics$composeL,
+							mdgriffith$style_elements$Element$Input$addOptionsAsAttrs(input.options),
+							withError),
+						withDisabled)(
+						_List_fromArray(
+							[
+								mdgriffith$style_elements$Element$Input$type_('checkbox'),
+								mdgriffith$style_elements$Element$Input$checked(input.checked),
+								mdgriffith$style_elements$Element$Events$onCheck(input.onChange)
+							])),
+					child: mdgriffith$style_elements$Element$Internal$Model$Empty,
+					node: 'input',
+					style: elm$core$Maybe$Nothing
+				})
+			]);
+		return A8(
+			mdgriffith$style_elements$Element$Input$applyLabel,
+			elm$core$Maybe$Nothing,
+			elm$core$Maybe$Nothing,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$spacing(5),
+				A2(elm$core$List$cons, mdgriffith$style_elements$Element$Attributes$verticalCenter, attributes)),
+			mdgriffith$style_elements$Element$Input$LabelOnRight(input.label),
+			errs,
+			isDisabled,
+			true,
+			inputElem);
+	});
 var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
 	return {$: 'LabelOnLeft', a: a};
 };
@@ -7621,10 +7738,31 @@ var author$project$Elements$settingsTab = function (model) {
 					_List_Nil,
 					{
 						label: mdgriffith$style_elements$Element$Input$labelLeft(
+							mdgriffith$style_elements$Element$bold('Name')),
+						onChange: author$project$Model$UpdateUsername,
+						options: _List_Nil,
+						value: model.username
+					}),
+					A3(
+					mdgriffith$style_elements$Element$Input$text,
+					author$project$Elements$InputStyle,
+					_List_Nil,
+					{
+						label: mdgriffith$style_elements$Element$Input$labelLeft(
 							mdgriffith$style_elements$Element$bold('Endpoint')),
 						onChange: author$project$Model$UpdateEndpoint,
 						options: _List_Nil,
 						value: model.endpoint
+					}),
+					A3(
+					mdgriffith$style_elements$Element$Input$checkbox,
+					author$project$Elements$CheckboxStyle,
+					_List_Nil,
+					{
+						checked: model.speechSynthesis,
+						label: mdgriffith$style_elements$Element$bold('Speech Synthesis'),
+						onChange: author$project$Model$UpdateSpeechSynthesis,
+						options: _List_Nil
 					})
 				])
 			]));
@@ -8648,7 +8786,6 @@ var Skinney$murmur3$Murmur3$rotlBy = F2(
 	function (b, a) {
 		return (a << b) | (a >>> (32 - b));
 	});
-var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$Bitwise$xor = _Bitwise_xor;
 var Skinney$murmur3$Murmur3$finalize = function (data) {
 	var acc = data.hash ? (data.seed ^ A2(
@@ -10352,10 +10489,6 @@ var mdgriffith$style_elements$Element$Internal$Model$HAlign = function (a) {
 var mdgriffith$style_elements$Element$Internal$Model$PointerEvents = function (a) {
 	return {$: 'PointerEvents', a: a};
 };
-var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
-	return {$: 'VAlign', a: a};
-};
-var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
 var mdgriffith$style_elements$Element$Internal$Adjustments$centerTextLayout = function (elm) {
 	if (elm.$ === 'Layout') {
 		var layoutEl = elm.a;

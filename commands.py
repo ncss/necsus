@@ -12,8 +12,7 @@ def parse(text):
   else:
     return None
 
-def run(command, text, endpoint=None):
-  author = db.members.find('kenni')
+def run(command, text, endpoint=None, user=None):
   if endpoint:
     endpoint_url = endpoint
   else:
@@ -21,7 +20,7 @@ def run(command, text, endpoint=None):
 
   if endpoint_url:
     params = {
-      'author': author.get('id'),
+      'author': user,
       'command': command,
       'text': text,
     }

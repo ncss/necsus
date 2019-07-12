@@ -36,5 +36,6 @@ def do_command():
   command = message.get('command')
   text = message.get('text')
   endpoint = message.get('endpoint')
-  message_result = events.trigger_command(message, command, text, endpoint)
+  user = message.get('author')
+  message_result = events.trigger_command(message, command, text, endpoint, user)
   return jsonify(message_result)

@@ -26,7 +26,9 @@ type alias Model =
   { tab : Tab
   , messages : RemoteMessages
   , newMessage : NewMessage 
+  , username : String
   , endpoint : String
+  , speechSynthesis : Bool
   }
 
 type Msg
@@ -35,4 +37,6 @@ type Msg
   | LoadedRemoteMessage (Result Http.Error (Message))
   | UpdateNewMessage String
   | SubmitNewMessage String
+  | UpdateUsername String
   | UpdateEndpoint String
+  | UpdateSpeechSynthesis Bool

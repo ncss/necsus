@@ -30,7 +30,9 @@ initModel =
   { tab = MessagesTab
   , messages = Loading
   , newMessage = NewMessage ""
+  , username = "user"
   , endpoint = ""
+  , speechSynthesis = False
   }
 
 port cache : Value -> Cmd msg
@@ -41,6 +43,8 @@ cacheEncoder endpoint = E.string endpoint
 
 cacheDecoder : Decoder (Maybe String)
 cacheDecoder = D.nullable D.string
+
+port speak : String -> Cmd msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -54,7 +58,12 @@ update msg model =
     LoadedRemoteMessage (Ok message) ->
       case model.messages of
         Messages messages ->
-          ({ model | messages = Messages <| messages++[message] }, Cmd.none)
+          ( { model | messages = Messages <| messages++[message] }
+          , if model.speechSynthesis && message.author /= model.username then
+              speak message.text
+            else
+              Cmd.none
+          )
         _ ->
           ({ model | messages = Messages [message] }, Cmd.none)
     LoadedRemoteMessage (Err error) ->
@@ -80,12 +89,16 @@ update msg model =
               |> List.drop 1
               |> String.join " "
           in
-            postCommand { author = "kenni", command = command, text = content, endpoint = model.endpoint }
+            postCommand { author = model.username, command = command, text = content, endpoint = model.endpoint }
         else
-          postMessage { author = "kenni", text = message }
+          postMessage { author = model.username, text = message }
       )
+    UpdateUsername username ->
+      ({ model | username = username }, Cmd.none)
     UpdateEndpoint endpoint ->
       ({ model | endpoint = endpoint }, cache <| cacheEncoder endpoint)
+    UpdateSpeechSynthesis value ->
+      ({ model | speechSynthesis = value }, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
