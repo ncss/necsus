@@ -18,6 +18,8 @@ type alias Command =
   , endpoint : String
   }
 
+type SpeechResult = InterimSpeechResult String | FinalSpeechResult String
+
 type RemoteMessages = Loading | Messages (List Message) | Error String
 
 type NewMessage = SubmittingMessage | NewMessage String
@@ -29,6 +31,7 @@ type alias Model =
   , username : String
   , endpoint : String
   , speechSynthesis : Bool
+  , grammar : String
   }
 
 type Msg
@@ -40,3 +43,5 @@ type Msg
   | UpdateUsername String
   | UpdateEndpoint String
   | UpdateSpeechSynthesis Bool
+  | UpdateGrammar String 
+  | Listen

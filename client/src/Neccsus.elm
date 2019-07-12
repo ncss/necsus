@@ -33,6 +33,7 @@ initModel =
   , username = "user"
   , endpoint = ""
   , speechSynthesis = False
+  , grammar = "#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;"
   }
 
 port cache : Value -> Cmd msg
@@ -45,6 +46,22 @@ cacheDecoder : Decoder (Maybe String)
 cacheDecoder = D.nullable D.string
 
 port speak : String -> Cmd msg
+
+port listen : String -> Cmd msg
+port speechResult : (Value -> msg) -> Sub msg
+
+speechResultDecoder : Decoder SpeechResult
+speechResultDecoder =
+  let
+    result text isFinal =
+      if isFinal then
+        FinalSpeechResult text 
+      else
+        InterimSpeechResult text 
+  in
+    D.map2 result
+      (D.field "result" D.string)
+      (D.field "isFinal" D.bool)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -99,14 +116,27 @@ update msg model =
       ({ model | endpoint = endpoint }, cache <| cacheEncoder endpoint)
     UpdateSpeechSynthesis value ->
       ({ model | speechSynthesis = value }, Cmd.none)
+    UpdateGrammar grammar ->
+      ({ model | grammar = grammar }, Cmd.none)
+    Listen ->
+      (model, listen model.grammar)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  uncache
-    <| D.decodeValue cacheDecoder
-      >> Result.withDefault (Nothing)
-      >> Maybe.withDefault ""
-      >> UpdateEndpoint
+  Sub.batch
+    [ uncache
+      <| D.decodeValue cacheDecoder
+        >> Result.withDefault (Nothing)
+        >> Maybe.withDefault ""
+        >> UpdateEndpoint
+    , speechResult
+      <| D.decodeValue speechResultDecoder
+        >> Result.withDefault (InterimSpeechResult "")
+        >> (\result -> case result of
+            InterimSpeechResult text -> UpdateNewMessage text
+            FinalSpeechResult text -> SubmitNewMessage text
+          )
+    ]
 
 view : Model -> Document Msg
 view model =

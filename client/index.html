@@ -31,6 +31,36 @@
       var utterance = new SpeechSynthesisUtterance(text);
       speechSynthesis.speak(utterance);
     });
+    /*
+      Speech recognition port
+    */
+    var recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-AU';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    // Recognise speech in grammar from Elm
+    app.ports.listen.subscribe(function(grammar) {
+      if (grammar) {
+        // Use grammar
+        var speechRecognitionList = new webkitSpeechGrammarList();
+        speechRecognitionList.addFromString(grammar, 1);
+        recognition.grammars = speechRecognitionList;
+      }
+      // Start listening
+      recognition.start()
+    });
+
+    // Send recognition to Elm
+    recognition.onresult = function(event) {
+      var firstResult = event.results[0];
+      var firstAlternative = firstResult[0];
+      app.ports.speechResult.send({
+        result: firstAlternative.transcript,
+        isFinal: firstResult.isFinal,
+      });
+    };
   </script>
 </body>
 </html>

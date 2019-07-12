@@ -133,17 +133,25 @@ messageElement message =
 
 newMessage : Model -> Element Style variation Msg
 newMessage model =
-  Input.multiline InputStyle
-    [ onEnterKey SubmitNewMessage
+  Element.table NoStyle []
+    [ [ Input.multiline InputStyle
+        [ onEnterKey SubmitNewMessage
+        ]
+        { onChange = UpdateNewMessage
+        , value =
+          case model.newMessage of
+            SubmittingMessage -> ""
+            NewMessage message -> message
+        , label = hiddenLabel "new message"
+        , options = []
+        }
+      ]
+    , [ button NoStyle
+        [ Events.onClick Listen
+        ]
+        <| text "listen"
+      ]
     ]
-    { onChange = UpdateNewMessage
-    , value =
-      case model.newMessage of
-        SubmittingMessage -> ""
-        NewMessage message -> message
-    , label = hiddenLabel "new message"
-    , options = []
-    }
 
 settingsTab : Model -> Element Style variation Msg
 settingsTab model =
@@ -164,6 +172,12 @@ settingsTab model =
         { onChange = UpdateSpeechSynthesis
         , checked = model.speechSynthesis
         , label = Element.bold "Speech Synthesis"
+        , options = []
+        }
+      , Input.multiline InputStyle []
+        { onChange = UpdateGrammar
+        , value = model.grammar
+        , label = labelLeft <| Element.bold "Speech Recognition Grammar"
         , options = []
         }
       ]

@@ -6008,6 +6008,7 @@ var author$project$Model$NewMessage = function (a) {
 };
 var author$project$Neccsus$initModel = {
 	endpoint: '',
+	grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;',
 	messages: author$project$Model$Loading,
 	newMessage: author$project$Model$NewMessage(''),
 	speechSynthesis: false,
@@ -6017,8 +6018,17 @@ var author$project$Neccsus$initModel = {
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
 };
+var author$project$Model$InterimSpeechResult = function (a) {
+	return {$: 'InterimSpeechResult', a: a};
+};
+var author$project$Model$SubmitNewMessage = function (a) {
+	return {$: 'SubmitNewMessage', a: a};
+};
 var author$project$Model$UpdateEndpoint = function (a) {
 	return {$: 'UpdateEndpoint', a: a};
+};
+var author$project$Model$UpdateNewMessage = function (a) {
+	return {$: 'UpdateNewMessage', a: a};
 };
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$null = _Json_decodeNull;
@@ -6033,6 +6043,22 @@ var elm$json$Json$Decode$nullable = function (decoder) {
 };
 var author$project$Neccsus$cacheDecoder = elm$json$Json$Decode$nullable(elm$json$Json$Decode$string);
 var elm$json$Json$Decode$value = _Json_decodeValue;
+var author$project$Neccsus$speechResult = _Platform_incomingPort('speechResult', elm$json$Json$Decode$value);
+var author$project$Model$FinalSpeechResult = function (a) {
+	return {$: 'FinalSpeechResult', a: a};
+};
+var elm$json$Json$Decode$bool = _Json_decodeBool;
+var author$project$Neccsus$speechResultDecoder = function () {
+	var result = F2(
+		function (text, isFinal) {
+			return isFinal ? author$project$Model$FinalSpeechResult(text) : author$project$Model$InterimSpeechResult(text);
+		});
+	return A3(
+		elm$json$Json$Decode$map2,
+		result,
+		A2(elm$json$Json$Decode$field, 'result', elm$json$Json$Decode$string),
+		A2(elm$json$Json$Decode$field, 'isFinal', elm$json$Json$Decode$bool));
+}();
 var author$project$Neccsus$uncache = _Platform_incomingPort('uncache', elm$json$Json$Decode$value);
 var elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -6043,6 +6069,7 @@ var elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
+var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Result$withDefault = F2(
 	function (def, result) {
 		if (result.$ === 'Ok') {
@@ -6054,17 +6081,38 @@ var elm$core$Result$withDefault = F2(
 	});
 var elm$json$Json$Decode$decodeValue = _Json_run;
 var author$project$Neccsus$subscriptions = function (model) {
-	return author$project$Neccsus$uncache(
-		A2(
-			elm$core$Basics$composeR,
-			elm$json$Json$Decode$decodeValue(author$project$Neccsus$cacheDecoder),
-			A2(
-				elm$core$Basics$composeR,
-				elm$core$Result$withDefault(elm$core$Maybe$Nothing),
+	return elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				author$project$Neccsus$uncache(
 				A2(
 					elm$core$Basics$composeR,
-					elm$core$Maybe$withDefault(''),
-					author$project$Model$UpdateEndpoint))));
+					elm$json$Json$Decode$decodeValue(author$project$Neccsus$cacheDecoder),
+					A2(
+						elm$core$Basics$composeR,
+						elm$core$Result$withDefault(elm$core$Maybe$Nothing),
+						A2(
+							elm$core$Basics$composeR,
+							elm$core$Maybe$withDefault(''),
+							author$project$Model$UpdateEndpoint)))),
+				author$project$Neccsus$speechResult(
+				A2(
+					elm$core$Basics$composeR,
+					elm$json$Json$Decode$decodeValue(author$project$Neccsus$speechResultDecoder),
+					A2(
+						elm$core$Basics$composeR,
+						elm$core$Result$withDefault(
+							author$project$Model$InterimSpeechResult('')),
+						function (result) {
+							if (result.$ === 'InterimSpeechResult') {
+								var text = result.a;
+								return author$project$Model$UpdateNewMessage(text);
+							} else {
+								var text = result.a;
+								return author$project$Model$SubmitNewMessage(text);
+							}
+						})))
+			]));
 };
 var author$project$Model$Error = function (a) {
 	return {$: 'Error', a: a};
@@ -6078,6 +6126,7 @@ var elm$json$Json$Encode$string = _Json_wrap;
 var author$project$Neccsus$cacheEncoder = function (endpoint) {
 	return elm$json$Json$Encode$string(endpoint);
 };
+var author$project$Neccsus$listen = _Platform_outgoingPort('listen', elm$json$Json$Encode$string);
 var author$project$Model$LoadedRemoteMessage = function (a) {
 	return {$: 'LoadedRemoteMessage', a: a};
 };
@@ -6299,13 +6348,24 @@ var author$project$Neccsus$update = F2(
 						{endpoint: endpoint}),
 					author$project$Neccsus$cache(
 						author$project$Neccsus$cacheEncoder(endpoint)));
-			default:
+			case 'UpdateSpeechSynthesis':
 				var value = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{speechSynthesis: value}),
 					elm$core$Platform$Cmd$none);
+			case 'UpdateGrammar':
+				var grammar = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{grammar: grammar}),
+					elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(
+					model,
+					author$project$Neccsus$listen(model.grammar));
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
@@ -6590,7 +6650,6 @@ var author$project$Elements$messagesList = function (model) {
 };
 var author$project$Elements$InputStyle = {$: 'InputStyle'};
 var author$project$Elements$decodeKey = A2(elm$json$Json$Decode$field, 'key', elm$json$Json$Decode$string);
-var elm$json$Json$Decode$bool = _Json_decodeBool;
 var author$project$Elements$decodeShift = A2(elm$json$Json$Decode$field, 'shiftKey', elm$json$Json$Decode$bool);
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
@@ -6664,12 +6723,68 @@ var author$project$Elements$onEnterKey = function (func) {
 		'keypress',
 		A2(elm$json$Json$Decode$map, func, author$project$Elements$decodeValueOnEnter));
 };
-var author$project$Model$SubmitNewMessage = function (a) {
-	return {$: 'SubmitNewMessage', a: a};
+var author$project$Model$Listen = {$: 'Listen'};
+var elm$html$Html$Attributes$tabindex = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'tabIndex',
+		elm$core$String$fromInt(n));
 };
-var author$project$Model$UpdateNewMessage = function (a) {
-	return {$: 'UpdateNewMessage', a: a};
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$string(string));
+	});
+var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var mdgriffith$style_elements$Element$Internal$Model$Attr = function (a) {
+	return {$: 'Attr', a: a};
 };
+var mdgriffith$style_elements$Element$Attributes$class = function (cls) {
+	return mdgriffith$style_elements$Element$Internal$Model$Attr(
+		elm$html$Html$Attributes$class(cls));
+};
+var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var mdgriffith$style_elements$Element$Attributes$inlineStyle = F2(
+	function (name, val) {
+		return mdgriffith$style_elements$Element$Internal$Model$Attr(
+			A2(elm$virtual_dom$VirtualDom$style, name, val));
+	});
+var mdgriffith$style_elements$Element$Attributes$toAttr = mdgriffith$style_elements$Element$Internal$Model$Attr;
+var mdgriffith$style_elements$Element$button = F3(
+	function (style, attrs, child) {
+		return mdgriffith$style_elements$Element$Internal$Model$Element(
+			{
+				absolutelyPositioned: elm$core$Maybe$Nothing,
+				attrs: A2(
+					elm$core$List$cons,
+					mdgriffith$style_elements$Element$Attributes$class('button-focus'),
+					A2(
+						elm$core$List$cons,
+						A2(mdgriffith$style_elements$Element$Attributes$inlineStyle, 'cursor', 'pointer'),
+						A2(
+							elm$core$List$cons,
+							mdgriffith$style_elements$Element$Attributes$toAttr(
+								elm$html$Html$Attributes$tabindex(0)),
+							attrs))),
+				child: child,
+				node: 'button',
+				style: elm$core$Maybe$Just(style)
+			});
+	});
+var elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var mdgriffith$style_elements$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$Event, elm$html$Html$Events$onClick);
 var mdgriffith$style_elements$Element$Input$HiddenLabel = function (a) {
 	return {$: 'HiddenLabel', a: a};
 };
@@ -6704,13 +6819,6 @@ var elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
-	});
 var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
@@ -6720,30 +6828,10 @@ var elm$virtual_dom$VirtualDom$attribute = F2(
 			_VirtualDom_noJavaScriptOrHtmlUri(value));
 	});
 var elm$html$Html$Attributes$attribute = elm$virtual_dom$VirtualDom$attribute;
-var mdgriffith$style_elements$Element$Internal$Model$Attr = function (a) {
-	return {$: 'Attr', a: a};
-};
 var mdgriffith$style_elements$Element$Attributes$attribute = F2(
 	function (name, val) {
 		return mdgriffith$style_elements$Element$Internal$Model$Attr(
 			A2(elm$html$Html$Attributes$attribute, name, val));
-	});
-var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var mdgriffith$style_elements$Element$Attributes$class = function (cls) {
-	return mdgriffith$style_elements$Element$Internal$Model$Attr(
-		elm$html$Html$Attributes$class(cls));
-};
-var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var mdgriffith$style_elements$Element$Attributes$inlineStyle = F2(
-	function (name, val) {
-		return mdgriffith$style_elements$Element$Internal$Model$Attr(
-			A2(elm$virtual_dom$VirtualDom$style, name, val));
-	});
-var mdgriffith$style_elements$Element$Attributes$toAttr = mdgriffith$style_elements$Element$Internal$Model$Attr;
-var elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
 	});
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -7579,26 +7667,47 @@ var mdgriffith$style_elements$Element$Input$textHelper = F5(
 var mdgriffith$style_elements$Element$Input$multiline = A2(mdgriffith$style_elements$Element$Input$textHelper, mdgriffith$style_elements$Element$Input$TextArea, _List_Nil);
 var author$project$Elements$newMessage = function (model) {
 	return A3(
-		mdgriffith$style_elements$Element$Input$multiline,
-		author$project$Elements$InputStyle,
+		mdgriffith$style_elements$Element$table,
+		author$project$Elements$NoStyle,
+		_List_Nil,
 		_List_fromArray(
 			[
-				author$project$Elements$onEnterKey(author$project$Model$SubmitNewMessage)
-			]),
-		{
-			label: mdgriffith$style_elements$Element$Input$hiddenLabel('new message'),
-			onChange: author$project$Model$UpdateNewMessage,
-			options: _List_Nil,
-			value: function () {
-				var _n0 = model.newMessage;
-				if (_n0.$ === 'SubmittingMessage') {
-					return '';
-				} else {
-					var message = _n0.a;
-					return message;
-				}
-			}()
-		});
+				_List_fromArray(
+				[
+					A3(
+					mdgriffith$style_elements$Element$Input$multiline,
+					author$project$Elements$InputStyle,
+					_List_fromArray(
+						[
+							author$project$Elements$onEnterKey(author$project$Model$SubmitNewMessage)
+						]),
+					{
+						label: mdgriffith$style_elements$Element$Input$hiddenLabel('new message'),
+						onChange: author$project$Model$UpdateNewMessage,
+						options: _List_Nil,
+						value: function () {
+							var _n0 = model.newMessage;
+							if (_n0.$ === 'SubmittingMessage') {
+								return '';
+							} else {
+								var message = _n0.a;
+								return message;
+							}
+						}()
+					})
+				]),
+				_List_fromArray(
+				[
+					A3(
+					mdgriffith$style_elements$Element$button,
+					author$project$Elements$NoStyle,
+					_List_fromArray(
+						[
+							mdgriffith$style_elements$Element$Events$onClick(author$project$Model$Listen)
+						]),
+					mdgriffith$style_elements$Element$text('listen'))
+				])
+			]));
 };
 var author$project$Elements$messagesTab = function (model) {
 	return A3(
@@ -7619,6 +7728,9 @@ var author$project$Elements$messagesTab = function (model) {
 };
 var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Model$UpdateGrammar = function (a) {
+	return {$: 'UpdateGrammar', a: a};
+};
 var author$project$Model$UpdateSpeechSynthesis = function (a) {
 	return {$: 'UpdateSpeechSynthesis', a: a};
 };
@@ -7763,6 +7875,17 @@ var author$project$Elements$settingsTab = function (model) {
 						label: mdgriffith$style_elements$Element$bold('Speech Synthesis'),
 						onChange: author$project$Model$UpdateSpeechSynthesis,
 						options: _List_Nil
+					}),
+					A3(
+					mdgriffith$style_elements$Element$Input$multiline,
+					author$project$Elements$InputStyle,
+					_List_Nil,
+					{
+						label: mdgriffith$style_elements$Element$Input$labelLeft(
+							mdgriffith$style_elements$Element$bold('Speech Recognition Grammar')),
+						onChange: author$project$Model$UpdateGrammar,
+						options: _List_Nil,
+						value: model.grammar
 					})
 				])
 			]));
@@ -7828,40 +7951,6 @@ var author$project$Elements$TabStyle = {$: 'TabStyle'};
 var author$project$Model$SwitchTab = function (a) {
 	return {$: 'SwitchTab', a: a};
 };
-var elm$html$Html$Attributes$tabindex = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'tabIndex',
-		elm$core$String$fromInt(n));
-};
-var mdgriffith$style_elements$Element$button = F3(
-	function (style, attrs, child) {
-		return mdgriffith$style_elements$Element$Internal$Model$Element(
-			{
-				absolutelyPositioned: elm$core$Maybe$Nothing,
-				attrs: A2(
-					elm$core$List$cons,
-					mdgriffith$style_elements$Element$Attributes$class('button-focus'),
-					A2(
-						elm$core$List$cons,
-						A2(mdgriffith$style_elements$Element$Attributes$inlineStyle, 'cursor', 'pointer'),
-						A2(
-							elm$core$List$cons,
-							mdgriffith$style_elements$Element$Attributes$toAttr(
-								elm$html$Html$Attributes$tabindex(0)),
-							attrs))),
-				child: child,
-				node: 'button',
-				style: elm$core$Maybe$Just(style)
-			});
-	});
-var elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		elm$html$Html$Events$on,
-		'click',
-		elm$json$Json$Decode$succeed(msg));
-};
-var mdgriffith$style_elements$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$Event, elm$html$Html$Events$onClick);
 var author$project$Elements$tabButton = F2(
 	function (model, _n0) {
 		var label = _n0.a;
