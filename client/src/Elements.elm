@@ -10,9 +10,11 @@ import Style.Color as Color
 import Element exposing (Element, Grid, OnGrid, GridPosition, layout, grid, table, navigation, mainContent, button, text, cell)
 import Element.Input as Input exposing (hiddenLabel, labelLeft)
 import Element.Attributes as Attr exposing (px, fill, fillPortion, percent, content)
-import Element.Events as Events exposing (on)
+import Element.Events as Events
 
 import Html exposing (Html)
+import Html.Attributes exposing (value)
+import Html.Events exposing (on)
 
 import Json.Decode as D exposing (Decoder)
 
@@ -134,17 +136,19 @@ messageElement message =
 newMessage : Model -> Element Style variation Msg
 newMessage model =
   Element.table NoStyle []
-    [ [ Input.multiline InputStyle
-        [ onEnterKey SubmitNewMessage
+    [ [ Element.html <| Html.textarea
+        [ on "keyup"
+          <| decodeValueOnKey
+          <| \key shift text ->
+            case (key, shift) of
+              ("Enter", False) ->
+                SubmitNewMessage text
+              _ ->
+                UpdateNewMessage text
+        , value model.newMessage
         ]
-        { onChange = UpdateNewMessage
-        , value =
-          case model.newMessage of
-            SubmittingMessage -> ""
-            NewMessage message -> message
-        , label = hiddenLabel "new message"
-        , options = []
-        }
+        [
+        ]
       ]
     , [ button NoStyle
         [ Events.onClick Listen
@@ -183,23 +187,12 @@ settingsTab model =
       ]
     ]
 
-onEnterKey : (String -> Msg) -> Element.Attribute variation Msg
-onEnterKey func =
-  on "keypress"
-    <| D.map func decodeValueOnEnter
-  
-decodeValueOnEnter : Decoder String
-decodeValueOnEnter =
-  D.map3 (\a b c -> (a, b, c))
-    decodeShift
+decodeValueOnKey : (String -> Bool -> String -> msg) -> Decoder msg 
+decodeValueOnKey func =
+  D.map3 func
     decodeKey
+    decodeShift
     decodeValue
-  |> D.andThen
-    (\(shift, key, value) ->
-      case (shift, key) of
-        (False, "Enter") -> D.succeed value
-        _ -> D.fail "ignoring keyboard event"
-    )
 
 decodeShift : Decoder Bool 
 decodeShift =

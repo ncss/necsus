@@ -29,7 +29,7 @@ initModel : Model
 initModel =
   { tab = MessagesTab
   , messages = Loading
-  , newMessage = NewMessage ""
+  , newMessage = ""
   , username = "user"
   , botName = "bot"
   , endpoint = ""
@@ -87,15 +87,9 @@ update msg model =
     LoadedRemoteMessage (Err error) ->
       ({ model | messages = Error "something went bad" }, Cmd.none)
     UpdateNewMessage message ->
-      ({ model | newMessage =
-        case model.newMessage of
-          SubmittingMessage ->
-            NewMessage ""
-          NewMessage oldMessage ->
-            NewMessage message
-       }, Cmd.none)
+      ({ model | newMessage = message }, Cmd.none)
     SubmitNewMessage message ->
-      ({ model | newMessage = SubmittingMessage },
+      ({ model | newMessage = "" },
         if String.contains model.botName message then
           Cmd.batch
             [ postMessage { author = model.username, text = message }

@@ -6003,19 +6003,7 @@ var author$project$Neccsus$getMessages = elm$http$Http$get(
 	});
 var author$project$Model$Loading = {$: 'Loading'};
 var author$project$Model$MessagesTab = {$: 'MessagesTab'};
-var author$project$Model$NewMessage = function (a) {
-	return {$: 'NewMessage', a: a};
-};
-var author$project$Neccsus$initModel = {
-	botName: 'bot',
-	endpoint: '',
-	grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;',
-	messages: author$project$Model$Loading,
-	newMessage: author$project$Model$NewMessage(''),
-	speechSynthesis: false,
-	tab: author$project$Model$MessagesTab,
-	username: 'user'
-};
+var author$project$Neccsus$initModel = {botName: 'bot', endpoint: '', grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;', messages: author$project$Model$Loading, newMessage: '', speechSynthesis: false, tab: author$project$Model$MessagesTab, username: 'user'};
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
 };
@@ -6121,7 +6109,6 @@ var author$project$Model$Error = function (a) {
 var author$project$Model$Messages = function (a) {
 	return {$: 'Messages', a: a};
 };
-var author$project$Model$SubmittingMessage = {$: 'SubmittingMessage'};
 var author$project$Neccsus$cache = _Platform_outgoingPort('cache', elm$core$Basics$identity);
 var elm$json$Json$Encode$string = _Json_wrap;
 var author$project$Neccsus$cacheEncoder = function (endpoint) {
@@ -6254,24 +6241,14 @@ var author$project$Neccsus$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							newMessage: function () {
-								var _n2 = model.newMessage;
-								if (_n2.$ === 'SubmittingMessage') {
-									return author$project$Model$NewMessage('');
-								} else {
-									var oldMessage = _n2.a;
-									return author$project$Model$NewMessage(message);
-								}
-							}()
-						}),
+						{newMessage: message}),
 					elm$core$Platform$Cmd$none);
 			case 'SubmitNewMessage':
 				var message = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{newMessage: author$project$Model$SubmittingMessage}),
+						{newMessage: ''}),
 					A2(elm$core$String$contains, model.botName, message) ? elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[
@@ -6605,7 +6582,6 @@ var author$project$Elements$messagesList = function (model) {
 			}()
 			]));
 };
-var author$project$Elements$InputStyle = {$: 'InputStyle'};
 var author$project$Elements$decodeKey = A2(elm$json$Json$Decode$field, 'key', elm$json$Json$Decode$string);
 var author$project$Elements$decodeShift = A2(elm$json$Json$Decode$field, 'shiftKey', elm$json$Json$Decode$bool);
 var elm$json$Json$Decode$at = F2(
@@ -6617,35 +6593,12 @@ var author$project$Elements$decodeValue = A2(
 	_List_fromArray(
 		['target', 'value']),
 	elm$json$Json$Decode$string);
-var elm$json$Json$Decode$andThen = _Json_andThen;
-var elm$json$Json$Decode$fail = _Json_fail;
 var elm$json$Json$Decode$map3 = _Json_map3;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var author$project$Elements$decodeValueOnEnter = A2(
-	elm$json$Json$Decode$andThen,
-	function (_n0) {
-		var shift = _n0.a;
-		var key = _n0.b;
-		var value = _n0.c;
-		var _n1 = _Utils_Tuple2(shift, key);
-		if ((!_n1.a) && (_n1.b === 'Enter')) {
-			return elm$json$Json$Decode$succeed(value);
-		} else {
-			return elm$json$Json$Decode$fail('ignoring keyboard event');
-		}
-	},
-	A4(
-		elm$json$Json$Decode$map3,
-		F3(
-			function (a, b, c) {
-				return _Utils_Tuple3(a, b, c);
-			}),
-		author$project$Elements$decodeShift,
-		author$project$Elements$decodeKey,
-		author$project$Elements$decodeValue));
-var elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
+var author$project$Elements$decodeValueOnKey = function (func) {
+	return A4(elm$json$Json$Decode$map3, func, author$project$Elements$decodeKey, author$project$Elements$decodeShift, author$project$Elements$decodeValue);
 };
+var author$project$Model$Listen = {$: 'Listen'};
+var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
 		case 'Normal':
@@ -6658,6 +6611,18 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
+var elm$html$Html$textarea = _VirtualDom_node('textarea');
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$string(string));
+	});
+var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
 var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var elm$html$Html$Events$on = F2(
 	function (event, decoder) {
@@ -6666,34 +6631,12 @@ var elm$html$Html$Events$on = F2(
 			event,
 			elm$virtual_dom$VirtualDom$Normal(decoder));
 	});
-var mdgriffith$style_elements$Element$Internal$Model$Event = function (a) {
-	return {$: 'Event', a: a};
-};
-var mdgriffith$style_elements$Element$Events$on = F2(
-	function (ev, decode) {
-		return mdgriffith$style_elements$Element$Internal$Model$Event(
-			A2(elm$html$Html$Events$on, ev, decode));
-	});
-var author$project$Elements$onEnterKey = function (func) {
-	return A2(
-		mdgriffith$style_elements$Element$Events$on,
-		'keypress',
-		A2(elm$json$Json$Decode$map, func, author$project$Elements$decodeValueOnEnter));
-};
-var author$project$Model$Listen = {$: 'Listen'};
 var elm$html$Html$Attributes$tabindex = function (n) {
 	return A2(
 		_VirtualDom_attribute,
 		'tabIndex',
 		elm$core$String$fromInt(n));
 };
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
-	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
 var mdgriffith$style_elements$Element$Internal$Model$Attr = function (a) {
 	return {$: 'Attr', a: a};
@@ -6730,6 +6673,7 @@ var mdgriffith$style_elements$Element$button = F3(
 				style: elm$core$Maybe$Just(style)
 			});
 	});
+var mdgriffith$style_elements$Element$html = mdgriffith$style_elements$Element$Internal$Model$Raw;
 var elm$core$Basics$composeL = F3(
 	function (g, f, x) {
 		return g(
@@ -6741,12 +6685,83 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var mdgriffith$style_elements$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$Event, elm$html$Html$Events$onClick);
-var mdgriffith$style_elements$Element$Input$HiddenLabel = function (a) {
-	return {$: 'HiddenLabel', a: a};
+var mdgriffith$style_elements$Element$Internal$Model$Event = function (a) {
+	return {$: 'Event', a: a};
 };
-var mdgriffith$style_elements$Element$Input$hiddenLabel = mdgriffith$style_elements$Element$Input$HiddenLabel;
-var mdgriffith$style_elements$Element$Input$TextArea = {$: 'TextArea'};
+var mdgriffith$style_elements$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$Event, elm$html$Html$Events$onClick);
+var author$project$Elements$newMessage = function (model) {
+	return A3(
+		mdgriffith$style_elements$Element$table,
+		author$project$Elements$NoStyle,
+		_List_Nil,
+		_List_fromArray(
+			[
+				_List_fromArray(
+				[
+					mdgriffith$style_elements$Element$html(
+					A2(
+						elm$html$Html$textarea,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$Events$on,
+								'keyup',
+								author$project$Elements$decodeValueOnKey(
+									F3(
+										function (key, shift, text) {
+											var _n0 = _Utils_Tuple2(key, shift);
+											if ((_n0.a === 'Enter') && (!_n0.b)) {
+												return author$project$Model$SubmitNewMessage(text);
+											} else {
+												return author$project$Model$UpdateNewMessage(text);
+											}
+										}))),
+								elm$html$Html$Attributes$value(model.newMessage)
+							]),
+						_List_Nil))
+				]),
+				_List_fromArray(
+				[
+					A3(
+					mdgriffith$style_elements$Element$button,
+					author$project$Elements$NoStyle,
+					_List_fromArray(
+						[
+							mdgriffith$style_elements$Element$Events$onClick(author$project$Model$Listen)
+						]),
+					mdgriffith$style_elements$Element$text('listen'))
+				])
+			]));
+};
+var author$project$Elements$messagesTab = function (model) {
+	return A3(
+		mdgriffith$style_elements$Element$table,
+		author$project$Elements$NoStyle,
+		_List_fromArray(
+			[
+				A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 20, 0)
+			]),
+		_List_fromArray(
+			[
+				_List_fromArray(
+				[
+					author$project$Elements$messagesList(model),
+					author$project$Elements$newMessage(model)
+				])
+			]));
+};
+var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
+var author$project$Elements$InputStyle = {$: 'InputStyle'};
+var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Model$UpdateGrammar = function (a) {
+	return {$: 'UpdateGrammar', a: a};
+};
+var author$project$Model$UpdateSpeechSynthesis = function (a) {
+	return {$: 'UpdateSpeechSynthesis', a: a};
+};
+var author$project$Model$UpdateUsername = function (a) {
+	return {$: 'UpdateUsername', a: a};
+};
 var elm$core$Basics$not = _Basics_not;
 var elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -6776,7 +6791,6 @@ var elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
-var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -6790,43 +6804,33 @@ var mdgriffith$style_elements$Element$Attributes$attribute = F2(
 		return mdgriffith$style_elements$Element$Internal$Model$Attr(
 			A2(elm$html$Html$Attributes$attribute, name, val));
 	});
-var elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
+var mdgriffith$style_elements$Element$Attributes$spacing = function (x) {
+	return A2(mdgriffith$style_elements$Element$Internal$Model$Spacing, x, x);
 };
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
+var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
+	return {$: 'VAlign', a: a};
 };
-var elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$html$Html$Events$targetValue = A2(
+var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
+var mdgriffith$style_elements$Element$Attributes$verticalCenter = mdgriffith$style_elements$Element$Internal$Model$VAlign(mdgriffith$style_elements$Element$Internal$Model$VerticalCenter);
+var elm$html$Html$Events$targetChecked = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var elm$html$Html$Events$onInput = function (tagger) {
+		['target', 'checked']),
+	elm$json$Json$Decode$bool);
+var elm$html$Html$Events$onCheck = function (tagger) {
 	return A2(
-		elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			elm$html$Html$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
+		elm$html$Html$Events$on,
+		'change',
+		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
 };
 var mdgriffith$style_elements$Element$Internal$Model$InputEvent = function (a) {
 	return {$: 'InputEvent', a: a};
 };
-var mdgriffith$style_elements$Element$Events$onInput = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onInput);
-var mdgriffith$style_elements$Element$Input$AutoFill = function (a) {
-	return {$: 'AutoFill', a: a};
-};
+var mdgriffith$style_elements$Element$Events$onCheck = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onCheck);
 var mdgriffith$style_elements$Element$Input$Disabled = {$: 'Disabled'};
-var mdgriffith$style_elements$Element$Input$FocusOnLoad = {$: 'FocusOnLoad'};
-var mdgriffith$style_elements$Element$Input$SpellCheck = {$: 'SpellCheck'};
+var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
+	return {$: 'LabelOnRight', a: a};
+};
 var mdgriffith$style_elements$Element$Input$autofillAttr = mdgriffith$style_elements$Element$Attributes$attribute('autocomplete');
 var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$html$Html$Attributes$boolProperty = F2(
@@ -7364,14 +7368,121 @@ var mdgriffith$style_elements$Element$Input$applyLabel = F8(
 			}
 		}
 	});
+var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
+var mdgriffith$style_elements$Element$Input$checked = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$checked);
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
 var mdgriffith$style_elements$Element$Input$disabledAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$disabled);
-var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
-var mdgriffith$style_elements$Element$Input$readonlyAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$readonly);
-var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
-var mdgriffith$style_elements$Element$Input$textValueAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$value);
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
 var mdgriffith$style_elements$Element$Input$type_ = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$type_);
+var mdgriffith$style_elements$Element$Input$checkbox = F3(
+	function (style, attributes, input) {
+		var isDisabled = A2(
+			elm$core$List$any,
+			elm$core$Basics$eq(mdgriffith$style_elements$Element$Input$Disabled),
+			input.options);
+		var withDisabled = function (attrs) {
+			return isDisabled ? A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$class('disabled-input'),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$style_elements$Element$Input$disabledAttr(true),
+					attrs)) : A2(elm$core$List$cons, mdgriffith$style_elements$Element$Input$pointer, attrs);
+		};
+		var forErrors = function (opt) {
+			if (opt.$ === 'ErrorOpt') {
+				var err = opt.a;
+				return elm$core$Maybe$Just(err);
+			} else {
+				return elm$core$Maybe$Nothing;
+			}
+		};
+		var errs = A2(elm$core$List$filterMap, forErrors, input.options);
+		var withError = function (attrs) {
+			return (!elm$core$List$isEmpty(errs)) ? A2(
+				elm$core$List$cons,
+				A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-invalid', 'true'),
+				attrs) : attrs;
+		};
+		var inputElem = _List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Internal$Model$Element(
+				{
+					absolutelyPositioned: elm$core$Maybe$Nothing,
+					attrs: A2(
+						elm$core$Basics$composeL,
+						A2(
+							elm$core$Basics$composeL,
+							mdgriffith$style_elements$Element$Input$addOptionsAsAttrs(input.options),
+							withError),
+						withDisabled)(
+						_List_fromArray(
+							[
+								mdgriffith$style_elements$Element$Input$type_('checkbox'),
+								mdgriffith$style_elements$Element$Input$checked(input.checked),
+								mdgriffith$style_elements$Element$Events$onCheck(input.onChange)
+							])),
+					child: mdgriffith$style_elements$Element$Internal$Model$Empty,
+					node: 'input',
+					style: elm$core$Maybe$Nothing
+				})
+			]);
+		return A8(
+			mdgriffith$style_elements$Element$Input$applyLabel,
+			elm$core$Maybe$Nothing,
+			elm$core$Maybe$Nothing,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$spacing(5),
+				A2(elm$core$List$cons, mdgriffith$style_elements$Element$Attributes$verticalCenter, attributes)),
+			mdgriffith$style_elements$Element$Input$LabelOnRight(input.label),
+			errs,
+			isDisabled,
+			true,
+			inputElem);
+	});
+var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
+	return {$: 'LabelOnLeft', a: a};
+};
+var mdgriffith$style_elements$Element$Input$labelLeft = mdgriffith$style_elements$Element$Input$LabelOnLeft;
+var mdgriffith$style_elements$Element$Input$TextArea = {$: 'TextArea'};
+var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
+var elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$html$Html$Events$targetValue = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			elm$html$Html$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
+};
+var mdgriffith$style_elements$Element$Events$onInput = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onInput);
+var mdgriffith$style_elements$Element$Input$AutoFill = function (a) {
+	return {$: 'AutoFill', a: a};
+};
+var mdgriffith$style_elements$Element$Input$FocusOnLoad = {$: 'FocusOnLoad'};
+var mdgriffith$style_elements$Element$Input$SpellCheck = {$: 'SpellCheck'};
+var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
+var mdgriffith$style_elements$Element$Input$readonlyAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$readonly);
+var mdgriffith$style_elements$Element$Input$textValueAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$value);
 var mdgriffith$style_elements$Element$Internal$Model$RawText = {$: 'RawText'};
 var mdgriffith$style_elements$Element$Input$textHelper = F5(
 	function (kind, addedOptions, style, attributes, input) {
@@ -7622,174 +7733,6 @@ var mdgriffith$style_elements$Element$Input$textHelper = F5(
 				[inputElem]));
 	});
 var mdgriffith$style_elements$Element$Input$multiline = A2(mdgriffith$style_elements$Element$Input$textHelper, mdgriffith$style_elements$Element$Input$TextArea, _List_Nil);
-var author$project$Elements$newMessage = function (model) {
-	return A3(
-		mdgriffith$style_elements$Element$table,
-		author$project$Elements$NoStyle,
-		_List_Nil,
-		_List_fromArray(
-			[
-				_List_fromArray(
-				[
-					A3(
-					mdgriffith$style_elements$Element$Input$multiline,
-					author$project$Elements$InputStyle,
-					_List_fromArray(
-						[
-							author$project$Elements$onEnterKey(author$project$Model$SubmitNewMessage)
-						]),
-					{
-						label: mdgriffith$style_elements$Element$Input$hiddenLabel('new message'),
-						onChange: author$project$Model$UpdateNewMessage,
-						options: _List_Nil,
-						value: function () {
-							var _n0 = model.newMessage;
-							if (_n0.$ === 'SubmittingMessage') {
-								return '';
-							} else {
-								var message = _n0.a;
-								return message;
-							}
-						}()
-					})
-				]),
-				_List_fromArray(
-				[
-					A3(
-					mdgriffith$style_elements$Element$button,
-					author$project$Elements$NoStyle,
-					_List_fromArray(
-						[
-							mdgriffith$style_elements$Element$Events$onClick(author$project$Model$Listen)
-						]),
-					mdgriffith$style_elements$Element$text('listen'))
-				])
-			]));
-};
-var author$project$Elements$messagesTab = function (model) {
-	return A3(
-		mdgriffith$style_elements$Element$table,
-		author$project$Elements$NoStyle,
-		_List_fromArray(
-			[
-				A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 20, 0)
-			]),
-		_List_fromArray(
-			[
-				_List_fromArray(
-				[
-					author$project$Elements$messagesList(model),
-					author$project$Elements$newMessage(model)
-				])
-			]));
-};
-var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
-var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
-var author$project$Model$UpdateGrammar = function (a) {
-	return {$: 'UpdateGrammar', a: a};
-};
-var author$project$Model$UpdateSpeechSynthesis = function (a) {
-	return {$: 'UpdateSpeechSynthesis', a: a};
-};
-var author$project$Model$UpdateUsername = function (a) {
-	return {$: 'UpdateUsername', a: a};
-};
-var mdgriffith$style_elements$Element$Attributes$spacing = function (x) {
-	return A2(mdgriffith$style_elements$Element$Internal$Model$Spacing, x, x);
-};
-var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
-	return {$: 'VAlign', a: a};
-};
-var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
-var mdgriffith$style_elements$Element$Attributes$verticalCenter = mdgriffith$style_elements$Element$Internal$Model$VAlign(mdgriffith$style_elements$Element$Internal$Model$VerticalCenter);
-var elm$html$Html$Events$targetChecked = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'checked']),
-	elm$json$Json$Decode$bool);
-var elm$html$Html$Events$onCheck = function (tagger) {
-	return A2(
-		elm$html$Html$Events$on,
-		'change',
-		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
-};
-var mdgriffith$style_elements$Element$Events$onCheck = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onCheck);
-var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
-	return {$: 'LabelOnRight', a: a};
-};
-var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
-var mdgriffith$style_elements$Element$Input$checked = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$checked);
-var mdgriffith$style_elements$Element$Input$checkbox = F3(
-	function (style, attributes, input) {
-		var isDisabled = A2(
-			elm$core$List$any,
-			elm$core$Basics$eq(mdgriffith$style_elements$Element$Input$Disabled),
-			input.options);
-		var withDisabled = function (attrs) {
-			return isDisabled ? A2(
-				elm$core$List$cons,
-				mdgriffith$style_elements$Element$Attributes$class('disabled-input'),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$style_elements$Element$Input$disabledAttr(true),
-					attrs)) : A2(elm$core$List$cons, mdgriffith$style_elements$Element$Input$pointer, attrs);
-		};
-		var forErrors = function (opt) {
-			if (opt.$ === 'ErrorOpt') {
-				var err = opt.a;
-				return elm$core$Maybe$Just(err);
-			} else {
-				return elm$core$Maybe$Nothing;
-			}
-		};
-		var errs = A2(elm$core$List$filterMap, forErrors, input.options);
-		var withError = function (attrs) {
-			return (!elm$core$List$isEmpty(errs)) ? A2(
-				elm$core$List$cons,
-				A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-invalid', 'true'),
-				attrs) : attrs;
-		};
-		var inputElem = _List_fromArray(
-			[
-				mdgriffith$style_elements$Element$Internal$Model$Element(
-				{
-					absolutelyPositioned: elm$core$Maybe$Nothing,
-					attrs: A2(
-						elm$core$Basics$composeL,
-						A2(
-							elm$core$Basics$composeL,
-							mdgriffith$style_elements$Element$Input$addOptionsAsAttrs(input.options),
-							withError),
-						withDisabled)(
-						_List_fromArray(
-							[
-								mdgriffith$style_elements$Element$Input$type_('checkbox'),
-								mdgriffith$style_elements$Element$Input$checked(input.checked),
-								mdgriffith$style_elements$Element$Events$onCheck(input.onChange)
-							])),
-					child: mdgriffith$style_elements$Element$Internal$Model$Empty,
-					node: 'input',
-					style: elm$core$Maybe$Nothing
-				})
-			]);
-		return A8(
-			mdgriffith$style_elements$Element$Input$applyLabel,
-			elm$core$Maybe$Nothing,
-			elm$core$Maybe$Nothing,
-			A2(
-				elm$core$List$cons,
-				mdgriffith$style_elements$Element$Attributes$spacing(5),
-				A2(elm$core$List$cons, mdgriffith$style_elements$Element$Attributes$verticalCenter, attributes)),
-			mdgriffith$style_elements$Element$Input$LabelOnRight(input.label),
-			errs,
-			isDisabled,
-			true,
-			inputElem);
-	});
-var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
-	return {$: 'LabelOnLeft', a: a};
-};
-var mdgriffith$style_elements$Element$Input$labelLeft = mdgriffith$style_elements$Element$Input$LabelOnLeft;
 var mdgriffith$style_elements$Element$Input$Plain = {$: 'Plain'};
 var mdgriffith$style_elements$Element$Input$text = A2(mdgriffith$style_elements$Element$Input$textHelper, mdgriffith$style_elements$Element$Input$Plain, _List_Nil);
 var author$project$Elements$settingsTab = function (model) {

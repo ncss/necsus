@@ -22,12 +22,10 @@ type SpeechResult = InterimSpeechResult String | FinalSpeechResult String
 
 type RemoteMessages = Loading | Messages (List Message) | Error String
 
-type NewMessage = SubmittingMessage | NewMessage String
-
 type alias Model =
   { tab : Tab
   , messages : RemoteMessages
-  , newMessage : NewMessage 
+  , newMessage : String
   , username : String
   , botName : String
   , endpoint : String
