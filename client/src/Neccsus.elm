@@ -31,6 +31,7 @@ initModel =
   , messages = Loading
   , newMessage = NewMessage ""
   , username = "user"
+  , botName = "bot"
   , endpoint = ""
   , speechSynthesis = False
   , grammar = "#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;"
@@ -95,18 +96,11 @@ update msg model =
        }, Cmd.none)
     SubmitNewMessage message ->
       ({ model | newMessage = SubmittingMessage },
-        if String.startsWith "/" message then
-          let
-            commandRaw = String.words message
-            command = commandRaw
-              |> List.head
-              |> Maybe.withDefault ""
-              |> String.dropLeft 1
-            content = commandRaw
-              |> List.drop 1
-              |> String.join " "
-          in
-            postCommand { author = model.username, command = command, text = content, endpoint = model.endpoint }
+        if String.contains model.botName message then
+          Cmd.batch
+            [ postMessage { author = model.username, text = message }
+            , postCommand { author = model.username, command = model.botName, text = message, endpoint = model.endpoint }
+            ]
         else
           postMessage { author = model.username, text = message }
       )

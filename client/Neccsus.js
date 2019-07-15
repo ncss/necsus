@@ -6007,6 +6007,7 @@ var author$project$Model$NewMessage = function (a) {
 	return {$: 'NewMessage', a: a};
 };
 var author$project$Neccsus$initModel = {
+	botName: 'bot',
 	endpoint: '',
 	grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;',
 	messages: author$project$Model$Loading,
@@ -6177,50 +6178,9 @@ var author$project$Neccsus$postMessage = function (message) {
 };
 var author$project$Neccsus$speak = _Platform_outgoingPort('speak', elm$json$Json$Encode$string);
 var elm$core$Basics$neq = _Utils_notEqual;
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
-var elm$core$String$length = _String_length;
-var elm$core$String$slice = _String_slice;
-var elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			elm$core$String$slice,
-			n,
-			elm$core$String$length(string),
-			string);
-	});
-var elm$core$String$startsWith = _String_startsWith;
-var elm$core$String$words = _String_words;
+var elm$core$String$contains = _String_contains;
 var author$project$Neccsus$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6312,27 +6272,15 @@ var author$project$Neccsus$update = F2(
 					_Utils_update(
 						model,
 						{newMessage: author$project$Model$SubmittingMessage}),
-					function () {
-						if (A2(elm$core$String$startsWith, '/', message)) {
-							var commandRaw = elm$core$String$words(message);
-							var content = A2(
-								elm$core$String$join,
-								' ',
-								A2(elm$core$List$drop, 1, commandRaw));
-							var command = A2(
-								elm$core$String$dropLeft,
-								1,
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									elm$core$List$head(commandRaw)));
-							return author$project$Neccsus$postCommand(
-								{author: model.username, command: command, endpoint: model.endpoint, text: content});
-						} else {
-							return author$project$Neccsus$postMessage(
-								{author: model.username, text: message});
-						}
-					}());
+					A2(elm$core$String$contains, model.botName, message) ? elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								author$project$Neccsus$postMessage(
+								{author: model.username, text: message}),
+								author$project$Neccsus$postCommand(
+								{author: model.username, command: model.botName, endpoint: model.endpoint, text: message})
+							])) : author$project$Neccsus$postMessage(
+						{author: model.username, text: message}));
 			case 'UpdateUsername':
 				var username = msg.a;
 				return _Utils_Tuple2(
@@ -6462,6 +6410,15 @@ var mdgriffith$style_elements$Element$cell = function (box) {
 			mdgriffith$style_elements$Element$Internal$Model$GridCoords(
 				mdgriffith$style_elements$Style$Internal$Model$GridPosition(coords)),
 			box.content));
+};
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
 };
 var elm$core$List$map = F2(
 	function (f, xs) {
@@ -9728,6 +9685,7 @@ var mdgriffith$style_elements$Style$Internal$Render$Property$shadow = function (
 				_Utils_Tuple2('text-shadow', renderedText))
 			]));
 };
+var elm$core$String$length = _String_length;
 var mdgriffith$style_elements$Style$Internal$Render$Property$transformations = function (transforms) {
 	var transformToString = function (transform) {
 		switch (transform.$) {
@@ -9833,6 +9791,27 @@ var mdgriffith$style_elements$Style$Internal$Render$Value$typeface = function (f
 		', ',
 		A2(elm$core$List$map, renderFont, families));
 };
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
 var mdgriffith$style_elements$Style$Internal$Selector$Free = function (a) {
 	return {$: 'Free', a: a};
 };
@@ -10088,6 +10067,15 @@ var elm$regex$Regex$fromString = function (string) {
 };
 var elm$regex$Regex$never = _Regex_never;
 var elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
+var elm$core$String$slice = _String_slice;
+var elm$core$String$dropLeft = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(
+			elm$core$String$slice,
+			n,
+			elm$core$String$length(string),
+			string);
+	});
 var elm$core$String$left = F2(
 	function (n, string) {
 		return (n < 1) ? '' : A3(elm$core$String$slice, 0, n, string);
@@ -14117,13 +14105,13 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
+var elm$core$String$startsWith = _String_startsWith;
 var elm$url$Url$Http = {$: 'Http'};
 var elm$url$Url$Https = {$: 'Https'};
 var elm$core$String$indexes = _String_indexes;
 var elm$core$String$isEmpty = function (string) {
 	return string === '';
 };
-var elm$core$String$contains = _String_contains;
 var elm$core$String$toInt = _String_toInt;
 var elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {

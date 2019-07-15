@@ -29,6 +29,7 @@ type alias Model =
   , messages : RemoteMessages
   , newMessage : NewMessage 
   , username : String
+  , botName : String
   , endpoint : String
   , speechSynthesis : Bool
   , grammar : String
