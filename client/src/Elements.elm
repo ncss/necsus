@@ -162,25 +162,25 @@ settingsTab model =
   Element.table SettingsStyle []
     [ [ Input.text InputStyle []
         { onChange = UpdateUsername
-        , value = model.username
+        , value = model.settings.username
         , label = labelLeft <| Element.bold "Name"
         , options = []
         } 
       , Input.text InputStyle []
         { onChange = UpdateEndpoint
-        , value = model.endpoint
+        , value = model.settings.endpoint
         , label = labelLeft <| Element.bold "Endpoint"
         , options = []
         } 
       , Input.checkbox CheckboxStyle []
         { onChange = UpdateSpeechSynthesis
-        , checked = model.speechSynthesis
+        , checked = model.settings.speechSynthesis
         , label = Element.bold "Speech Synthesis"
         , options = []
         }
       , Input.multiline InputStyle []
         { onChange = UpdateGrammar
-        , value = model.grammar
+        , value = model.settings.grammar
         , label = labelLeft <| Element.bold "Speech Recognition Grammar"
         , options = []
         }

@@ -30,7 +30,12 @@ initModel =
   { tab = MessagesTab
   , messages = Loading
   , newMessage = ""
-  , username = "user"
+  , settings = initSettings
+  }
+
+initSettings : Settings
+initSettings =
+  { username = "user"
   , botName = "bot"
   , endpoint = ""
   , speechSynthesis = False
@@ -40,11 +45,24 @@ initModel =
 port cache : Value -> Cmd msg
 port uncache : (Value -> msg) -> Sub msg
 
-cacheEncoder : String -> Value
-cacheEncoder endpoint = E.string endpoint
+cacheEncoder : Settings -> Value
+cacheEncoder settings =
+  E.object
+    [ ("username", E.string settings.username)
+    , ("botName", E.string settings.botName)
+    , ("endpoint", E.string settings.endpoint)
+    , ("speechSynthesis", E.bool settings.speechSynthesis)
+    , ("grammar", E.string settings.grammar)
+    ]
 
-cacheDecoder : Decoder (Maybe String)
-cacheDecoder = D.nullable D.string
+cacheDecoder : Decoder (Settings)
+cacheDecoder =
+  D.map5 Settings
+    (D.field "username" D.string)
+    (D.field "botName" D.string)
+    (D.field "endpoint" D.string)
+    (D.field "speechSynthesis" D.bool)
+    (D.field "grammar" D.string)
 
 port speak : String -> Cmd msg
 
@@ -77,7 +95,7 @@ update msg model =
       case model.messages of
         Messages messages ->
           ( { model | messages = Messages <| messages++[message] }
-          , if model.speechSynthesis && message.author /= model.username then
+          , if model.settings.speechSynthesis && message.author /= model.settings.username then
               speak message.text
             else
               Cmd.none
@@ -90,33 +108,41 @@ update msg model =
       ({ model | newMessage = message }, Cmd.none)
     SubmitNewMessage message ->
       ({ model | newMessage = "" },
-        if String.contains model.botName message then
+        if String.contains model.settings.botName message then
           Cmd.batch
-            [ postMessage { author = model.username, text = message }
-            , postCommand { author = model.username, command = model.botName, text = message, endpoint = model.endpoint }
+            [ postMessage { author = model.settings.username, text = message }
+            , postCommand { author = model.settings.username, command = model.settings.botName, text = message, endpoint = model.settings.endpoint }
             ]
         else
-          postMessage { author = model.username, text = message }
+          postMessage { author = model.settings.username, text = message }
       )
+    UpdateSettings settings ->
+      updateSettings model <| \_ -> settings
     UpdateUsername username ->
-      ({ model | username = username }, Cmd.none)
+      updateSettings model <| \settings -> { settings | username = username }
     UpdateEndpoint endpoint ->
-      ({ model | endpoint = endpoint }, cache <| cacheEncoder endpoint)
-    UpdateSpeechSynthesis value ->
-      ({ model | speechSynthesis = value }, Cmd.none)
+      updateSettings model <| \settings -> { settings | endpoint = endpoint }
+    UpdateSpeechSynthesis speechSynthesis ->
+      updateSettings model <| \settings -> { settings | speechSynthesis = speechSynthesis }
     UpdateGrammar grammar ->
-      ({ model | grammar = grammar }, Cmd.none)
+      updateSettings model <| \settings -> { settings | grammar = grammar }
     Listen ->
-      (model, listen model.grammar)
+      (model, listen model.settings.grammar)
+
+updateSettings : Model -> (Settings -> Settings) -> (Model, Cmd Msg)
+updateSettings model updates =
+  let
+    newSettings = updates model.settings 
+  in
+    ({ model | settings = newSettings}, cache <| cacheEncoder newSettings)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ uncache
       <| D.decodeValue cacheDecoder
-        >> Result.withDefault (Nothing)
-        >> Maybe.withDefault ""
-        >> UpdateEndpoint
+        >> Result.withDefault initSettings
+        >> UpdateSettings
     , speechResult
       <| D.decodeValue speechResultDecoder
         >> Result.withDefault (InterimSpeechResult "")

@@ -16,12 +16,12 @@
       Local storage port
     */
     // Send to Elm
-    var cache = localStorage.getItem('cache');
+    var cache = JSON.parse(localStorage.getItem('cache'));
     app.ports.uncache.send(cache);
 
     // Retrieve from Elm
     app.ports.cache.subscribe(function(data) {
-      localStorage.setItem('cache', data);
+      localStorage.setItem('cache', JSON.stringify(data));
     });
 
     /*

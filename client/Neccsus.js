@@ -6003,7 +6003,8 @@ var author$project$Neccsus$getMessages = elm$http$Http$get(
 	});
 var author$project$Model$Loading = {$: 'Loading'};
 var author$project$Model$MessagesTab = {$: 'MessagesTab'};
-var author$project$Neccsus$initModel = {botName: 'bot', endpoint: '', grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;', messages: author$project$Model$Loading, newMessage: '', speechSynthesis: false, tab: author$project$Model$MessagesTab, username: 'user'};
+var author$project$Neccsus$initSettings = {botName: 'bot', endpoint: '', grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;', speechSynthesis: false, username: 'user'};
+var author$project$Neccsus$initModel = {messages: author$project$Model$Loading, newMessage: '', settings: author$project$Neccsus$initSettings, tab: author$project$Model$MessagesTab};
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
 };
@@ -6013,30 +6014,31 @@ var author$project$Model$InterimSpeechResult = function (a) {
 var author$project$Model$SubmitNewMessage = function (a) {
 	return {$: 'SubmitNewMessage', a: a};
 };
-var author$project$Model$UpdateEndpoint = function (a) {
-	return {$: 'UpdateEndpoint', a: a};
-};
 var author$project$Model$UpdateNewMessage = function (a) {
 	return {$: 'UpdateNewMessage', a: a};
 };
-var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$null = _Json_decodeNull;
-var elm$json$Json$Decode$oneOf = _Json_oneOf;
-var elm$json$Json$Decode$nullable = function (decoder) {
-	return elm$json$Json$Decode$oneOf(
-		_List_fromArray(
-			[
-				elm$json$Json$Decode$null(elm$core$Maybe$Nothing),
-				A2(elm$json$Json$Decode$map, elm$core$Maybe$Just, decoder)
-			]));
+var author$project$Model$UpdateSettings = function (a) {
+	return {$: 'UpdateSettings', a: a};
 };
-var author$project$Neccsus$cacheDecoder = elm$json$Json$Decode$nullable(elm$json$Json$Decode$string);
+var author$project$Model$Settings = F5(
+	function (username, botName, endpoint, speechSynthesis, grammar) {
+		return {botName: botName, endpoint: endpoint, grammar: grammar, speechSynthesis: speechSynthesis, username: username};
+	});
+var elm$json$Json$Decode$bool = _Json_decodeBool;
+var elm$json$Json$Decode$map5 = _Json_map5;
+var author$project$Neccsus$cacheDecoder = A6(
+	elm$json$Json$Decode$map5,
+	author$project$Model$Settings,
+	A2(elm$json$Json$Decode$field, 'username', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'botName', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'endpoint', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'speechSynthesis', elm$json$Json$Decode$bool),
+	A2(elm$json$Json$Decode$field, 'grammar', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$value = _Json_decodeValue;
 var author$project$Neccsus$speechResult = _Platform_incomingPort('speechResult', elm$json$Json$Decode$value);
 var author$project$Model$FinalSpeechResult = function (a) {
 	return {$: 'FinalSpeechResult', a: a};
 };
-var elm$json$Json$Decode$bool = _Json_decodeBool;
 var author$project$Neccsus$speechResultDecoder = function () {
 	var result = F2(
 		function (text, isFinal) {
@@ -6049,15 +6051,6 @@ var author$project$Neccsus$speechResultDecoder = function () {
 		A2(elm$json$Json$Decode$field, 'isFinal', elm$json$Json$Decode$bool));
 }();
 var author$project$Neccsus$uncache = _Platform_incomingPort('uncache', elm$json$Json$Decode$value);
-var elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Result$withDefault = F2(
 	function (def, result) {
@@ -6079,11 +6072,8 @@ var author$project$Neccsus$subscriptions = function (model) {
 					elm$json$Json$Decode$decodeValue(author$project$Neccsus$cacheDecoder),
 					A2(
 						elm$core$Basics$composeR,
-						elm$core$Result$withDefault(elm$core$Maybe$Nothing),
-						A2(
-							elm$core$Basics$composeR,
-							elm$core$Maybe$withDefault(''),
-							author$project$Model$UpdateEndpoint)))),
+						elm$core$Result$withDefault(author$project$Neccsus$initSettings),
+						author$project$Model$UpdateSettings))),
 				author$project$Neccsus$speechResult(
 				A2(
 					elm$core$Basics$composeR,
@@ -6109,11 +6099,7 @@ var author$project$Model$Error = function (a) {
 var author$project$Model$Messages = function (a) {
 	return {$: 'Messages', a: a};
 };
-var author$project$Neccsus$cache = _Platform_outgoingPort('cache', elm$core$Basics$identity);
 var elm$json$Json$Encode$string = _Json_wrap;
-var author$project$Neccsus$cacheEncoder = function (endpoint) {
-	return elm$json$Json$Encode$string(endpoint);
-};
 var author$project$Neccsus$listen = _Platform_outgoingPort('listen', elm$json$Json$Encode$string);
 var author$project$Model$LoadedRemoteMessage = function (a) {
 	return {$: 'LoadedRemoteMessage', a: a};
@@ -6164,6 +6150,52 @@ var author$project$Neccsus$postMessage = function (message) {
 		});
 };
 var author$project$Neccsus$speak = _Platform_outgoingPort('speak', elm$json$Json$Encode$string);
+var author$project$Neccsus$cache = _Platform_outgoingPort('cache', elm$core$Basics$identity);
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var author$project$Neccsus$cacheEncoder = function (settings) {
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'username',
+				elm$json$Json$Encode$string(settings.username)),
+				_Utils_Tuple2(
+				'botName',
+				elm$json$Json$Encode$string(settings.botName)),
+				_Utils_Tuple2(
+				'endpoint',
+				elm$json$Json$Encode$string(settings.endpoint)),
+				_Utils_Tuple2(
+				'speechSynthesis',
+				elm$json$Json$Encode$bool(settings.speechSynthesis)),
+				_Utils_Tuple2(
+				'grammar',
+				elm$json$Json$Encode$string(settings.grammar))
+			]));
+};
+var author$project$Neccsus$updateSettings = F2(
+	function (model, updates) {
+		var newSettings = updates(model.settings);
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{settings: newSettings}),
+			author$project$Neccsus$cache(
+				author$project$Neccsus$cacheEncoder(newSettings)));
+	});
 var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
@@ -6214,7 +6246,7 @@ var author$project$Neccsus$update = F2(
 											_List_fromArray(
 												[message])))
 								}),
-							(model.speechSynthesis && (!_Utils_eq(message.author, model.username))) ? author$project$Neccsus$speak(message.text) : elm$core$Platform$Cmd$none);
+							(model.settings.speechSynthesis && (!_Utils_eq(message.author, model.settings.username))) ? author$project$Neccsus$speak(message.text) : elm$core$Platform$Cmd$none);
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -6249,48 +6281,67 @@ var author$project$Neccsus$update = F2(
 					_Utils_update(
 						model,
 						{newMessage: ''}),
-					A2(elm$core$String$contains, model.botName, message) ? elm$core$Platform$Cmd$batch(
+					A2(elm$core$String$contains, model.settings.botName, message) ? elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[
 								author$project$Neccsus$postMessage(
-								{author: model.username, text: message}),
+								{author: model.settings.username, text: message}),
 								author$project$Neccsus$postCommand(
-								{author: model.username, command: model.botName, endpoint: model.endpoint, text: message})
+								{author: model.settings.username, command: model.settings.botName, endpoint: model.settings.endpoint, text: message})
 							])) : author$project$Neccsus$postMessage(
-						{author: model.username, text: message}));
+						{author: model.settings.username, text: message}));
+			case 'UpdateSettings':
+				var settings = msg.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (_n2) {
+						return settings;
+					});
 			case 'UpdateUsername':
 				var username = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{username: username}),
-					elm$core$Platform$Cmd$none);
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{username: username});
+					});
 			case 'UpdateEndpoint':
 				var endpoint = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{endpoint: endpoint}),
-					author$project$Neccsus$cache(
-						author$project$Neccsus$cacheEncoder(endpoint)));
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{endpoint: endpoint});
+					});
 			case 'UpdateSpeechSynthesis':
-				var value = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{speechSynthesis: value}),
-					elm$core$Platform$Cmd$none);
+				var speechSynthesis = msg.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{speechSynthesis: speechSynthesis});
+					});
 			case 'UpdateGrammar':
 				var grammar = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{grammar: grammar}),
-					elm$core$Platform$Cmd$none);
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{grammar: grammar});
+					});
 			default:
 				return _Utils_Tuple2(
 					model,
-					author$project$Neccsus$listen(model.grammar));
+					author$project$Neccsus$listen(model.settings.grammar));
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
@@ -6598,6 +6649,7 @@ var author$project$Elements$decodeValueOnKey = function (func) {
 	return A4(elm$json$Json$Decode$map3, func, author$project$Elements$decodeKey, author$project$Elements$decodeShift, author$project$Elements$decodeValue);
 };
 var author$project$Model$Listen = {$: 'Listen'};
+var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6753,6 +6805,9 @@ var author$project$Elements$messagesTab = function (model) {
 var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
 var author$project$Elements$InputStyle = {$: 'InputStyle'};
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Model$UpdateEndpoint = function (a) {
+	return {$: 'UpdateEndpoint', a: a};
+};
 var author$project$Model$UpdateGrammar = function (a) {
 	return {$: 'UpdateGrammar', a: a};
 };
@@ -6832,7 +6887,6 @@ var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
 	return {$: 'LabelOnRight', a: a};
 };
 var mdgriffith$style_elements$Element$Input$autofillAttr = mdgriffith$style_elements$Element$Attributes$attribute('autocomplete');
-var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(
@@ -6875,6 +6929,15 @@ var mdgriffith$style_elements$Element$Input$addOptionsAsAttrs = F2(
 				}
 			});
 		return A3(elm$core$List$foldr, renderOption, optionalAttrs, options);
+	});
+var elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
 	});
 var mdgriffith$style_elements$Element$Input$ErrorAboveBelow = F2(
 	function (a, b) {
@@ -7753,7 +7816,7 @@ var author$project$Elements$settingsTab = function (model) {
 							mdgriffith$style_elements$Element$bold('Name')),
 						onChange: author$project$Model$UpdateUsername,
 						options: _List_Nil,
-						value: model.username
+						value: model.settings.username
 					}),
 					A3(
 					mdgriffith$style_elements$Element$Input$text,
@@ -7764,14 +7827,14 @@ var author$project$Elements$settingsTab = function (model) {
 							mdgriffith$style_elements$Element$bold('Endpoint')),
 						onChange: author$project$Model$UpdateEndpoint,
 						options: _List_Nil,
-						value: model.endpoint
+						value: model.settings.endpoint
 					}),
 					A3(
 					mdgriffith$style_elements$Element$Input$checkbox,
 					author$project$Elements$CheckboxStyle,
 					_List_Nil,
 					{
-						checked: model.speechSynthesis,
+						checked: model.settings.speechSynthesis,
 						label: mdgriffith$style_elements$Element$bold('Speech Synthesis'),
 						onChange: author$project$Model$UpdateSpeechSynthesis,
 						options: _List_Nil
@@ -7785,7 +7848,7 @@ var author$project$Elements$settingsTab = function (model) {
 							mdgriffith$style_elements$Element$bold('Speech Recognition Grammar')),
 						onChange: author$project$Model$UpdateGrammar,
 						options: _List_Nil,
-						value: model.grammar
+						value: model.settings.grammar
 					})
 				])
 			]));
