@@ -22,6 +22,15 @@ type SpeechResult = InterimSpeechResult String | FinalSpeechResult String
 
 type RemoteMessages = Loading | Messages (List Message) | Error String
 
+type alias BotSettings =
+  { name : String
+  , endpoint : String
+  }
+
+type MessageType
+  = TextMessage
+  | CommandMessage BotSettings
+
 type alias Model =
   { tab : Tab
   , messages : RemoteMessages
@@ -31,10 +40,8 @@ type alias Model =
 
 type alias Settings =
   { username : String
-  , botName : String
-  , endpoint : String
   , speechSynthesis : Bool
-  , grammar : String
+  , botSettings : List BotSettings
   }
 
 type Msg
@@ -43,10 +50,14 @@ type Msg
   | LoadedRemoteMessage (Result Http.Error (Message))
   | UpdateNewMessage String
   | SubmitNewMessage String
+  | Listen
   | UpdateSettings Settings
   | UpdateUsername String
-  | UpdateBotName String
-  | UpdateEndpoint String
   | UpdateSpeechSynthesis Bool
-  | UpdateGrammar String 
-  | Listen
+  | AddBot
+  | RemoveBot Int 
+  | UpdateBotSettings Int BotSettingMsg
+
+type BotSettingMsg
+  = UpdateBotName String
+  | UpdateEndpoint String

@@ -41,13 +41,7 @@
     recognition.maxAlternatives = 1;
 
     // Recognise speech in grammar from Elm
-    app.ports.listen.subscribe(function(grammar) {
-      if (grammar) {
-        // Use grammar
-        var speechRecognitionList = new webkitSpeechGrammarList();
-        speechRecognitionList.addFromString(grammar, 1);
-        recognition.grammars = speechRecognitionList;
-      }
+    app.ports.listen.subscribe(function() {
       // Start listening
       recognition.start()
     });

@@ -11,6 +11,7 @@
             "elm/html": "1.0.0",
             "elm/http": "2.0.0",
             "elm/json": "1.1.2",
+            "elm-community/list-extra": "8.2.0",
             "mdgriffith/style-elements": "5.0.1"
         },
         "indirect": {

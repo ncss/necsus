@@ -7,6 +7,8 @@ module Elements exposing
 import Style exposing (StyleSheet, style)
 import Style.Border as Border
 import Style.Color as Color 
+import Style.Font as Font
+import Style.Scale as Scale
 import Element exposing (Element, Grid, OnGrid, GridPosition, layout, grid, table, navigation, mainContent, button, text, cell)
 import Element.Input as Input exposing (hiddenLabel, labelLeft)
 import Element.Attributes as Attr exposing (px, fill, fillPortion, percent, content)
@@ -28,10 +30,14 @@ type Style
   | TabSelectedStyle
   | TabContentStyle
   | InputStyle
+  | ButtonStyle
   | CheckboxStyle
   | MessageListStyle
   | MessageStyle
   | SettingsStyle
+  | BotSettingsStyle
+  | HeadingStyle
+  | SubHeadingStyle
   | NoStyle
 
 html : Model -> Html Msg
@@ -47,10 +53,27 @@ stylesheet =
       [ Border.all 1
       , Style.prop "padding" "4px"
       ]
+    , style ButtonStyle
+      [ Color.background Colours.primary 
+      , Border.rounded 5
+      , Style.prop "padding" "8px"
+      ]
     , style TabSelectedStyle
       [ Color.background Colours.primary 
       ]
+    , style BotSettingsStyle
+      [ Color.background Colours.backgroundSecondary 
+      ]
+    , style HeadingStyle
+      [ Font.size (scaled 3)
+      ]
+    , style SubHeadingStyle
+      [ Font.size (scaled 2)
+      ]
     ]
+
+scaled =
+  Scale.modular 16 1.618
 
 elements : Model -> Element Style variation Msg
 elements model =
@@ -150,7 +173,7 @@ newMessage model =
         [
         ]
       ]
-    , [ button NoStyle
+    , [ button ButtonStyle
         [ Events.onClick Listen
         ]
         <| text "listen"
@@ -159,23 +182,18 @@ newMessage model =
 
 settingsTab : Model -> Element Style variation Msg
 settingsTab model =
-  Element.table SettingsStyle []
-    [ [ Input.text InputStyle []
+  Element.table SettingsStyle
+    [ Attr.spacingXY 10 0
+    , Attr.paddingXY 10 10
+    ]
+    [ [ Element.h1 HeadingStyle []
+        <| text "Settings"
+      , Element.h2 SubHeadingStyle []
+        <| text "Main"
+      , Input.text InputStyle []
         { onChange = UpdateUsername
         , value = model.settings.username
         , label = labelLeft <| Element.bold "Name"
-        , options = []
-        } 
-      , Input.text InputStyle []
-        { onChange = UpdateBotName
-        , value = model.settings.botName
-        , label = labelLeft <| Element.bold "Bot Name"
-        , options = []
-        }
-      , Input.text InputStyle []
-        { onChange = UpdateEndpoint
-        , value = model.settings.endpoint
-        , label = labelLeft <| Element.bold "Endpoint"
         , options = []
         } 
       , Input.checkbox CheckboxStyle []
@@ -184,12 +202,41 @@ settingsTab model =
         , label = Element.bold "Speech Synthesis"
         , options = []
         }
-      , Input.multiline InputStyle []
-        { onChange = UpdateGrammar
-        , value = model.settings.grammar
-        , label = labelLeft <| Element.bold "Speech Recognition Grammar"
+      , Element.h2 SubHeadingStyle []
+        <| text "Bots"
+      ]
+      ++
+      (List.indexedMap botSettings model.settings.botSettings)
+      ++
+      [ button ButtonStyle
+        [ Events.onClick AddBot
+        ]
+        <| text "Add bot"
+      ]
+    ]
+
+botSettings : Int -> BotSettings -> Element Style variation Msg
+botSettings index settings =
+  Element.table BotSettingsStyle
+    [ Attr.spacingXY 10 0
+    , Attr.paddingXY 10 10
+    ]
+    [ [ Input.text InputStyle []
+        { onChange = UpdateBotSettings index << UpdateBotName
+        , value = settings.name
+        , label = labelLeft <| Element.bold "Bot Name"
         , options = []
         }
+      , Input.text InputStyle []
+        { onChange = UpdateBotSettings index << UpdateEndpoint
+        , value = settings.endpoint
+        , label = labelLeft <| Element.bold "Endpoint"
+        , options = []
+        } 
+      , button ButtonStyle
+        [ Events.onClick (RemoveBot index) 
+        ]
+        <| text "Remove bot"
       ]
     ]
 

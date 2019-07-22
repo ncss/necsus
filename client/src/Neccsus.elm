@@ -10,6 +10,8 @@ import Http
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 
+import List.Extra as List
+
 import Model exposing (..)
 import Elements
 
@@ -36,10 +38,14 @@ initModel =
 initSettings : Settings
 initSettings =
   { username = "user"
-  , botName = "bot"
-  , endpoint = ""
   , speechSynthesis = False
-  , grammar = "#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;"
+  , botSettings = [ initBotSettings ]
+  }
+
+initBotSettings : BotSettings
+initBotSettings =
+  { name = "echo"
+  , endpoint = "https://flask-endpoint-echo--kennib.repl.co"
   }
 
 port cache : Value -> Cmd msg
@@ -49,24 +55,33 @@ cacheEncoder : Settings -> Value
 cacheEncoder settings =
   E.object
     [ ("username", E.string settings.username)
-    , ("botName", E.string settings.botName)
-    , ("endpoint", E.string settings.endpoint)
     , ("speechSynthesis", E.bool settings.speechSynthesis)
-    , ("grammar", E.string settings.grammar)
+    , ("botSettings", E.list botSettingsEncoder settings.botSettings)
     ]
 
-cacheDecoder : Decoder (Settings)
+botSettingsEncoder : BotSettings -> Value
+botSettingsEncoder botSettings =
+  E.object
+    [ ("name", E.string botSettings.name)
+    , ("endpoint", E.string botSettings.endpoint)
+    ]
+
+cacheDecoder : Decoder Settings
 cacheDecoder =
-  D.map5 Settings
+  D.map3 Settings 
     (D.field "username" D.string)
-    (D.field "botName" D.string)
-    (D.field "endpoint" D.string)
     (D.field "speechSynthesis" D.bool)
-    (D.field "grammar" D.string)
+    (D.field "botSettings" <| D.list botSettingsDecoder)
+
+botSettingsDecoder : Decoder BotSettings
+botSettingsDecoder =
+  D.map2 BotSettings
+    (D.field "name" D.string)
+    (D.field "endpoint" D.string)
 
 port speak : String -> Cmd msg
 
-port listen : String -> Cmd msg
+port listen : () -> Cmd msg
 port speechResult : (Value -> msg) -> Sub msg
 
 speechResultDecoder : Decoder SpeechResult
@@ -108,28 +123,29 @@ update msg model =
       ({ model | newMessage = message }, Cmd.none)
     SubmitNewMessage message ->
       ({ model | newMessage = "" },
-        if String.contains model.settings.botName message then
-          Cmd.batch
-            [ postMessage { author = model.settings.username, text = message }
-            , postCommand { author = model.settings.username, command = model.settings.botName, text = message, endpoint = model.settings.endpoint }
-            ]
-        else
-          postMessage { author = model.settings.username, text = message }
+        case messageType model message of
+          CommandMessage botSettings ->
+            Cmd.batch
+              [ postMessage { author = model.settings.username, text = message }
+              , postCommand { author = model.settings.username, command = botSettings.name, text = message, endpoint = botSettings.endpoint }
+              ]
+          TextMessage ->
+            postMessage { author = model.settings.username, text = message }
       )
+    Listen ->
+      (model, listen ())
     UpdateSettings settings ->
       updateSettings model <| \_ -> settings
     UpdateUsername username ->
       updateSettings model <| \settings -> { settings | username = username }
-    UpdateBotName botName ->
-      updateSettings model <| \settings -> { settings | botName = botName }
-    UpdateEndpoint endpoint ->
-      updateSettings model <| \settings -> { settings | endpoint = endpoint }
     UpdateSpeechSynthesis speechSynthesis ->
       updateSettings model <| \settings -> { settings | speechSynthesis = speechSynthesis }
-    UpdateGrammar grammar ->
-      updateSettings model <| \settings -> { settings | grammar = grammar }
-    Listen ->
-      (model, listen model.settings.grammar)
+    AddBot ->
+      updateSettings model <| \settings -> { settings | botSettings = settings.botSettings ++ [initBotSettings] }
+    RemoveBot index ->
+      updateSettings model <| \settings -> { settings | botSettings = List.removeAt index settings.botSettings }
+    UpdateBotSettings botIndex botSettingMsg ->
+      updateBotSettings botIndex botSettingMsg model
 
 updateSettings : Model -> (Settings -> Settings) -> (Model, Cmd Msg)
 updateSettings model updates =
@@ -137,6 +153,35 @@ updateSettings model updates =
     newSettings = updates model.settings 
   in
     ({ model | settings = newSettings}, cache <| cacheEncoder newSettings)
+
+updateBotSettings : Int -> BotSettingMsg -> Model -> (Model, Cmd Msg)
+updateBotSettings botIndex msg model =
+  let
+    maybeBotSettings = List.getAt botIndex model.settings.botSettings
+    updateBot updates =
+      case maybeBotSettings of
+        Just botSettings ->
+          updateSettings model <| \settings -> { settings | botSettings = List.setAt botIndex (updates botSettings) settings.botSettings }
+        Nothing ->
+          (model, Cmd.none)
+  in
+    case msg of
+      UpdateBotName name ->
+        updateBot <| \bot -> { bot | name = name }
+      UpdateEndpoint endpoint ->
+        updateBot <| \bot -> { bot | endpoint = endpoint }
+
+messageType : Model -> String -> MessageType
+messageType model message =
+  let
+    botCommand = List.find isCommand model.settings.botSettings
+    isCommand bot = String.contains (String.toLower bot.name) (String.toLower message)
+  in
+    case botCommand of
+      Just botSettings ->
+        CommandMessage botSettings
+      Nothing ->
+        TextMessage
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

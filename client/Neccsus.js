@@ -6003,7 +6003,13 @@ var author$project$Neccsus$getMessages = elm$http$Http$get(
 	});
 var author$project$Model$Loading = {$: 'Loading'};
 var author$project$Model$MessagesTab = {$: 'MessagesTab'};
-var author$project$Neccsus$initSettings = {botName: 'bot', endpoint: '', grammar: '#JSGF V1.0; grammar confirmation; public <confirmation> = yes | no ;', speechSynthesis: false, username: 'user'};
+var author$project$Neccsus$initBotSettings = {endpoint: 'https://flask-endpoint-echo--kennib.repl.co', name: 'echo'};
+var author$project$Neccsus$initSettings = {
+	botSettings: _List_fromArray(
+		[author$project$Neccsus$initBotSettings]),
+	speechSynthesis: false,
+	username: 'user'
+};
 var author$project$Neccsus$initModel = {messages: author$project$Model$Loading, newMessage: '', settings: author$project$Neccsus$initSettings, tab: author$project$Model$MessagesTab};
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
@@ -6020,20 +6026,30 @@ var author$project$Model$UpdateNewMessage = function (a) {
 var author$project$Model$UpdateSettings = function (a) {
 	return {$: 'UpdateSettings', a: a};
 };
-var author$project$Model$Settings = F5(
-	function (username, botName, endpoint, speechSynthesis, grammar) {
-		return {botName: botName, endpoint: endpoint, grammar: grammar, speechSynthesis: speechSynthesis, username: username};
+var author$project$Model$Settings = F3(
+	function (username, speechSynthesis, botSettings) {
+		return {botSettings: botSettings, speechSynthesis: speechSynthesis, username: username};
 	});
+var author$project$Model$BotSettings = F2(
+	function (name, endpoint) {
+		return {endpoint: endpoint, name: name};
+	});
+var author$project$Neccsus$botSettingsDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Model$BotSettings,
+	A2(elm$json$Json$Decode$field, 'name', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'endpoint', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$bool = _Json_decodeBool;
-var elm$json$Json$Decode$map5 = _Json_map5;
-var author$project$Neccsus$cacheDecoder = A6(
-	elm$json$Json$Decode$map5,
+var elm$json$Json$Decode$map3 = _Json_map3;
+var author$project$Neccsus$cacheDecoder = A4(
+	elm$json$Json$Decode$map3,
 	author$project$Model$Settings,
 	A2(elm$json$Json$Decode$field, 'username', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'botName', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'endpoint', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'speechSynthesis', elm$json$Json$Decode$bool),
-	A2(elm$json$Json$Decode$field, 'grammar', elm$json$Json$Decode$string));
+	A2(
+		elm$json$Json$Decode$field,
+		'botSettings',
+		elm$json$Json$Decode$list(author$project$Neccsus$botSettingsDecoder)));
 var elm$json$Json$Decode$value = _Json_decodeValue;
 var author$project$Neccsus$speechResult = _Platform_incomingPort('speechResult', elm$json$Json$Decode$value);
 var author$project$Model$FinalSpeechResult = function (a) {
@@ -6099,8 +6115,55 @@ var author$project$Model$Error = function (a) {
 var author$project$Model$Messages = function (a) {
 	return {$: 'Messages', a: a};
 };
-var elm$json$Json$Encode$string = _Json_wrap;
-var author$project$Neccsus$listen = _Platform_outgoingPort('listen', elm$json$Json$Encode$string);
+var elm$json$Json$Encode$null = _Json_encodeNull;
+var author$project$Neccsus$listen = _Platform_outgoingPort(
+	'listen',
+	function ($) {
+		return elm$json$Json$Encode$null;
+	});
+var author$project$Model$CommandMessage = function (a) {
+	return {$: 'CommandMessage', a: a};
+};
+var author$project$Model$TextMessage = {$: 'TextMessage'};
+var elm$core$String$contains = _String_contains;
+var elm$core$String$toLower = _String_toLower;
+var elm_community$list_extra$List$Extra$find = F2(
+	function (predicate, list) {
+		find:
+		while (true) {
+			if (!list.b) {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var first = list.a;
+				var rest = list.b;
+				if (predicate(first)) {
+					return elm$core$Maybe$Just(first);
+				} else {
+					var $temp$predicate = predicate,
+						$temp$list = rest;
+					predicate = $temp$predicate;
+					list = $temp$list;
+					continue find;
+				}
+			}
+		}
+	});
+var author$project$Neccsus$messageType = F2(
+	function (model, message) {
+		var isCommand = function (bot) {
+			return A2(
+				elm$core$String$contains,
+				elm$core$String$toLower(bot.name),
+				elm$core$String$toLower(message));
+		};
+		var botCommand = A2(elm_community$list_extra$List$Extra$find, isCommand, model.settings.botSettings);
+		if (botCommand.$ === 'Just') {
+			var botSettings = botCommand.a;
+			return author$project$Model$CommandMessage(botSettings);
+		} else {
+			return author$project$Model$TextMessage;
+		}
+	});
 var author$project$Model$LoadedRemoteMessage = function (a) {
 	return {$: 'LoadedRemoteMessage', a: a};
 };
@@ -6149,9 +6212,9 @@ var author$project$Neccsus$postMessage = function (message) {
 			url: '/api/actions/message'
 		});
 };
+var elm$json$Json$Encode$string = _Json_wrap;
 var author$project$Neccsus$speak = _Platform_outgoingPort('speak', elm$json$Json$Encode$string);
 var author$project$Neccsus$cache = _Platform_outgoingPort('cache', elm$core$Basics$identity);
-var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
 		A3(
@@ -6165,6 +6228,28 @@ var elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
+var author$project$Neccsus$botSettingsEncoder = function (botSettings) {
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				elm$json$Json$Encode$string(botSettings.name)),
+				_Utils_Tuple2(
+				'endpoint',
+				elm$json$Json$Encode$string(botSettings.endpoint))
+			]));
+};
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
 var author$project$Neccsus$cacheEncoder = function (settings) {
 	return elm$json$Json$Encode$object(
 		_List_fromArray(
@@ -6173,17 +6258,11 @@ var author$project$Neccsus$cacheEncoder = function (settings) {
 				'username',
 				elm$json$Json$Encode$string(settings.username)),
 				_Utils_Tuple2(
-				'botName',
-				elm$json$Json$Encode$string(settings.botName)),
-				_Utils_Tuple2(
-				'endpoint',
-				elm$json$Json$Encode$string(settings.endpoint)),
-				_Utils_Tuple2(
 				'speechSynthesis',
 				elm$json$Json$Encode$bool(settings.speechSynthesis)),
 				_Utils_Tuple2(
-				'grammar',
-				elm$json$Json$Encode$string(settings.grammar))
+				'botSettings',
+				A2(elm$json$Json$Encode$list, author$project$Neccsus$botSettingsEncoder, settings.botSettings))
 			]));
 };
 var author$project$Neccsus$updateSettings = F2(
@@ -6196,10 +6275,277 @@ var author$project$Neccsus$updateSettings = F2(
 			author$project$Neccsus$cache(
 				author$project$Neccsus$cacheEncoder(newSettings)));
 	});
-var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
-var elm$core$String$contains = _String_contains;
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm_community$list_extra$List$Extra$getAt = F2(
+	function (idx, xs) {
+		return (idx < 0) ? elm$core$Maybe$Nothing : elm$core$List$head(
+			A2(elm$core$List$drop, idx, xs));
+	});
+var elm$core$Basics$always = F2(
+	function (a, _n0) {
+		return a;
+	});
+var elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2(elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return elm$core$List$reverse(
+			A3(elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _n0 = _Utils_Tuple2(n, list);
+			_n0$1:
+			while (true) {
+				_n0$5:
+				while (true) {
+					if (!_n0.b.b) {
+						return list;
+					} else {
+						if (_n0.b.b.b) {
+							switch (_n0.a) {
+								case 1:
+									break _n0$1;
+								case 2:
+									var _n2 = _n0.b;
+									var x = _n2.a;
+									var _n3 = _n2.b;
+									var y = _n3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_n0.b.b.b.b) {
+										var _n4 = _n0.b;
+										var x = _n4.a;
+										var _n5 = _n4.b;
+										var y = _n5.a;
+										var _n6 = _n5.b;
+										var z = _n6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _n0$5;
+									}
+								default:
+									if (_n0.b.b.b.b && _n0.b.b.b.b.b) {
+										var _n7 = _n0.b;
+										var x = _n7.a;
+										var _n8 = _n7.b;
+										var y = _n8.a;
+										var _n9 = _n8.b;
+										var z = _n9.a;
+										var _n10 = _n9.b;
+										var w = _n10.a;
+										var tl = _n10.b;
+										return (ctr > 1000) ? A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A2(elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A3(elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _n0$5;
+									}
+							}
+						} else {
+							if (_n0.a === 1) {
+								break _n0$1;
+							} else {
+								break _n0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _n1 = _n0.b;
+			var x = _n1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var elm$core$List$take = F2(
+	function (n, list) {
+		return A3(elm$core$List$takeFast, 0, n, list);
+	});
+var elm_community$list_extra$List$Extra$updateAt = F3(
+	function (index, fn, list) {
+		if (index < 0) {
+			return list;
+		} else {
+			var tail = A2(elm$core$List$drop, index, list);
+			var head = A2(elm$core$List$take, index, list);
+			if (tail.b) {
+				var x = tail.a;
+				var xs = tail.b;
+				return _Utils_ap(
+					head,
+					A2(
+						elm$core$List$cons,
+						fn(x),
+						xs));
+			} else {
+				return list;
+			}
+		}
+	});
+var elm_community$list_extra$List$Extra$setAt = F2(
+	function (index, value) {
+		return A2(
+			elm_community$list_extra$List$Extra$updateAt,
+			index,
+			elm$core$Basics$always(value));
+	});
+var author$project$Neccsus$updateBotSettings = F3(
+	function (botIndex, msg, model) {
+		var maybeBotSettings = A2(elm_community$list_extra$List$Extra$getAt, botIndex, model.settings.botSettings);
+		var updateBot = function (updates) {
+			if (maybeBotSettings.$ === 'Just') {
+				var botSettings = maybeBotSettings.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{
+								botSettings: A3(
+									elm_community$list_extra$List$Extra$setAt,
+									botIndex,
+									updates(botSettings),
+									settings.botSettings)
+							});
+					});
+			} else {
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			}
+		};
+		if (msg.$ === 'UpdateBotName') {
+			var name = msg.a;
+			return updateBot(
+				function (bot) {
+					return _Utils_update(
+						bot,
+						{name: name});
+				});
+		} else {
+			var endpoint = msg.a;
+			return updateBot(
+				function (bot) {
+					return _Utils_update(
+						bot,
+						{endpoint: endpoint});
+				});
+		}
+	});
+var elm$core$Basics$neq = _Utils_notEqual;
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm_community$list_extra$List$Extra$removeAt = F2(
+	function (index, l) {
+		if (index < 0) {
+			return l;
+		} else {
+			var tail = elm$core$List$tail(
+				A2(elm$core$List$drop, index, l));
+			var head = A2(elm$core$List$take, index, l);
+			if (tail.$ === 'Nothing') {
+				return l;
+			} else {
+				var t = tail.a;
+				return A2(elm$core$List$append, head, t);
+			}
+		}
+	});
 var author$project$Neccsus$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6281,21 +6627,33 @@ var author$project$Neccsus$update = F2(
 					_Utils_update(
 						model,
 						{newMessage: ''}),
-					A2(elm$core$String$contains, model.settings.botName, message) ? elm$core$Platform$Cmd$batch(
-						_List_fromArray(
-							[
-								author$project$Neccsus$postMessage(
-								{author: model.settings.username, text: message}),
-								author$project$Neccsus$postCommand(
-								{author: model.settings.username, command: model.settings.botName, endpoint: model.settings.endpoint, text: message})
-							])) : author$project$Neccsus$postMessage(
-						{author: model.settings.username, text: message}));
+					function () {
+						var _n2 = A2(author$project$Neccsus$messageType, model, message);
+						if (_n2.$ === 'CommandMessage') {
+							var botSettings = _n2.a;
+							return elm$core$Platform$Cmd$batch(
+								_List_fromArray(
+									[
+										author$project$Neccsus$postMessage(
+										{author: model.settings.username, text: message}),
+										author$project$Neccsus$postCommand(
+										{author: model.settings.username, command: botSettings.name, endpoint: botSettings.endpoint, text: message})
+									]));
+						} else {
+							return author$project$Neccsus$postMessage(
+								{author: model.settings.username, text: message});
+						}
+					}());
+			case 'Listen':
+				return _Utils_Tuple2(
+					model,
+					author$project$Neccsus$listen(_Utils_Tuple0));
 			case 'UpdateSettings':
 				var settings = msg.a;
 				return A2(
 					author$project$Neccsus$updateSettings,
 					model,
-					function (_n2) {
+					function (_n3) {
 						return settings;
 					});
 			case 'UpdateUsername':
@@ -6308,26 +6666,6 @@ var author$project$Neccsus$update = F2(
 							settings,
 							{username: username});
 					});
-			case 'UpdateBotName':
-				var botName = msg.a;
-				return A2(
-					author$project$Neccsus$updateSettings,
-					model,
-					function (settings) {
-						return _Utils_update(
-							settings,
-							{botName: botName});
-					});
-			case 'UpdateEndpoint':
-				var endpoint = msg.a;
-				return A2(
-					author$project$Neccsus$updateSettings,
-					model,
-					function (settings) {
-						return _Utils_update(
-							settings,
-							{endpoint: endpoint});
-					});
 			case 'UpdateSpeechSynthesis':
 				var speechSynthesis = msg.a;
 				return A2(
@@ -6338,20 +6676,36 @@ var author$project$Neccsus$update = F2(
 							settings,
 							{speechSynthesis: speechSynthesis});
 					});
-			case 'UpdateGrammar':
-				var grammar = msg.a;
+			case 'AddBot':
 				return A2(
 					author$project$Neccsus$updateSettings,
 					model,
 					function (settings) {
 						return _Utils_update(
 							settings,
-							{grammar: grammar});
+							{
+								botSettings: _Utils_ap(
+									settings.botSettings,
+									_List_fromArray(
+										[author$project$Neccsus$initBotSettings]))
+							});
+					});
+			case 'RemoveBot':
+				var index = msg.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{
+								botSettings: A2(elm_community$list_extra$List$Extra$removeAt, index, settings.botSettings)
+							});
 					});
 			default:
-				return _Utils_Tuple2(
-					model,
-					author$project$Neccsus$listen(model.settings.grammar));
+				var botIndex = msg.a;
+				var botSettingMsg = msg.b;
+				return A3(author$project$Neccsus$updateBotSettings, botIndex, botSettingMsg, model);
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
@@ -6366,14 +6720,6 @@ var mdgriffith$style_elements$Element$Internal$Model$Text = F2(
 	});
 var mdgriffith$style_elements$Element$bold = mdgriffith$style_elements$Element$Internal$Model$Text(
 	{decoration: mdgriffith$style_elements$Element$Internal$Model$Bold, inline: false});
-var elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
-		}
-	});
 var elm$core$List$concat = function (lists) {
 	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
 };
@@ -6448,15 +6794,6 @@ var mdgriffith$style_elements$Element$cell = function (box) {
 			mdgriffith$style_elements$Element$Internal$Model$GridCoords(
 				mdgriffith$style_elements$Style$Internal$Model$GridPosition(coords)),
 			box.content));
-};
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
 };
 var elm$core$List$map = F2(
 	function (f, xs) {
@@ -6643,6 +6980,7 @@ var author$project$Elements$messagesList = function (model) {
 			}()
 			]));
 };
+var author$project$Elements$ButtonStyle = {$: 'ButtonStyle'};
 var author$project$Elements$decodeKey = A2(elm$json$Json$Decode$field, 'key', elm$json$Json$Decode$string);
 var author$project$Elements$decodeShift = A2(elm$json$Json$Decode$field, 'shiftKey', elm$json$Json$Decode$bool);
 var elm$json$Json$Decode$at = F2(
@@ -6654,7 +6992,6 @@ var author$project$Elements$decodeValue = A2(
 	_List_fromArray(
 		['target', 'value']),
 	elm$json$Json$Decode$string);
-var elm$json$Json$Decode$map3 = _Json_map3;
 var author$project$Elements$decodeValueOnKey = function (func) {
 	return A4(elm$json$Json$Decode$map3, func, author$project$Elements$decodeKey, author$project$Elements$decodeShift, author$project$Elements$decodeValue);
 };
@@ -6786,7 +7123,7 @@ var author$project$Elements$newMessage = function (model) {
 				[
 					A3(
 					mdgriffith$style_elements$Element$button,
-					author$project$Elements$NoStyle,
+					author$project$Elements$ButtonStyle,
 					_List_fromArray(
 						[
 							mdgriffith$style_elements$Element$Events$onClick(author$project$Model$Listen)
@@ -6813,23 +7150,42 @@ var author$project$Elements$messagesTab = function (model) {
 			]));
 };
 var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
+var author$project$Elements$HeadingStyle = {$: 'HeadingStyle'};
 var author$project$Elements$InputStyle = {$: 'InputStyle'};
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Elements$SubHeadingStyle = {$: 'SubHeadingStyle'};
+var author$project$Elements$BotSettingsStyle = {$: 'BotSettingsStyle'};
+var author$project$Model$RemoveBot = function (a) {
+	return {$: 'RemoveBot', a: a};
+};
 var author$project$Model$UpdateBotName = function (a) {
 	return {$: 'UpdateBotName', a: a};
 };
+var author$project$Model$UpdateBotSettings = F2(
+	function (a, b) {
+		return {$: 'UpdateBotSettings', a: a, b: b};
+	});
 var author$project$Model$UpdateEndpoint = function (a) {
 	return {$: 'UpdateEndpoint', a: a};
 };
-var author$project$Model$UpdateGrammar = function (a) {
-	return {$: 'UpdateGrammar', a: a};
+var mdgriffith$style_elements$Element$Internal$Model$Padding = F4(
+	function (a, b, c, d) {
+		return {$: 'Padding', a: a, b: b, c: c, d: d};
+	});
+var mdgriffith$style_elements$Element$Attributes$paddingXY = F2(
+	function (x, y) {
+		return A4(
+			mdgriffith$style_elements$Element$Internal$Model$Padding,
+			elm$core$Maybe$Just(y),
+			elm$core$Maybe$Just(x),
+			elm$core$Maybe$Just(y),
+			elm$core$Maybe$Just(x));
+	});
+var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
+	return {$: 'LabelOnLeft', a: a};
 };
-var author$project$Model$UpdateSpeechSynthesis = function (a) {
-	return {$: 'UpdateSpeechSynthesis', a: a};
-};
-var author$project$Model$UpdateUsername = function (a) {
-	return {$: 'UpdateUsername', a: a};
-};
+var mdgriffith$style_elements$Element$Input$labelLeft = mdgriffith$style_elements$Element$Input$LabelOnLeft;
+var mdgriffith$style_elements$Element$Input$Plain = {$: 'Plain'};
 var elm$core$Basics$not = _Basics_not;
 var elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -6859,6 +7215,16 @@ var elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
+var elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -6872,33 +7238,43 @@ var mdgriffith$style_elements$Element$Attributes$attribute = F2(
 		return mdgriffith$style_elements$Element$Internal$Model$Attr(
 			A2(elm$html$Html$Attributes$attribute, name, val));
 	});
-var mdgriffith$style_elements$Element$Attributes$spacing = function (x) {
-	return A2(mdgriffith$style_elements$Element$Internal$Model$Spacing, x, x);
+var elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
 };
-var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
-	return {$: 'VAlign', a: a};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
 };
-var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
-var mdgriffith$style_elements$Element$Attributes$verticalCenter = mdgriffith$style_elements$Element$Internal$Model$VAlign(mdgriffith$style_elements$Element$Internal$Model$VerticalCenter);
-var elm$html$Html$Events$targetChecked = A2(
+var elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
-		['target', 'checked']),
-	elm$json$Json$Decode$bool);
-var elm$html$Html$Events$onCheck = function (tagger) {
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var elm$html$Html$Events$onInput = function (tagger) {
 	return A2(
-		elm$html$Html$Events$on,
-		'change',
-		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
+		elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			elm$html$Html$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
 var mdgriffith$style_elements$Element$Internal$Model$InputEvent = function (a) {
 	return {$: 'InputEvent', a: a};
 };
-var mdgriffith$style_elements$Element$Events$onCheck = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onCheck);
-var mdgriffith$style_elements$Element$Input$Disabled = {$: 'Disabled'};
-var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
-	return {$: 'LabelOnRight', a: a};
+var mdgriffith$style_elements$Element$Events$onInput = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onInput);
+var mdgriffith$style_elements$Element$Input$AutoFill = function (a) {
+	return {$: 'AutoFill', a: a};
 };
+var mdgriffith$style_elements$Element$Input$Disabled = {$: 'Disabled'};
+var mdgriffith$style_elements$Element$Input$FocusOnLoad = {$: 'FocusOnLoad'};
+var mdgriffith$style_elements$Element$Input$SpellCheck = {$: 'SpellCheck'};
 var mdgriffith$style_elements$Element$Input$autofillAttr = mdgriffith$style_elements$Element$Attributes$attribute('autocomplete');
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
@@ -6942,15 +7318,6 @@ var mdgriffith$style_elements$Element$Input$addOptionsAsAttrs = F2(
 				}
 			});
 		return A3(elm$core$List$foldr, renderOption, optionalAttrs, options);
-	});
-var elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
 	});
 var mdgriffith$style_elements$Element$Input$ErrorAboveBelow = F2(
 	function (a, b) {
@@ -7444,121 +7811,13 @@ var mdgriffith$style_elements$Element$Input$applyLabel = F8(
 			}
 		}
 	});
-var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
-var mdgriffith$style_elements$Element$Input$checked = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$checked);
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
 var mdgriffith$style_elements$Element$Input$disabledAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$disabled);
-var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
-var mdgriffith$style_elements$Element$Input$type_ = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$type_);
-var mdgriffith$style_elements$Element$Input$checkbox = F3(
-	function (style, attributes, input) {
-		var isDisabled = A2(
-			elm$core$List$any,
-			elm$core$Basics$eq(mdgriffith$style_elements$Element$Input$Disabled),
-			input.options);
-		var withDisabled = function (attrs) {
-			return isDisabled ? A2(
-				elm$core$List$cons,
-				mdgriffith$style_elements$Element$Attributes$class('disabled-input'),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$style_elements$Element$Input$disabledAttr(true),
-					attrs)) : A2(elm$core$List$cons, mdgriffith$style_elements$Element$Input$pointer, attrs);
-		};
-		var forErrors = function (opt) {
-			if (opt.$ === 'ErrorOpt') {
-				var err = opt.a;
-				return elm$core$Maybe$Just(err);
-			} else {
-				return elm$core$Maybe$Nothing;
-			}
-		};
-		var errs = A2(elm$core$List$filterMap, forErrors, input.options);
-		var withError = function (attrs) {
-			return (!elm$core$List$isEmpty(errs)) ? A2(
-				elm$core$List$cons,
-				A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-invalid', 'true'),
-				attrs) : attrs;
-		};
-		var inputElem = _List_fromArray(
-			[
-				mdgriffith$style_elements$Element$Internal$Model$Element(
-				{
-					absolutelyPositioned: elm$core$Maybe$Nothing,
-					attrs: A2(
-						elm$core$Basics$composeL,
-						A2(
-							elm$core$Basics$composeL,
-							mdgriffith$style_elements$Element$Input$addOptionsAsAttrs(input.options),
-							withError),
-						withDisabled)(
-						_List_fromArray(
-							[
-								mdgriffith$style_elements$Element$Input$type_('checkbox'),
-								mdgriffith$style_elements$Element$Input$checked(input.checked),
-								mdgriffith$style_elements$Element$Events$onCheck(input.onChange)
-							])),
-					child: mdgriffith$style_elements$Element$Internal$Model$Empty,
-					node: 'input',
-					style: elm$core$Maybe$Nothing
-				})
-			]);
-		return A8(
-			mdgriffith$style_elements$Element$Input$applyLabel,
-			elm$core$Maybe$Nothing,
-			elm$core$Maybe$Nothing,
-			A2(
-				elm$core$List$cons,
-				mdgriffith$style_elements$Element$Attributes$spacing(5),
-				A2(elm$core$List$cons, mdgriffith$style_elements$Element$Attributes$verticalCenter, attributes)),
-			mdgriffith$style_elements$Element$Input$LabelOnRight(input.label),
-			errs,
-			isDisabled,
-			true,
-			inputElem);
-	});
-var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
-	return {$: 'LabelOnLeft', a: a};
-};
-var mdgriffith$style_elements$Element$Input$labelLeft = mdgriffith$style_elements$Element$Input$LabelOnLeft;
-var mdgriffith$style_elements$Element$Input$TextArea = {$: 'TextArea'};
-var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
-var elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$html$Html$Events$targetValue = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var elm$html$Html$Events$onInput = function (tagger) {
-	return A2(
-		elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			elm$html$Html$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
-};
-var mdgriffith$style_elements$Element$Events$onInput = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onInput);
-var mdgriffith$style_elements$Element$Input$AutoFill = function (a) {
-	return {$: 'AutoFill', a: a};
-};
-var mdgriffith$style_elements$Element$Input$FocusOnLoad = {$: 'FocusOnLoad'};
-var mdgriffith$style_elements$Element$Input$SpellCheck = {$: 'SpellCheck'};
 var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
 var mdgriffith$style_elements$Element$Input$readonlyAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$readonly);
 var mdgriffith$style_elements$Element$Input$textValueAttr = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$value);
+var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
+var mdgriffith$style_elements$Element$Input$type_ = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$type_);
 var mdgriffith$style_elements$Element$Internal$Model$RawText = {$: 'RawText'};
 var mdgriffith$style_elements$Element$Input$textHelper = F5(
 	function (kind, addedOptions, style, attributes, input) {
@@ -7808,73 +8067,246 @@ var mdgriffith$style_elements$Element$Input$textHelper = F5(
 			_List_fromArray(
 				[inputElem]));
 	});
-var mdgriffith$style_elements$Element$Input$multiline = A2(mdgriffith$style_elements$Element$Input$textHelper, mdgriffith$style_elements$Element$Input$TextArea, _List_Nil);
-var mdgriffith$style_elements$Element$Input$Plain = {$: 'Plain'};
 var mdgriffith$style_elements$Element$Input$text = A2(mdgriffith$style_elements$Element$Input$textHelper, mdgriffith$style_elements$Element$Input$Plain, _List_Nil);
+var author$project$Elements$botSettings = F2(
+	function (index, settings) {
+		return A3(
+			mdgriffith$style_elements$Element$table,
+			author$project$Elements$BotSettingsStyle,
+			_List_fromArray(
+				[
+					A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 10, 0),
+					A2(mdgriffith$style_elements$Element$Attributes$paddingXY, 10, 10)
+				]),
+			_List_fromArray(
+				[
+					_List_fromArray(
+					[
+						A3(
+						mdgriffith$style_elements$Element$Input$text,
+						author$project$Elements$InputStyle,
+						_List_Nil,
+						{
+							label: mdgriffith$style_elements$Element$Input$labelLeft(
+								mdgriffith$style_elements$Element$bold('Bot Name')),
+							onChange: A2(
+								elm$core$Basics$composeL,
+								author$project$Model$UpdateBotSettings(index),
+								author$project$Model$UpdateBotName),
+							options: _List_Nil,
+							value: settings.name
+						}),
+						A3(
+						mdgriffith$style_elements$Element$Input$text,
+						author$project$Elements$InputStyle,
+						_List_Nil,
+						{
+							label: mdgriffith$style_elements$Element$Input$labelLeft(
+								mdgriffith$style_elements$Element$bold('Endpoint')),
+							onChange: A2(
+								elm$core$Basics$composeL,
+								author$project$Model$UpdateBotSettings(index),
+								author$project$Model$UpdateEndpoint),
+							options: _List_Nil,
+							value: settings.endpoint
+						}),
+						A3(
+						mdgriffith$style_elements$Element$button,
+						author$project$Elements$ButtonStyle,
+						_List_fromArray(
+							[
+								mdgriffith$style_elements$Element$Events$onClick(
+								author$project$Model$RemoveBot(index))
+							]),
+						mdgriffith$style_elements$Element$text('Remove bot'))
+					])
+				]));
+	});
+var author$project$Model$AddBot = {$: 'AddBot'};
+var author$project$Model$UpdateSpeechSynthesis = function (a) {
+	return {$: 'UpdateSpeechSynthesis', a: a};
+};
+var author$project$Model$UpdateUsername = function (a) {
+	return {$: 'UpdateUsername', a: a};
+};
+var mdgriffith$style_elements$Element$h1 = F3(
+	function (style, attrs, child) {
+		return mdgriffith$style_elements$Element$Internal$Model$Element(
+			{
+				absolutelyPositioned: elm$core$Maybe$Nothing,
+				attrs: attrs,
+				child: child,
+				node: 'h1',
+				style: elm$core$Maybe$Just(style)
+			});
+	});
+var mdgriffith$style_elements$Element$h2 = F3(
+	function (style, attrs, child) {
+		return mdgriffith$style_elements$Element$Internal$Model$Element(
+			{
+				absolutelyPositioned: elm$core$Maybe$Nothing,
+				attrs: attrs,
+				child: child,
+				node: 'h2',
+				style: elm$core$Maybe$Just(style)
+			});
+	});
+var mdgriffith$style_elements$Element$Attributes$spacing = function (x) {
+	return A2(mdgriffith$style_elements$Element$Internal$Model$Spacing, x, x);
+};
+var mdgriffith$style_elements$Element$Internal$Model$VAlign = function (a) {
+	return {$: 'VAlign', a: a};
+};
+var mdgriffith$style_elements$Element$Internal$Model$VerticalCenter = {$: 'VerticalCenter'};
+var mdgriffith$style_elements$Element$Attributes$verticalCenter = mdgriffith$style_elements$Element$Internal$Model$VAlign(mdgriffith$style_elements$Element$Internal$Model$VerticalCenter);
+var elm$html$Html$Events$targetChecked = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'checked']),
+	elm$json$Json$Decode$bool);
+var elm$html$Html$Events$onCheck = function (tagger) {
+	return A2(
+		elm$html$Html$Events$on,
+		'change',
+		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
+};
+var mdgriffith$style_elements$Element$Events$onCheck = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Internal$Model$InputEvent, elm$html$Html$Events$onCheck);
+var mdgriffith$style_elements$Element$Input$LabelOnRight = function (a) {
+	return {$: 'LabelOnRight', a: a};
+};
+var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
+var mdgriffith$style_elements$Element$Input$checked = A2(elm$core$Basics$composeL, mdgriffith$style_elements$Element$Attributes$toAttr, elm$html$Html$Attributes$checked);
+var mdgriffith$style_elements$Element$Input$checkbox = F3(
+	function (style, attributes, input) {
+		var isDisabled = A2(
+			elm$core$List$any,
+			elm$core$Basics$eq(mdgriffith$style_elements$Element$Input$Disabled),
+			input.options);
+		var withDisabled = function (attrs) {
+			return isDisabled ? A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$class('disabled-input'),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$style_elements$Element$Input$disabledAttr(true),
+					attrs)) : A2(elm$core$List$cons, mdgriffith$style_elements$Element$Input$pointer, attrs);
+		};
+		var forErrors = function (opt) {
+			if (opt.$ === 'ErrorOpt') {
+				var err = opt.a;
+				return elm$core$Maybe$Just(err);
+			} else {
+				return elm$core$Maybe$Nothing;
+			}
+		};
+		var errs = A2(elm$core$List$filterMap, forErrors, input.options);
+		var withError = function (attrs) {
+			return (!elm$core$List$isEmpty(errs)) ? A2(
+				elm$core$List$cons,
+				A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-invalid', 'true'),
+				attrs) : attrs;
+		};
+		var inputElem = _List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Internal$Model$Element(
+				{
+					absolutelyPositioned: elm$core$Maybe$Nothing,
+					attrs: A2(
+						elm$core$Basics$composeL,
+						A2(
+							elm$core$Basics$composeL,
+							mdgriffith$style_elements$Element$Input$addOptionsAsAttrs(input.options),
+							withError),
+						withDisabled)(
+						_List_fromArray(
+							[
+								mdgriffith$style_elements$Element$Input$type_('checkbox'),
+								mdgriffith$style_elements$Element$Input$checked(input.checked),
+								mdgriffith$style_elements$Element$Events$onCheck(input.onChange)
+							])),
+					child: mdgriffith$style_elements$Element$Internal$Model$Empty,
+					node: 'input',
+					style: elm$core$Maybe$Nothing
+				})
+			]);
+		return A8(
+			mdgriffith$style_elements$Element$Input$applyLabel,
+			elm$core$Maybe$Nothing,
+			elm$core$Maybe$Nothing,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$style_elements$Element$Attributes$spacing(5),
+				A2(elm$core$List$cons, mdgriffith$style_elements$Element$Attributes$verticalCenter, attributes)),
+			mdgriffith$style_elements$Element$Input$LabelOnRight(input.label),
+			errs,
+			isDisabled,
+			true,
+			inputElem);
+	});
 var author$project$Elements$settingsTab = function (model) {
 	return A3(
 		mdgriffith$style_elements$Element$table,
 		author$project$Elements$SettingsStyle,
-		_List_Nil,
 		_List_fromArray(
 			[
+				A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 10, 0),
+				A2(mdgriffith$style_elements$Element$Attributes$paddingXY, 10, 10)
+			]),
+		_List_fromArray(
+			[
+				_Utils_ap(
 				_List_fromArray(
-				[
-					A3(
-					mdgriffith$style_elements$Element$Input$text,
-					author$project$Elements$InputStyle,
-					_List_Nil,
-					{
-						label: mdgriffith$style_elements$Element$Input$labelLeft(
-							mdgriffith$style_elements$Element$bold('Name')),
-						onChange: author$project$Model$UpdateUsername,
-						options: _List_Nil,
-						value: model.settings.username
-					}),
-					A3(
-					mdgriffith$style_elements$Element$Input$text,
-					author$project$Elements$InputStyle,
-					_List_Nil,
-					{
-						label: mdgriffith$style_elements$Element$Input$labelLeft(
-							mdgriffith$style_elements$Element$bold('Bot Name')),
-						onChange: author$project$Model$UpdateBotName,
-						options: _List_Nil,
-						value: model.settings.botName
-					}),
-					A3(
-					mdgriffith$style_elements$Element$Input$text,
-					author$project$Elements$InputStyle,
-					_List_Nil,
-					{
-						label: mdgriffith$style_elements$Element$Input$labelLeft(
-							mdgriffith$style_elements$Element$bold('Endpoint')),
-						onChange: author$project$Model$UpdateEndpoint,
-						options: _List_Nil,
-						value: model.settings.endpoint
-					}),
-					A3(
-					mdgriffith$style_elements$Element$Input$checkbox,
-					author$project$Elements$CheckboxStyle,
-					_List_Nil,
-					{
-						checked: model.settings.speechSynthesis,
-						label: mdgriffith$style_elements$Element$bold('Speech Synthesis'),
-						onChange: author$project$Model$UpdateSpeechSynthesis,
-						options: _List_Nil
-					}),
-					A3(
-					mdgriffith$style_elements$Element$Input$multiline,
-					author$project$Elements$InputStyle,
-					_List_Nil,
-					{
-						label: mdgriffith$style_elements$Element$Input$labelLeft(
-							mdgriffith$style_elements$Element$bold('Speech Recognition Grammar')),
-						onChange: author$project$Model$UpdateGrammar,
-						options: _List_Nil,
-						value: model.settings.grammar
-					})
-				])
+					[
+						A3(
+						mdgriffith$style_elements$Element$h1,
+						author$project$Elements$HeadingStyle,
+						_List_Nil,
+						mdgriffith$style_elements$Element$text('Settings')),
+						A3(
+						mdgriffith$style_elements$Element$h2,
+						author$project$Elements$SubHeadingStyle,
+						_List_Nil,
+						mdgriffith$style_elements$Element$text('Main')),
+						A3(
+						mdgriffith$style_elements$Element$Input$text,
+						author$project$Elements$InputStyle,
+						_List_Nil,
+						{
+							label: mdgriffith$style_elements$Element$Input$labelLeft(
+								mdgriffith$style_elements$Element$bold('Name')),
+							onChange: author$project$Model$UpdateUsername,
+							options: _List_Nil,
+							value: model.settings.username
+						}),
+						A3(
+						mdgriffith$style_elements$Element$Input$checkbox,
+						author$project$Elements$CheckboxStyle,
+						_List_Nil,
+						{
+							checked: model.settings.speechSynthesis,
+							label: mdgriffith$style_elements$Element$bold('Speech Synthesis'),
+							onChange: author$project$Model$UpdateSpeechSynthesis,
+							options: _List_Nil
+						}),
+						A3(
+						mdgriffith$style_elements$Element$h2,
+						author$project$Elements$SubHeadingStyle,
+						_List_Nil,
+						mdgriffith$style_elements$Element$text('Bots'))
+					]),
+				_Utils_ap(
+					A2(elm$core$List$indexedMap, author$project$Elements$botSettings, model.settings.botSettings),
+					_List_fromArray(
+						[
+							A3(
+							mdgriffith$style_elements$Element$button,
+							author$project$Elements$ButtonStyle,
+							_List_fromArray(
+								[
+									mdgriffith$style_elements$Element$Events$onClick(author$project$Model$AddBot)
+								]),
+							mdgriffith$style_elements$Element$text('Add bot'))
+						])))
 			]));
 };
 var mdgriffith$style_elements$Element$Attributes$fill = mdgriffith$style_elements$Style$Internal$Model$Fill(1);
@@ -7902,10 +8334,6 @@ var mdgriffith$style_elements$Element$mainContent = F3(
 				node: 'main',
 				style: elm$core$Maybe$Just(style)
 			});
-	});
-var mdgriffith$style_elements$Element$Internal$Model$Padding = F4(
-	function (a, b, c, d) {
-		return {$: 'Padding', a: a, b: b, c: c, d: d};
 	});
 var mdgriffith$style_elements$Element$Attributes$padding = function (x) {
 	return A4(
@@ -8044,7 +8472,54 @@ var author$project$Colours$rgb = F3(
 	function (r, g, b) {
 		return A3(mdgriffith$style_elements$Style$rgb, r / 255, g / 255, b / 255);
 	});
+var author$project$Colours$backgroundSecondary = A3(author$project$Colours$rgb, 240, 240, 240);
 var author$project$Colours$primary = A3(author$project$Colours$rgb, 118, 181, 202);
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var mdgriffith$style_elements$Style$Scale$grow = F3(
+	function (ratio, i, size) {
+		grow:
+		while (true) {
+			if (i <= 0) {
+				return size;
+			} else {
+				var $temp$ratio = ratio,
+					$temp$i = i - 1,
+					$temp$size = size * ratio;
+				ratio = $temp$ratio;
+				i = $temp$i;
+				size = $temp$size;
+				continue grow;
+			}
+		}
+	});
+var mdgriffith$style_elements$Style$Scale$shrink = F3(
+	function (ratio, i, size) {
+		shrink:
+		while (true) {
+			if (i <= 0) {
+				return size;
+			} else {
+				var $temp$ratio = ratio,
+					$temp$i = i - 1,
+					$temp$size = size / ratio;
+				ratio = $temp$ratio;
+				i = $temp$i;
+				size = $temp$size;
+				continue shrink;
+			}
+		}
+	});
+var mdgriffith$style_elements$Style$Scale$resize = F3(
+	function (normal, ratio, scale) {
+		return ((!scale) || (scale === 1)) ? normal : ((scale < 0) ? A3(mdgriffith$style_elements$Style$Scale$shrink, ratio, scale * (-1), normal) : A3(mdgriffith$style_elements$Style$Scale$grow, ratio, scale - 1, normal));
+	});
+var mdgriffith$style_elements$Style$Scale$modular = F3(
+	function (normal, ratio, fontScale) {
+		return A3(mdgriffith$style_elements$Style$Scale$resize, normal, ratio, fontScale);
+	});
+var author$project$Elements$scaled = A2(mdgriffith$style_elements$Style$Scale$modular, 16, 1.618);
 var mdgriffith$style_elements$Style$Internal$Model$Exact = F2(
 	function (a, b) {
 		return {$: 'Exact', a: a, b: b};
@@ -9821,27 +10296,6 @@ var mdgriffith$style_elements$Style$Internal$Render$Value$typeface = function (f
 		', ',
 		A2(elm$core$List$map, renderFont, families));
 };
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
 var mdgriffith$style_elements$Style$Internal$Selector$Free = function (a) {
 	return {$: 'Free', a: a};
 };
@@ -10083,7 +10537,6 @@ var mdgriffith$style_elements$Style$Internal$Find$toVariation = F3(
 			return A3(mdgriffith$style_elements$Style$Internal$Find$Variation, _class, _var, newName);
 		}
 	});
-var elm$core$String$toLower = _String_toLower;
 var elm$regex$Regex$Match = F4(
 	function (match, index, number, submatches) {
 		return {index: index, match: match, number: number, submatches: submatches};
@@ -10525,11 +10978,27 @@ var mdgriffith$style_elements$Style$Border$all = function (v) {
 		mdgriffith$style_elements$Style$Internal$Render$Value$box(
 			A4(mdgriffith$style_elements$Style$Internal$Model$Box, v, v, v, v)));
 };
+var mdgriffith$style_elements$Style$Border$rounded = function (box) {
+	return A2(
+		mdgriffith$style_elements$Style$Internal$Model$Exact,
+		'border-radius',
+		elm$core$String$fromFloat(box) + 'px');
+};
 var mdgriffith$style_elements$Style$Color$background = function (clr) {
 	return A2(
 		mdgriffith$style_elements$Style$Internal$Model$Exact,
 		'background-color',
 		mdgriffith$style_elements$Style$Internal$Render$Value$color(clr));
+};
+var mdgriffith$style_elements$Style$Internal$Model$Font = F2(
+	function (a, b) {
+		return {$: 'Font', a: a, b: b};
+	});
+var mdgriffith$style_elements$Style$Font$size = function (i) {
+	return A2(
+		mdgriffith$style_elements$Style$Internal$Model$Font,
+		'font-size',
+		elm$core$String$fromFloat(i) + 'px');
 };
 var author$project$Elements$stylesheet = mdgriffith$style_elements$Style$styleSheet(
 	_List_fromArray(
@@ -10544,10 +11013,42 @@ var author$project$Elements$stylesheet = mdgriffith$style_elements$Style$styleSh
 				])),
 			A2(
 			mdgriffith$style_elements$Style$style,
+			author$project$Elements$ButtonStyle,
+			_List_fromArray(
+				[
+					mdgriffith$style_elements$Style$Color$background(author$project$Colours$primary),
+					mdgriffith$style_elements$Style$Border$rounded(5),
+					A2(mdgriffith$style_elements$Style$prop, 'padding', '8px')
+				])),
+			A2(
+			mdgriffith$style_elements$Style$style,
 			author$project$Elements$TabSelectedStyle,
 			_List_fromArray(
 				[
 					mdgriffith$style_elements$Style$Color$background(author$project$Colours$primary)
+				])),
+			A2(
+			mdgriffith$style_elements$Style$style,
+			author$project$Elements$BotSettingsStyle,
+			_List_fromArray(
+				[
+					mdgriffith$style_elements$Style$Color$background(author$project$Colours$backgroundSecondary)
+				])),
+			A2(
+			mdgriffith$style_elements$Style$style,
+			author$project$Elements$HeadingStyle,
+			_List_fromArray(
+				[
+					mdgriffith$style_elements$Style$Font$size(
+					author$project$Elements$scaled(3))
+				])),
+			A2(
+			mdgriffith$style_elements$Style$style,
+			author$project$Elements$SubHeadingStyle,
+			_List_fromArray(
+				[
+					mdgriffith$style_elements$Style$Font$size(
+					author$project$Elements$scaled(2))
 				]))
 		]));
 var elm$html$Html$div = _VirtualDom_node('div');
@@ -10683,9 +11184,6 @@ var mdgriffith$style_elements$Element$Internal$Adjustments$hoistFixedScreenEleme
 	}
 };
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var elm$core$Tuple$mapSecond = F2(
 	function (func, _n0) {
 		var x = _n0.a;
