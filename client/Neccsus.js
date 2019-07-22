@@ -6308,6 +6308,16 @@ var author$project$Neccsus$update = F2(
 							settings,
 							{username: username});
 					});
+			case 'UpdateBotName':
+				var botName = msg.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{botName: botName});
+					});
 			case 'UpdateEndpoint':
 				var endpoint = msg.a;
 				return A2(
@@ -6805,6 +6815,9 @@ var author$project$Elements$messagesTab = function (model) {
 var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
 var author$project$Elements$InputStyle = {$: 'InputStyle'};
 var author$project$Elements$SettingsStyle = {$: 'SettingsStyle'};
+var author$project$Model$UpdateBotName = function (a) {
+	return {$: 'UpdateBotName', a: a};
+};
 var author$project$Model$UpdateEndpoint = function (a) {
 	return {$: 'UpdateEndpoint', a: a};
 };
@@ -7817,6 +7830,17 @@ var author$project$Elements$settingsTab = function (model) {
 						onChange: author$project$Model$UpdateUsername,
 						options: _List_Nil,
 						value: model.settings.username
+					}),
+					A3(
+					mdgriffith$style_elements$Element$Input$text,
+					author$project$Elements$InputStyle,
+					_List_Nil,
+					{
+						label: mdgriffith$style_elements$Element$Input$labelLeft(
+							mdgriffith$style_elements$Element$bold('Bot Name')),
+						onChange: author$project$Model$UpdateBotName,
+						options: _List_Nil,
+						value: model.settings.botName
 					}),
 					A3(
 					mdgriffith$style_elements$Element$Input$text,

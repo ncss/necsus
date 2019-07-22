@@ -120,6 +120,8 @@ update msg model =
       updateSettings model <| \_ -> settings
     UpdateUsername username ->
       updateSettings model <| \settings -> { settings | username = username }
+    UpdateBotName botName ->
+      updateSettings model <| \settings -> { settings | botName = botName }
     UpdateEndpoint endpoint ->
       updateSettings model <| \settings -> { settings | endpoint = endpoint }
     UpdateSpeechSynthesis speechSynthesis ->

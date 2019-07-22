@@ -45,6 +45,7 @@ type Msg
   | SubmitNewMessage String
   | UpdateSettings Settings
   | UpdateUsername String
+  | UpdateBotName String
   | UpdateEndpoint String
   | UpdateSpeechSynthesis Bool
   | UpdateGrammar String 

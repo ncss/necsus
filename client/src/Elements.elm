@@ -167,6 +167,12 @@ settingsTab model =
         , options = []
         } 
       , Input.text InputStyle []
+        { onChange = UpdateBotName
+        , value = model.settings.botName
+        , label = labelLeft <| Element.bold "Bot Name"
+        , options = []
+        }
+      , Input.text InputStyle []
         { onChange = UpdateEndpoint
         , value = model.settings.endpoint
         , label = labelLeft <| Element.bold "Endpoint"
