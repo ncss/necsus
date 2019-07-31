@@ -6002,15 +6002,15 @@ var author$project$Neccsus$getMessages = elm$http$Http$get(
 		url: '/api/actions/message'
 	});
 var author$project$Model$Loading = {$: 'Loading'};
-var author$project$Model$MessagesTab = {$: 'MessagesTab'};
 var author$project$Neccsus$initBotSettings = {endpoint: 'https://flask-endpoint-echo--kennib.repl.co', name: 'echo'};
 var author$project$Neccsus$initSettings = {
 	botSettings: _List_fromArray(
 		[author$project$Neccsus$initBotSettings]),
+	show: false,
 	speechSynthesis: false,
 	username: 'user'
 };
-var author$project$Neccsus$initModel = {messages: author$project$Model$Loading, newMessage: '', settings: author$project$Neccsus$initSettings, tab: author$project$Model$MessagesTab};
+var author$project$Neccsus$initModel = {messages: author$project$Model$Loading, newMessage: '', settings: author$project$Neccsus$initSettings};
 var author$project$Neccsus$init = function (flags) {
 	return _Utils_Tuple2(author$project$Neccsus$initModel, author$project$Neccsus$getMessages);
 };
@@ -6026,9 +6026,9 @@ var author$project$Model$UpdateNewMessage = function (a) {
 var author$project$Model$UpdateSettings = function (a) {
 	return {$: 'UpdateSettings', a: a};
 };
-var author$project$Model$Settings = F3(
-	function (username, speechSynthesis, botSettings) {
-		return {botSettings: botSettings, speechSynthesis: speechSynthesis, username: username};
+var author$project$Model$Settings = F4(
+	function (username, speechSynthesis, botSettings, show) {
+		return {botSettings: botSettings, show: show, speechSynthesis: speechSynthesis, username: username};
 	});
 var author$project$Model$BotSettings = F2(
 	function (name, endpoint) {
@@ -6040,16 +6040,17 @@ var author$project$Neccsus$botSettingsDecoder = A3(
 	A2(elm$json$Json$Decode$field, 'name', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'endpoint', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$bool = _Json_decodeBool;
-var elm$json$Json$Decode$map3 = _Json_map3;
-var author$project$Neccsus$cacheDecoder = A4(
-	elm$json$Json$Decode$map3,
+var elm$json$Json$Decode$map4 = _Json_map4;
+var author$project$Neccsus$cacheDecoder = A5(
+	elm$json$Json$Decode$map4,
 	author$project$Model$Settings,
 	A2(elm$json$Json$Decode$field, 'username', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'speechSynthesis', elm$json$Json$Decode$bool),
 	A2(
 		elm$json$Json$Decode$field,
 		'botSettings',
-		elm$json$Json$Decode$list(author$project$Neccsus$botSettingsDecoder)));
+		elm$json$Json$Decode$list(author$project$Neccsus$botSettingsDecoder)),
+	A2(elm$json$Json$Decode$field, 'show', elm$json$Json$Decode$bool));
 var elm$json$Json$Decode$value = _Json_decodeValue;
 var author$project$Neccsus$speechResult = _Platform_incomingPort('speechResult', elm$json$Json$Decode$value);
 var author$project$Model$FinalSpeechResult = function (a) {
@@ -6262,7 +6263,10 @@ var author$project$Neccsus$cacheEncoder = function (settings) {
 				elm$json$Json$Encode$bool(settings.speechSynthesis)),
 				_Utils_Tuple2(
 				'botSettings',
-				A2(elm$json$Json$Encode$list, author$project$Neccsus$botSettingsEncoder, settings.botSettings))
+				A2(elm$json$Json$Encode$list, author$project$Neccsus$botSettingsEncoder, settings.botSettings)),
+				_Utils_Tuple2(
+				'show',
+				elm$json$Json$Encode$bool(settings.show))
 			]));
 };
 var author$project$Neccsus$updateSettings = F2(
@@ -6549,13 +6553,6 @@ var elm_community$list_extra$List$Extra$removeAt = F2(
 var author$project$Neccsus$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'SwitchTab':
-				var tab = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{tab: tab}),
-					elm$core$Platform$Cmd$none);
 			case 'LoadedRemoteMessages':
 				if (msg.a.$ === 'Ok') {
 					var messages = msg.a.a;
@@ -6702,15 +6699,23 @@ var author$project$Neccsus$update = F2(
 								botSettings: A2(elm_community$list_extra$List$Extra$removeAt, index, settings.botSettings)
 							});
 					});
-			default:
+			case 'UpdateBotSettings':
 				var botIndex = msg.a;
 				var botSettingMsg = msg.b;
 				return A3(author$project$Neccsus$updateBotSettings, botIndex, botSettingMsg, model);
+			default:
+				var show = msg.a;
+				return A2(
+					author$project$Neccsus$updateSettings,
+					model,
+					function (settings) {
+						return _Utils_update(
+							settings,
+							{show: show});
+					});
 		}
 	});
 var author$project$Elements$PageStyle = {$: 'PageStyle'};
-var author$project$Elements$TabContentStyle = {$: 'TabContentStyle'};
-var author$project$Elements$NoStyle = {$: 'NoStyle'};
 var author$project$Elements$MessageListStyle = {$: 'MessageListStyle'};
 var author$project$Elements$MessageStyle = {$: 'MessageStyle'};
 var mdgriffith$style_elements$Element$Internal$Model$Bold = {$: 'Bold'};
@@ -6981,6 +6986,7 @@ var author$project$Elements$messagesList = function (model) {
 			]));
 };
 var author$project$Elements$ButtonStyle = {$: 'ButtonStyle'};
+var author$project$Elements$NoStyle = {$: 'NoStyle'};
 var author$project$Elements$decodeKey = A2(elm$json$Json$Decode$field, 'key', elm$json$Json$Decode$string);
 var author$project$Elements$decodeShift = A2(elm$json$Json$Decode$field, 'shiftKey', elm$json$Json$Decode$bool);
 var elm$json$Json$Decode$at = F2(
@@ -6992,6 +6998,7 @@ var author$project$Elements$decodeValue = A2(
 	_List_fromArray(
 		['target', 'value']),
 	elm$json$Json$Decode$string);
+var elm$json$Json$Decode$map3 = _Json_map3;
 var author$project$Elements$decodeValueOnKey = function (func) {
 	return A4(elm$json$Json$Decode$map3, func, author$project$Elements$decodeKey, author$project$Elements$decodeShift, author$project$Elements$decodeValue);
 };
@@ -7132,23 +7139,22 @@ var author$project$Elements$newMessage = function (model) {
 				])
 			]));
 };
-var author$project$Elements$messagesTab = function (model) {
-	return A3(
-		mdgriffith$style_elements$Element$table,
-		author$project$Elements$NoStyle,
-		_List_fromArray(
-			[
-				A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 20, 0)
-			]),
-		_List_fromArray(
-			[
-				_List_fromArray(
-				[
-					author$project$Elements$messagesList(model),
-					author$project$Elements$newMessage(model)
-				])
-			]));
+var author$project$Model$ShowSettings = function (a) {
+	return {$: 'ShowSettings', a: a};
 };
+var elm$core$Basics$not = _Basics_not;
+var author$project$Elements$settingsButton = function (model) {
+	return A3(
+		mdgriffith$style_elements$Element$button,
+		author$project$Elements$ButtonStyle,
+		_List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Events$onClick(
+				author$project$Model$ShowSettings(!model.settings.show))
+			]),
+		mdgriffith$style_elements$Element$text('Settings'));
+};
+var author$project$Elements$ModalStyle = {$: 'ModalStyle'};
 var author$project$Elements$CheckboxStyle = {$: 'CheckboxStyle'};
 var author$project$Elements$HeadingStyle = {$: 'HeadingStyle'};
 var author$project$Elements$InputStyle = {$: 'InputStyle'};
@@ -7186,7 +7192,6 @@ var mdgriffith$style_elements$Element$Input$LabelOnLeft = function (a) {
 };
 var mdgriffith$style_elements$Element$Input$labelLeft = mdgriffith$style_elements$Element$Input$LabelOnLeft;
 var mdgriffith$style_elements$Element$Input$Plain = {$: 'Plain'};
-var elm$core$Basics$not = _Basics_not;
 var elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -8243,7 +8248,7 @@ var mdgriffith$style_elements$Element$Input$checkbox = F3(
 			true,
 			inputElem);
 	});
-var author$project$Elements$settingsTab = function (model) {
+var author$project$Elements$settingsContent = function (model) {
 	return A3(
 		mdgriffith$style_elements$Element$table,
 		author$project$Elements$SettingsStyle,
@@ -8309,155 +8314,247 @@ var author$project$Elements$settingsTab = function (model) {
 						])))
 			]));
 };
-var mdgriffith$style_elements$Element$Attributes$fill = mdgriffith$style_elements$Style$Internal$Model$Fill(1);
-var mdgriffith$style_elements$Element$Internal$Model$Height = function (a) {
-	return {$: 'Height', a: a};
+var mdgriffith$style_elements$Element$empty = mdgriffith$style_elements$Element$Internal$Model$Empty;
+var mdgriffith$style_elements$Element$Internal$Model$Nearby = function (a) {
+	return {$: 'Nearby', a: a};
 };
-var mdgriffith$style_elements$Element$Attributes$height = mdgriffith$style_elements$Element$Internal$Model$Height;
-var mdgriffith$style_elements$Element$Attributes$width = mdgriffith$style_elements$Element$Internal$Model$Width;
-var mdgriffith$style_elements$Element$mainContent = F3(
-	function (style, attrs, child) {
+var mdgriffith$style_elements$Element$Internal$Model$PositionFrame = function (a) {
+	return {$: 'PositionFrame', a: a};
+};
+var mdgriffith$style_elements$Element$Internal$Model$Within = {$: 'Within'};
+var mdgriffith$style_elements$Element$Internal$Modify$addChild = F2(
+	function (parent, el) {
+		switch (parent.$) {
+			case 'Empty':
+				return mdgriffith$style_elements$Element$Internal$Model$Element(
+					{
+						absolutelyPositioned: elm$core$Maybe$Just(
+							_List_fromArray(
+								[el])),
+						attrs: _List_Nil,
+						child: mdgriffith$style_elements$Element$Internal$Model$Empty,
+						node: 'div',
+						style: elm$core$Maybe$Nothing
+					});
+			case 'Spacer':
+				var x = parent.a;
+				return mdgriffith$style_elements$Element$Internal$Model$Spacer(x);
+			case 'Raw':
+				var h = parent.a;
+				return mdgriffith$style_elements$Element$Internal$Model$Raw(h);
+			case 'Layout':
+				var elm = parent.a;
+				var absolutelyPositioned = elm.absolutelyPositioned;
+				if (absolutelyPositioned.$ === 'Nothing') {
+					return mdgriffith$style_elements$Element$Internal$Model$Layout(
+						_Utils_update(
+							elm,
+							{
+								absolutelyPositioned: elm$core$Maybe$Just(
+									_List_fromArray(
+										[el]))
+							}));
+				} else {
+					var others = absolutelyPositioned.a;
+					return mdgriffith$style_elements$Element$Internal$Model$Layout(
+						_Utils_update(
+							elm,
+							{
+								absolutelyPositioned: elm$core$Maybe$Just(
+									A2(elm$core$List$cons, el, others))
+							}));
+				}
+			case 'Element':
+				var elm = parent.a;
+				var absolutelyPositioned = elm.absolutelyPositioned;
+				if (absolutelyPositioned.$ === 'Nothing') {
+					return mdgriffith$style_elements$Element$Internal$Model$Element(
+						_Utils_update(
+							elm,
+							{
+								absolutelyPositioned: elm$core$Maybe$Just(
+									_List_fromArray(
+										[el]))
+							}));
+				} else {
+					var others = absolutelyPositioned.a;
+					return mdgriffith$style_elements$Element$Internal$Model$Element(
+						_Utils_update(
+							elm,
+							{
+								absolutelyPositioned: elm$core$Maybe$Just(
+									A2(elm$core$List$cons, el, others))
+							}));
+				}
+			default:
+				var dec = parent.a;
+				var content = parent.b;
+				return mdgriffith$style_elements$Element$Internal$Model$Element(
+					{
+						absolutelyPositioned: elm$core$Maybe$Just(
+							_List_fromArray(
+								[el])),
+						attrs: _List_Nil,
+						child: A2(mdgriffith$style_elements$Element$Internal$Model$Text, dec, content),
+						node: 'div',
+						style: elm$core$Maybe$Nothing
+					});
+		}
+	});
+var mdgriffith$style_elements$Element$Internal$Modify$wrapHtml = function (el) {
+	if (el.$ === 'Raw') {
+		var h = el.a;
 		return mdgriffith$style_elements$Element$Internal$Model$Element(
 			{
 				absolutelyPositioned: elm$core$Maybe$Nothing,
-				attrs: A2(
-					elm$core$List$cons,
-					mdgriffith$style_elements$Element$Attributes$width(mdgriffith$style_elements$Element$Attributes$fill),
-					A2(
-						elm$core$List$cons,
-						mdgriffith$style_elements$Element$Attributes$height(mdgriffith$style_elements$Element$Attributes$fill),
-						A2(
-							elm$core$List$cons,
-							A2(mdgriffith$style_elements$Element$Attributes$attribute, 'role', 'main'),
-							attrs))),
-				child: child,
-				node: 'main',
-				style: elm$core$Maybe$Just(style)
+				attrs: _List_Nil,
+				child: mdgriffith$style_elements$Element$Internal$Model$Raw(h),
+				node: 'div',
+				style: elm$core$Maybe$Nothing
 			});
-	});
-var mdgriffith$style_elements$Element$Attributes$padding = function (x) {
-	return A4(
-		mdgriffith$style_elements$Element$Internal$Model$Padding,
-		elm$core$Maybe$Just(x),
-		elm$core$Maybe$Just(x),
-		elm$core$Maybe$Just(x),
-		elm$core$Maybe$Just(x));
+	} else {
+		var x = el;
+		return x;
+	}
 };
-var author$project$Elements$tabContent = function (model) {
-	return A3(
-		mdgriffith$style_elements$Element$mainContent,
-		author$project$Elements$TabContentStyle,
+var mdgriffith$style_elements$Element$within = F2(
+	function (nearbys, parent) {
+		var position = F2(
+			function (elem, p) {
+				return A2(
+					mdgriffith$style_elements$Element$Internal$Modify$addChild,
+					p,
+					A2(
+						mdgriffith$style_elements$Element$Internal$Modify$addAttr,
+						mdgriffith$style_elements$Element$Internal$Model$PositionFrame(
+							mdgriffith$style_elements$Element$Internal$Model$Nearby(mdgriffith$style_elements$Element$Internal$Model$Within)),
+						mdgriffith$style_elements$Element$Internal$Modify$wrapHtml(elem)));
+			});
+		return A3(elm$core$List$foldr, position, parent, nearbys);
+	});
+var mdgriffith$style_elements$Element$Internal$Model$Height = function (a) {
+	return {$: 'Height', a: a};
+};
+var mdgriffith$style_elements$Element$Internal$Model$PointerEvents = function (a) {
+	return {$: 'PointerEvents', a: a};
+};
+var mdgriffith$style_elements$Element$Internal$Model$Screen = {$: 'Screen'};
+var mdgriffith$style_elements$Style$Internal$Model$Calc = F2(
+	function (a, b) {
+		return {$: 'Calc', a: a, b: b};
+	});
+var mdgriffith$style_elements$Element$screen = function (elem) {
+	return A2(
+		mdgriffith$style_elements$Element$within,
 		_List_fromArray(
-			[
-				mdgriffith$style_elements$Element$Attributes$padding(10)
-			]),
-		function () {
-			var _n0 = model.tab;
-			if (_n0.$ === 'MessagesTab') {
-				return author$project$Elements$messagesTab(model);
-			} else {
-				return author$project$Elements$settingsTab(model);
-			}
-		}());
-};
-var author$project$Elements$NavStyle = {$: 'NavStyle'};
-var author$project$Elements$TabSelectedStyle = {$: 'TabSelectedStyle'};
-var author$project$Elements$TabStyle = {$: 'TabStyle'};
-var author$project$Model$SwitchTab = function (a) {
-	return {$: 'SwitchTab', a: a};
-};
-var author$project$Elements$tabButton = F2(
-	function (model, _n0) {
-		var label = _n0.a;
-		var tab = _n0.b;
-		return A3(
-			mdgriffith$style_elements$Element$button,
-			_Utils_eq(model.tab, tab) ? author$project$Elements$TabSelectedStyle : author$project$Elements$TabStyle,
-			_List_fromArray(
-				[
-					mdgriffith$style_elements$Element$Attributes$padding(10),
-					mdgriffith$style_elements$Element$Events$onClick(
-					author$project$Model$SwitchTab(tab))
-				]),
-			mdgriffith$style_elements$Element$text(label));
-	});
-var author$project$Model$SettingsTab = {$: 'SettingsTab'};
-var mdgriffith$style_elements$Element$navigation = F3(
-	function (style, attrs, _n0) {
-		var options = _n0.options;
-		var name = _n0.name;
-		var wrap = function (elem) {
-			return mdgriffith$style_elements$Element$Internal$Model$Element(
-				{absolutelyPositioned: elm$core$Maybe$Nothing, attrs: _List_Nil, child: elem, node: 'li', style: elm$core$Maybe$Nothing});
-		};
-		return mdgriffith$style_elements$Element$Internal$Model$Element(
+			[elem]),
+		mdgriffith$style_elements$Element$Internal$Model$Element(
 			{
 				absolutelyPositioned: elm$core$Maybe$Nothing,
 				attrs: _List_fromArray(
 					[
-						A2(mdgriffith$style_elements$Element$Attributes$attribute, 'role', 'navigation'),
-						A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-label', name)
+						mdgriffith$style_elements$Element$Internal$Model$PositionFrame(mdgriffith$style_elements$Element$Internal$Model$Screen),
+						mdgriffith$style_elements$Element$Internal$Model$Width(
+						A2(mdgriffith$style_elements$Style$Internal$Model$Calc, 100, 0)),
+						mdgriffith$style_elements$Element$Internal$Model$Height(
+						A2(mdgriffith$style_elements$Style$Internal$Model$Calc, 100, 0)),
+						mdgriffith$style_elements$Element$Internal$Model$PointerEvents(false)
 					]),
-				child: mdgriffith$style_elements$Element$Internal$Model$Layout(
-					{
-						absolutelyPositioned: elm$core$Maybe$Nothing,
-						attrs: attrs,
-						children: mdgriffith$style_elements$Element$Internal$Model$Normal(
-							A2(elm$core$List$map, wrap, options)),
-						layout: A2(mdgriffith$style_elements$Style$Internal$Model$FlexLayout, mdgriffith$style_elements$Style$Internal$Model$GoRight, _List_Nil),
-						node: 'ul',
-						style: elm$core$Maybe$Just(style)
-					}),
-				node: 'nav',
+				child: mdgriffith$style_elements$Element$empty,
+				node: 'div',
 				style: elm$core$Maybe$Nothing
-			});
-	});
-var author$project$Elements$tabs = function (model) {
-	return A3(
-		mdgriffith$style_elements$Element$navigation,
-		author$project$Elements$NavStyle,
-		_List_Nil,
-		{
-			name: 'Main Navigation',
-			options: A2(
-				elm$core$List$map,
-				author$project$Elements$tabButton(model),
-				_List_fromArray(
-					[
-						_Utils_Tuple2('Messages', author$project$Model$MessagesTab),
-						_Utils_Tuple2('Settings', author$project$Model$SettingsTab)
-					]))
-		});
+			}));
 };
+var mdgriffith$style_elements$Element$modal = F3(
+	function (style, attrs, child) {
+		return mdgriffith$style_elements$Element$screen(
+			mdgriffith$style_elements$Element$Internal$Model$Element(
+				{
+					absolutelyPositioned: elm$core$Maybe$Nothing,
+					attrs: A2(
+						elm$core$List$cons,
+						A2(mdgriffith$style_elements$Element$Attributes$attribute, 'role', 'alertdialog'),
+						A2(
+							elm$core$List$cons,
+							A2(mdgriffith$style_elements$Element$Attributes$attribute, 'aria-modal', 'true'),
+							attrs)),
+					child: child,
+					node: 'div',
+					style: elm$core$Maybe$Just(style)
+				}));
+	});
+var mdgriffith$style_elements$Element$Internal$Model$Center = {$: 'Center'};
+var mdgriffith$style_elements$Element$Internal$Model$HAlign = function (a) {
+	return {$: 'HAlign', a: a};
+};
+var mdgriffith$style_elements$Element$Attributes$center = mdgriffith$style_elements$Element$Internal$Model$HAlign(mdgriffith$style_elements$Element$Internal$Model$Center);
 var mdgriffith$style_elements$Style$Internal$Model$Auto = {$: 'Auto'};
 var mdgriffith$style_elements$Element$Attributes$content = mdgriffith$style_elements$Style$Internal$Model$Auto;
+var mdgriffith$style_elements$Element$Attributes$height = mdgriffith$style_elements$Element$Internal$Model$Height;
+var mdgriffith$style_elements$Style$Internal$Model$Percent = function (a) {
+	return {$: 'Percent', a: a};
+};
+var mdgriffith$style_elements$Element$Attributes$percent = mdgriffith$style_elements$Style$Internal$Model$Percent;
+var mdgriffith$style_elements$Element$Attributes$width = mdgriffith$style_elements$Element$Internal$Model$Width;
+var author$project$Elements$settingsModal = function (model) {
+	return A3(
+		mdgriffith$style_elements$Element$modal,
+		author$project$Elements$ModalStyle,
+		_List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Attributes$center,
+				A2(mdgriffith$style_elements$Element$Attributes$spacingXY, 0, 50),
+				mdgriffith$style_elements$Element$Attributes$width(
+				mdgriffith$style_elements$Element$Attributes$percent(80)),
+				mdgriffith$style_elements$Element$Attributes$height(mdgriffith$style_elements$Element$Attributes$content)
+			]),
+		author$project$Elements$settingsContent(model));
+};
+var mdgriffith$style_elements$Element$Attributes$fill = mdgriffith$style_elements$Style$Internal$Model$Fill(1);
 var author$project$Elements$elements = function (model) {
 	return A3(
 		mdgriffith$style_elements$Element$grid,
 		author$project$Elements$PageStyle,
-		_List_Nil,
+		_List_fromArray(
+			[
+				mdgriffith$style_elements$Element$Attributes$height(mdgriffith$style_elements$Element$Attributes$fill)
+			]),
 		{
 			cells: _List_fromArray(
 				[
 					mdgriffith$style_elements$Element$cell(
 					{
-						content: author$project$Elements$tabs(model),
+						content: author$project$Elements$settingsButton(model),
+						height: 1,
+						start: _Utils_Tuple2(1, 0),
+						width: 1
+					}),
+					mdgriffith$style_elements$Element$cell(
+					{
+						content: model.settings.show ? author$project$Elements$settingsModal(model) : mdgriffith$style_elements$Element$empty,
 						height: 1,
 						start: _Utils_Tuple2(0, 0),
 						width: 1
 					}),
 					mdgriffith$style_elements$Element$cell(
 					{
-						content: author$project$Elements$tabContent(model),
+						content: author$project$Elements$messagesList(model),
 						height: 1,
 						start: _Utils_Tuple2(0, 1),
-						width: 1
+						width: 2
+					}),
+					mdgriffith$style_elements$Element$cell(
+					{
+						content: author$project$Elements$newMessage(model),
+						height: 1,
+						start: _Utils_Tuple2(0, 2),
+						width: 2
 					})
 				]),
 			columns: _List_fromArray(
-				[mdgriffith$style_elements$Element$Attributes$fill]),
+				[mdgriffith$style_elements$Element$Attributes$fill, mdgriffith$style_elements$Element$Attributes$content]),
 			rows: _List_fromArray(
-				[mdgriffith$style_elements$Element$Attributes$content, mdgriffith$style_elements$Element$Attributes$fill])
+				[mdgriffith$style_elements$Element$Attributes$content, mdgriffith$style_elements$Element$Attributes$fill, mdgriffith$style_elements$Element$Attributes$content])
 		});
 };
 var mdgriffith$style_elements$Style$Internal$Model$RGBA = F4(
@@ -8472,6 +8569,7 @@ var author$project$Colours$rgb = F3(
 	function (r, g, b) {
 		return A3(mdgriffith$style_elements$Style$rgb, r / 255, g / 255, b / 255);
 	});
+var author$project$Colours$backgroundPrimary = A3(author$project$Colours$rgb, 255, 255, 255);
 var author$project$Colours$backgroundSecondary = A3(author$project$Colours$rgb, 240, 240, 240);
 var author$project$Colours$primary = A3(author$project$Colours$rgb, 118, 181, 202);
 var elm$core$Basics$negate = function (n) {
@@ -11022,10 +11120,10 @@ var author$project$Elements$stylesheet = mdgriffith$style_elements$Style$styleSh
 				])),
 			A2(
 			mdgriffith$style_elements$Style$style,
-			author$project$Elements$TabSelectedStyle,
+			author$project$Elements$SettingsStyle,
 			_List_fromArray(
 				[
-					mdgriffith$style_elements$Style$Color$background(author$project$Colours$primary)
+					mdgriffith$style_elements$Style$Color$background(author$project$Colours$backgroundPrimary)
 				])),
 			A2(
 			mdgriffith$style_elements$Style$style,
@@ -11052,6 +11150,7 @@ var author$project$Elements$stylesheet = mdgriffith$style_elements$Style$styleSh
 				]))
 		]));
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
 var elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
@@ -11089,13 +11188,6 @@ var mdgriffith$style_elements$Element$Internal$Adjustments$tag = function (str) 
 	return mdgriffith$style_elements$Element$Internal$Adjustments$tagIntermediates ? mdgriffith$style_elements$Element$Internal$Model$Attr(
 		elm$html$Html$Attributes$class(str)) : mdgriffith$style_elements$Element$Internal$Model$Attr(
 		elm$html$Html$Attributes$class(''));
-};
-var mdgriffith$style_elements$Element$Internal$Model$Center = {$: 'Center'};
-var mdgriffith$style_elements$Element$Internal$Model$HAlign = function (a) {
-	return {$: 'HAlign', a: a};
-};
-var mdgriffith$style_elements$Element$Internal$Model$PointerEvents = function (a) {
-	return {$: 'PointerEvents', a: a};
 };
 var mdgriffith$style_elements$Element$Internal$Adjustments$centerTextLayout = function (elm) {
 	if (elm.$ === 'Layout') {
@@ -11149,10 +11241,6 @@ var mdgriffith$style_elements$Element$Internal$Adjustments$centerTextLayout = fu
 		return elm;
 	}
 };
-var mdgriffith$style_elements$Element$Internal$Model$PositionFrame = function (a) {
-	return {$: 'PositionFrame', a: a};
-};
-var mdgriffith$style_elements$Element$Internal$Model$Screen = {$: 'Screen'};
 var mdgriffith$style_elements$Element$Internal$Adjustments$hoistFixedScreenElements = function (el) {
 	var elementIsOnScreen = function (attrs) {
 		return A2(
@@ -11183,7 +11271,6 @@ var mdgriffith$style_elements$Element$Internal$Adjustments$hoistFixedScreenEleme
 			return _Utils_Tuple2(el, elm$core$Maybe$Nothing);
 	}
 };
-var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
 var elm$core$Tuple$mapSecond = F2(
 	function (func, _n0) {
 		var x = _n0.a;
@@ -11203,10 +11290,6 @@ var mdgriffith$style_elements$Element$Internal$Model$PhantomPadding = F4(
 var mdgriffith$style_elements$Element$Internal$Model$Shrink = function (a) {
 	return {$: 'Shrink', a: a};
 };
-var mdgriffith$style_elements$Style$Internal$Model$Calc = F2(
-	function (a, b) {
-		return {$: 'Calc', a: a, b: b};
-	});
 var mdgriffith$style_elements$Element$Internal$Adjustments$counterSpacing = function (elm) {
 	if (elm.$ === 'Layout') {
 		var layoutEl = elm.a;
@@ -11399,9 +11482,6 @@ var mdgriffith$style_elements$Element$Internal$Model$Below = {$: 'Below'};
 var mdgriffith$style_elements$Element$Internal$Model$Bottom = {$: 'Bottom'};
 var mdgriffith$style_elements$Element$Internal$Model$BottomLeft = {$: 'BottomLeft'};
 var mdgriffith$style_elements$Element$Internal$Model$Left = {$: 'Left'};
-var mdgriffith$style_elements$Element$Internal$Model$Nearby = function (a) {
-	return {$: 'Nearby', a: a};
-};
 var mdgriffith$style_elements$Element$Internal$Model$Position = F3(
 	function (a, b, c) {
 		return {$: 'Position', a: a, b: b, c: c};
@@ -11526,9 +11606,6 @@ var mdgriffith$style_elements$Element$Internal$Modify$setAttrs = F2(
 				return A2(mdgriffith$style_elements$Element$Internal$Model$Text, dec, content);
 		}
 	});
-var mdgriffith$style_elements$Style$Internal$Model$Percent = function (a) {
-	return {$: 'Percent', a: a};
-};
 var mdgriffith$style_elements$Style$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
@@ -14533,22 +14610,24 @@ var mdgriffith$style_elements$Element$Internal$Render$render = F2(
 			A4(mdgriffith$style_elements$Element$Internal$Render$renderElement, elm$core$Maybe$Nothing, stylesheet, mdgriffith$style_elements$Element$Internal$Render$FirstAndLast, adjusted),
 			fixedScreenElements);
 	});
-var mdgriffith$style_elements$Element$Internal$Render$root = F2(
+var mdgriffith$style_elements$Element$Internal$Render$viewport = F2(
 	function (stylesheet, elm) {
 		return A2(
 			elm$html$Html$div,
 			_List_fromArray(
 				[
-					elm$html$Html$Attributes$class('style-elements')
+					elm$html$Html$Attributes$class('style-elements'),
+					A2(elm$html$Html$Attributes$style, 'width', '100%'),
+					A2(elm$html$Html$Attributes$style, 'height', '100%')
 				]),
 			_Utils_ap(
-				A2(mdgriffith$style_elements$Element$Internal$Render$embed, false, stylesheet),
+				A2(mdgriffith$style_elements$Element$Internal$Render$embed, true, stylesheet),
 				A2(mdgriffith$style_elements$Element$Internal$Render$render, stylesheet, elm)));
 	});
-var mdgriffith$style_elements$Element$layout = mdgriffith$style_elements$Element$Internal$Render$root;
+var mdgriffith$style_elements$Element$viewport = mdgriffith$style_elements$Element$Internal$Render$viewport;
 var author$project$Elements$html = function (model) {
 	return A2(
-		mdgriffith$style_elements$Element$layout,
+		mdgriffith$style_elements$Element$viewport,
 		author$project$Elements$stylesheet,
 		author$project$Elements$elements(model));
 };

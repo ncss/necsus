@@ -2,10 +2,6 @@ module Model exposing (..)
 
 import Http
 
-type Tab
-  = MessagesTab
-  | SettingsTab
-
 type alias Message =
   { author : String
   , text : String
@@ -27,26 +23,25 @@ type alias BotSettings =
   , endpoint : String
   }
 
-type MessageType
-  = TextMessage
-  | CommandMessage BotSettings
-
-type alias Model =
-  { tab : Tab
-  , messages : RemoteMessages
-  , newMessage : String
-  , settings : Settings
-  }
-
 type alias Settings =
   { username : String
   , speechSynthesis : Bool
   , botSettings : List BotSettings
+  , show : Bool
   }
 
+type alias Model =
+  { messages : RemoteMessages
+  , newMessage : String
+  , settings : Settings
+  }
+
+type MessageType
+  = TextMessage
+  | CommandMessage BotSettings
+
 type Msg
-  = SwitchTab Tab
-  | LoadedRemoteMessages (Result Http.Error (List Message))
+  = LoadedRemoteMessages (Result Http.Error (List Message))
   | LoadedRemoteMessage (Result Http.Error (Message))
   | UpdateNewMessage String
   | SubmitNewMessage String
@@ -57,6 +52,7 @@ type Msg
   | AddBot
   | RemoveBot Int 
   | UpdateBotSettings Int BotSettingMsg
+  | ShowSettings Bool
 
 type BotSettingMsg
   = UpdateBotName String

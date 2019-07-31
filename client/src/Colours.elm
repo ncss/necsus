@@ -8,5 +8,8 @@ rgb r g b = Style.rgb (toFloat r/255) (toFloat g/255) (toFloat b/255)
 primary : Color
 primary = rgb 118 181 202
 
+backgroundPrimary : Color
+backgroundPrimary = rgb 255 255 255
+
 backgroundSecondary : Color
 backgroundSecondary = rgb 240 240 240

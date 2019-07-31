@@ -29,8 +29,7 @@ init flags =
 
 initModel : Model
 initModel =
-  { tab = MessagesTab
-  , messages = Loading
+  { messages = Loading
   , newMessage = ""
   , settings = initSettings
   }
@@ -40,6 +39,7 @@ initSettings =
   { username = "user"
   , speechSynthesis = False
   , botSettings = [ initBotSettings ]
+  , show = False
   }
 
 initBotSettings : BotSettings
@@ -57,6 +57,7 @@ cacheEncoder settings =
     [ ("username", E.string settings.username)
     , ("speechSynthesis", E.bool settings.speechSynthesis)
     , ("botSettings", E.list botSettingsEncoder settings.botSettings)
+    , ("show", E.bool settings.show)
     ]
 
 botSettingsEncoder : BotSettings -> Value
@@ -68,10 +69,11 @@ botSettingsEncoder botSettings =
 
 cacheDecoder : Decoder Settings
 cacheDecoder =
-  D.map3 Settings 
+  D.map4 Settings
     (D.field "username" D.string)
     (D.field "speechSynthesis" D.bool)
     (D.field "botSettings" <| D.list botSettingsDecoder)
+    (D.field "show" <| D.bool)
 
 botSettingsDecoder : Decoder BotSettings
 botSettingsDecoder =
@@ -100,8 +102,6 @@ speechResultDecoder =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    SwitchTab tab ->
-      ({ model | tab = tab }, Cmd.none)
     LoadedRemoteMessages (Ok messages) ->
       ({ model | messages = Messages messages }, Cmd.none)
     LoadedRemoteMessages (Err error) ->
@@ -146,6 +146,8 @@ update msg model =
       updateSettings model <| \settings -> { settings | botSettings = List.removeAt index settings.botSettings }
     UpdateBotSettings botIndex botSettingMsg ->
       updateBotSettings botIndex botSettingMsg model
+    ShowSettings show ->
+      updateSettings model <| \settings -> { settings | show = show }
 
 updateSettings : Model -> (Settings -> Settings) -> (Model, Cmd Msg)
 updateSettings model updates =

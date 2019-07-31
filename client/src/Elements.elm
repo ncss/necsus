@@ -9,9 +9,9 @@ import Style.Border as Border
 import Style.Color as Color 
 import Style.Font as Font
 import Style.Scale as Scale
-import Element exposing (Element, Grid, OnGrid, GridPosition, layout, grid, table, navigation, mainContent, button, text, cell)
+import Element exposing (Element, Grid, OnGrid, GridPosition, viewport, grid, table, navigation, mainContent, button, text, cell, empty)
 import Element.Input as Input exposing (hiddenLabel, labelLeft)
-import Element.Attributes as Attr exposing (px, fill, fillPortion, percent, content)
+import Element.Attributes as Attr exposing (width, height, px, fill, fillPortion, percent, content)
 import Element.Events as Events
 
 import Html exposing (Html)
@@ -26,9 +26,7 @@ import Colours
 type Style
   = PageStyle 
   | NavStyle
-  | TabStyle
-  | TabSelectedStyle
-  | TabContentStyle
+  | ModalStyle
   | InputStyle
   | ButtonStyle
   | CheckboxStyle
@@ -42,7 +40,7 @@ type Style
 
 html : Model -> Html Msg
 html model =
-  layout
+  viewport
     stylesheet
     <| elements model
 
@@ -58,8 +56,8 @@ stylesheet =
       , Border.rounded 5
       , Style.prop "padding" "8px"
       ]
-    , style TabSelectedStyle
-      [ Color.background Colours.primary 
+    , style SettingsStyle
+      [ Color.background Colours.backgroundPrimary
       ]
     , style BotSettingsStyle
       [ Color.background Colours.backgroundSecondary 
@@ -77,62 +75,38 @@ scaled =
 
 elements : Model -> Element Style variation Msg
 elements model =
-  grid PageStyle []
-    { columns = [ fill ]
-    , rows = [ content, fill ]
+  grid PageStyle
+    [ height fill
+    ]
+    { columns = [ fill, content ]
+    , rows = [ content, fill, content ]
     , cells =
       [ cell
+        { start = (1, 0)
+        , width = 1
+        , height = 1
+        , content = settingsButton model
+        }
+      , cell
         { start = (0, 0)
         , width = 1
         , height = 1
-        , content = tabs model
+        , content = if model.settings.show then settingsModal model else empty
         }
       , cell
         { start = (0, 1)
-        , width = 1
+        , width = 2
         , height = 1
-        , content = tabContent model
+        , content = messagesList model
+        }
+      , cell
+        { start = (0, 2)
+        , width = 2
+        , height = 1
+        , content = newMessage model
         }
       ]
     }
-
-tabs : Model -> Element Style variation Msg
-tabs model =
-  navigation NavStyle []
-    { name = "Main Navigation"
-    , options =
-      List.map (tabButton model)
-        [ ("Messages", MessagesTab)
-        , ("Settings", SettingsTab)
-        ]
-    }
-
-tabButton : Model -> (String, Tab) -> Element Style variation Msg
-tabButton model (label, tab) =
-  button (if model.tab == tab then TabSelectedStyle else TabStyle)
-    [ Attr.padding 10
-    , Events.onClick <| SwitchTab tab 
-    ]
-    <| text label 
-
-tabContent : Model -> Element Style variation Msg
-tabContent model =
-  mainContent TabContentStyle
-    [ Attr.padding 10 ]
-    <| case model.tab of
-      MessagesTab ->
-        messagesTab model
-      SettingsTab ->
-        settingsTab model
-
-messagesTab : Model -> Element Style variation Msg
-messagesTab model =
-   table NoStyle
-    [ Attr.spacingXY 20 0 ]
-    [ [ messagesList model
-      , newMessage model
-      ]
-    ]
 
 messagesList : Model -> Element Style variation Msg
 messagesList model =
@@ -180,8 +154,25 @@ newMessage model =
       ]
     ]
 
-settingsTab : Model -> Element Style variation Msg
-settingsTab model =
+settingsButton : Model -> Element Style variation Msg
+settingsButton model =
+  Element.button ButtonStyle
+    [ Events.onClick <| ShowSettings <| not model.settings.show
+    ]
+    <| text "Settings"
+
+settingsModal : Model -> Element Style variation Msg
+settingsModal model =
+  Element.modal ModalStyle
+    [ Attr.center
+    , Attr.spacingXY 0 50
+    , width <| percent 80
+    , height content
+    ]
+    <| settingsContent model
+
+settingsContent : Model -> Element Style variation Msg
+settingsContent model =
   Element.table SettingsStyle
     [ Attr.spacingXY 10 0
     , Attr.paddingXY 10 10
