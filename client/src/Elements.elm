@@ -1,21 +1,17 @@
 module Elements exposing
   ( html
-  , stylesheet
   , elements
   )
 
-import Style exposing (StyleSheet, style)
-import Style.Border as Border
-import Style.Color as Color 
-import Style.Font as Font
-import Style.Scale as Scale
-import Element exposing (Element, Grid, OnGrid, GridPosition, viewport, grid, table, navigation, mainContent, button, text, cell, empty)
-import Element.Input as Input exposing (hiddenLabel, labelLeft)
-import Element.Attributes as Attr exposing (width, height, px, fill, fillPortion, percent, content)
+import Element exposing (Element, Attribute, row, column, el, text, none, width, height, px, fill, fillPortion, centerX, padding, paddingXY, paddingEach, spacing, spacingXY, inFront, behindContent, alignTop, alignBottom, alignRight)
+import Element.Input as Input exposing (button, labelLeft, labelHidden)
 import Element.Events as Events
+import Element.Font as Font
+import Element.Background as Background
+import Element.Region as Region
 
 import Html exposing (Html)
-import Html.Attributes exposing (value)
+import Html.Attributes exposing (attribute, value)
 import Html.Events exposing (on)
 
 import Json.Decode as D exposing (Decoder)
@@ -23,213 +19,210 @@ import Json.Decode as D exposing (Decoder)
 import Model exposing (..)
 import Colours
 
-type Style
-  = PageStyle 
-  | NavStyle
-  | ModalStyle
-  | InputStyle
-  | ButtonStyle
-  | CheckboxStyle
-  | MessageListStyle
-  | MessageStyle
-  | SettingsStyle
-  | BotSettingsStyle
-  | HeadingStyle
-  | SubHeadingStyle
-  | NoStyle
-
 html : Model -> Html Msg
 html model =
-  viewport
-    stylesheet
+  Element.layout
+    []
     <| elements model
 
-stylesheet : StyleSheet Style variation
-stylesheet =
-  Style.styleSheet
-    [ style InputStyle
-      [ Border.all 1
-      , Style.prop "padding" "4px"
-      ]
-    , style ButtonStyle
-      [ Color.background Colours.primary 
-      , Border.rounded 5
-      , Style.prop "padding" "8px"
-      ]
-    , style SettingsStyle
-      [ Color.background Colours.backgroundPrimary
-      ]
-    , style BotSettingsStyle
-      [ Color.background Colours.backgroundSecondary 
-      ]
-    , style HeadingStyle
-      [ Font.size (scaled 3)
-      ]
-    , style SubHeadingStyle
-      [ Font.size (scaled 2)
-      ]
-    ]
-
 scaled =
-  Scale.modular 16 1.618
+  Element.modular 16 1.25
 
-elements : Model -> Element Style variation Msg
+elements : Model -> Element Msg
 elements model =
-  grid PageStyle
+ column 
     [ height fill
+    , width fill
+    , inFront <| if model.settings.show then modal (ShowSettings False) <| settingsContent model else none 
     ]
-    { columns = [ fill, content ]
-    , rows = [ content, fill, content ]
-    , cells =
-      [ cell
-        { start = (1, 0)
-        , width = 1
-        , height = 1
-        , content = settingsButton model
-        }
-      , cell
-        { start = (0, 0)
-        , width = 1
-        , height = 1
-        , content = if model.settings.show then settingsModal model else empty
-        }
-      , cell
-        { start = (0, 1)
-        , width = 2
-        , height = 1
-        , content = messagesList model
-        }
-      , cell
-        { start = (0, 2)
-        , width = 2
-        , height = 1
-        , content = newMessage model
-        }
+    [ el
+      [ alignRight
       ]
-    }
+      <| settingsButton model
+    , messagesList model
+    , newMessage model
+    ]
 
-messagesList : Model -> Element Style variation Msg
+messagesList : Model -> Element Msg
 messagesList model =
-  table MessageListStyle
-    [ Attr.spacingXY 20 0 ]
-    [ case model.messages of
+  column
+    [ height fill
+    , spacing 20
+    , padding 20
+    ]
+    <| case model.messages of
       Loading ->
-        [ text "Loading"]
+        [ text "Loading" ]
       Messages messages ->
         messages |> List.map messageElement
       Error error ->
         [ text error ]
-   ]
 
-messageElement : Message -> Element Style variation Msg
+messageElement : Message -> Element Msg
 messageElement message =
-  table MessageStyle
-    [ Attr.spacingXY 4 0 ]
-    [ [ Element.bold message.author
-      , text message.text
-      ]
+  column
+    [ spacing 5
+    , alignBottom
+    ]
+    [ bold message.author
+    , text message.text
     ]
 
-newMessage : Model -> Element Style variation Msg
+newMessage : Model -> Element Msg
 newMessage model =
-  Element.table NoStyle []
-    [ [ Element.html <| Html.textarea
-        [ on "keyup"
-          <| decodeValueOnKey
-          <| \key shift text ->
-            case (key, shift) of
-              ("Enter", False) ->
-                SubmitNewMessage text
-              _ ->
-                UpdateNewMessage text
-        , value model.newMessage
-        ]
-        [
-        ]
+  row
+    [ width fill
+    , padding 20
+    ]
+    [ el
+      [ width fill
       ]
-    , [ button ButtonStyle
-        [ Events.onClick Listen
-        ]
-        <| text "listen"
-      ]
+      <| newMessageInput model 
+    , button
+      (alignRight::buttonStyle)
+      { onPress = Just Listen
+      , label = text "listen"
+      }
     ]
 
-settingsButton : Model -> Element Style variation Msg
+newMessageInput : Model -> Element Msg
+newMessageInput model =
+  Element.html <| Html.textarea
+    [ on "keyup"
+      <| decodeValueOnKey
+      <| \key shift text ->
+        case (key, shift) of
+          ("Enter", False) ->
+            SubmitNewMessage text
+          _ ->
+            UpdateNewMessage text
+    , value model.newMessage
+    , attribute "rows" <| String.fromInt <| max 2 <| List.length <| String.lines <| model.newMessage
+    ]
+    []
+
+settingsButton : Model -> Element Msg
 settingsButton model =
-  Element.button ButtonStyle
-    [ Events.onClick <| ShowSettings <| not model.settings.show
+  button
+    [ padding 5 
+    , Background.color Colours.primary
     ]
-    <| text "Settings"
+    { onPress = Just <| ShowSettings <| not model.settings.show
+    , label = text "Settings"
+    }
 
-settingsModal : Model -> Element Style variation Msg
-settingsModal model =
-  Element.modal ModalStyle
-    [ Attr.center
-    , Attr.spacingXY 0 50
-    , width <| percent 80
-    , height content
-    ]
-    <| settingsContent model
-
-settingsContent : Model -> Element Style variation Msg
+settingsContent : Model -> Element Msg
 settingsContent model =
-  Element.table SettingsStyle
-    [ Attr.spacingXY 10 0
-    , Attr.paddingXY 10 10
+  column
+    [ spacing 10
+    , padding 10
+    , Background.color Colours.backgroundPrimary
     ]
-    [ [ Element.h1 HeadingStyle []
+    <|
+      [ el
+        (heading 2)
         <| text "Settings"
-      , Element.h2 SubHeadingStyle []
+      , el
+        (heading 3)
         <| text "Main"
-      , Input.text InputStyle []
+      , Input.text []
         { onChange = UpdateUsername
-        , value = model.settings.username
-        , label = labelLeft <| Element.bold "Name"
-        , options = []
+        , text = model.settings.username
+        , placeholder = Nothing
+        , label = labelLeft [] <| bold "Name"
         } 
-      , Input.checkbox CheckboxStyle []
+      , Input.checkbox []
         { onChange = UpdateSpeechSynthesis
+        , icon = Input.defaultCheckbox
         , checked = model.settings.speechSynthesis
-        , label = Element.bold "Speech Synthesis"
-        , options = []
+        , label = labelLeft [] <| bold "Speech Synthesis"
         }
-      , Element.h2 SubHeadingStyle []
+      , el
+        (heading 3)
         <| text "Bots"
       ]
       ++
       (List.indexedMap botSettings model.settings.botSettings)
       ++
-      [ button ButtonStyle
-        [ Events.onClick AddBot
-        ]
-        <| text "Add bot"
+      [ button
+        buttonStyle
+        { onPress = Just AddBot
+        , label = text "Add bot"
+        }
       ]
+
+botSettings : Int -> BotSettings -> Element Msg
+botSettings index settings =
+  Element.column
+    [ spacing 10
+    , padding 10
+    , Background.color Colours.backgroundSecondary
+    ]
+    [ Input.text []
+      { onChange = UpdateBotSettings index << UpdateBotName
+      , text = settings.name
+      , placeholder = Nothing
+      , label = labelLeft [] <| bold "Bot Name"
+      }
+    , Input.text []
+      { onChange = UpdateBotSettings index << UpdateEndpoint
+      , text = settings.endpoint
+      , placeholder = Nothing
+      , label = labelLeft [] <| bold "Endpoint"
+      } 
+    , button
+      buttonStyle
+      { onPress = Just <| RemoveBot index
+      , label = text "Remove bot"
+      }
     ]
 
-botSettings : Int -> BotSettings -> Element Style variation Msg
-botSettings index settings =
-  Element.table BotSettingsStyle
-    [ Attr.spacingXY 10 0
-    , Attr.paddingXY 10 10
-    ]
-    [ [ Input.text InputStyle []
-        { onChange = UpdateBotSettings index << UpdateBotName
-        , value = settings.name
-        , label = labelLeft <| Element.bold "Bot Name"
-        , options = []
-        }
-      , Input.text InputStyle []
-        { onChange = UpdateBotSettings index << UpdateEndpoint
-        , value = settings.endpoint
-        , label = labelLeft <| Element.bold "Endpoint"
-        , options = []
-        } 
-      , button ButtonStyle
-        [ Events.onClick (RemoveBot index) 
-        ]
-        <| text "Remove bot"
+heading : Int -> List (Attribute msg)
+heading order =
+  [ Region.heading order
+  , paddingEach { top = 20, bottom = 5, left = 0, right = 0 }
+  , Font.size <| round <| scaled (6-order)
+  ]
+
+modal : msg -> Element msg -> Element msg
+modal close content =
+  el
+    [ width fill
+    , height fill
+    , padding 20
+    , behindContent <| el
+      [ width fill
+      , height fill
+      , Events.onClick close 
+      , Background.color Colours.backgroundOverlay
       ]
+      none
     ]
+    <| el
+      [ centerX
+      , Background.color Colours.backgroundPrimary
+      , inFront <| el
+        [ alignTop
+        , alignRight
+        , padding 5
+        , Events.onClick close
+        ]
+        <| text "X"
+      ]
+      content 
+
+buttonStyle : List (Attribute msg)
+buttonStyle =
+  [ padding 5 
+  , Background.color Colours.primary
+  ]
+
+bold : String -> Element msg
+bold string =
+  el
+    [ Font.bold
+    ]
+    <| text string
 
 decodeValueOnKey : (String -> Bool -> String -> msg) -> Decoder msg 
 decodeValueOnKey func =
