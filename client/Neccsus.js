@@ -13498,6 +13498,25 @@ var author$project$Elements$heading = function (order) {
 				author$project$Elements$scaled(6 - order)))
 		]);
 };
+var author$project$Elements$settingsSection = F2(
+	function (title, content) {
+		return A2(
+			mdgriffith$elm_ui$Element$column,
+			_List_fromArray(
+				[
+					mdgriffith$elm_ui$Element$spacing(10),
+					mdgriffith$elm_ui$Element$padding(10)
+				]),
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2(
+						mdgriffith$elm_ui$Element$el,
+						author$project$Elements$heading(3),
+						mdgriffith$elm_ui$Element$text(title))
+					]),
+				content));
+	});
 var author$project$Model$AddBot = {$: 'AddBot'};
 var author$project$Model$UpdateSpeechSynthesis = function (a) {
 	return {$: 'UpdateSpeechSynthesis', a: a};
@@ -13505,6 +13524,8 @@ var author$project$Model$UpdateSpeechSynthesis = function (a) {
 var author$project$Model$UpdateUsername = function (a) {
 	return {$: 'UpdateUsername', a: a};
 };
+var mdgriffith$elm_ui$Internal$Flag$fontAlignment = mdgriffith$elm_ui$Internal$Flag$flag(12);
+var mdgriffith$elm_ui$Element$Font$center = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$fontAlignment, mdgriffith$elm_ui$Internal$Style$classes.textCenter);
 var mdgriffith$elm_ui$Internal$Model$Left = {$: 'Left'};
 var mdgriffith$elm_ui$Element$alignLeft = mdgriffith$elm_ui$Internal$Model$AlignX(mdgriffith$elm_ui$Internal$Model$Left);
 var mdgriffith$elm_ui$Internal$Model$CenterY = {$: 'CenterY'};
@@ -13657,8 +13678,6 @@ var mdgriffith$elm_ui$Element$Border$widthEach = function (_n0) {
 			bottom,
 			left));
 };
-var mdgriffith$elm_ui$Internal$Flag$fontAlignment = mdgriffith$elm_ui$Internal$Flag$flag(12);
-var mdgriffith$elm_ui$Element$Font$center = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$fontAlignment, mdgriffith$elm_ui$Internal$Style$classes.textCenter);
 var mdgriffith$elm_ui$Element$Input$defaultCheckbox = function (checked) {
 	return A2(
 		mdgriffith$elm_ui$Element$el,
@@ -13716,58 +13735,72 @@ var author$project$Elements$settingsContent = function (model) {
 				mdgriffith$elm_ui$Element$padding(10),
 				mdgriffith$elm_ui$Element$Background$color(author$project$Colours$backgroundPrimary)
 			]),
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2(
-					mdgriffith$elm_ui$Element$el,
-					author$project$Elements$heading(2),
-					mdgriffith$elm_ui$Element$text('Settings')),
-					A2(
-					mdgriffith$elm_ui$Element$el,
-					author$project$Elements$heading(3),
-					mdgriffith$elm_ui$Element$text('Main')),
-					A2(
-					mdgriffith$elm_ui$Element$Input$text,
-					_List_Nil,
-					{
-						label: A2(
-							mdgriffith$elm_ui$Element$Input$labelLeft,
-							_List_Nil,
-							author$project$Elements$bold('Name')),
-						onChange: author$project$Model$UpdateUsername,
-						placeholder: elm$core$Maybe$Nothing,
-						text: model.settings.username
-					}),
-					A2(
-					mdgriffith$elm_ui$Element$Input$checkbox,
-					_List_Nil,
-					{
-						checked: model.settings.speechSynthesis,
-						icon: mdgriffith$elm_ui$Element$Input$defaultCheckbox,
-						label: A2(
-							mdgriffith$elm_ui$Element$Input$labelLeft,
-							_List_Nil,
-							author$project$Elements$bold('Speech Synthesis')),
-						onChange: author$project$Model$UpdateSpeechSynthesis
-					}),
-					A2(
-					mdgriffith$elm_ui$Element$el,
-					author$project$Elements$heading(3),
-					mdgriffith$elm_ui$Element$text('Bots'))
-				]),
-			_Utils_ap(
-				A2(elm$core$List$indexedMap, author$project$Elements$botSettings, model.settings.botSettings),
+		_List_fromArray(
+			[
+				A2(
+				mdgriffith$elm_ui$Element$el,
+				author$project$Elements$heading(2),
+				mdgriffith$elm_ui$Element$text('Settings')),
+				A2(
+				author$project$Elements$settingsSection,
+				'Main',
 				_List_fromArray(
 					[
 						A2(
-						mdgriffith$elm_ui$Element$Input$button,
-						author$project$Elements$buttonStyle,
+						mdgriffith$elm_ui$Element$Input$text,
+						_List_Nil,
 						{
-							label: mdgriffith$elm_ui$Element$text('Add bot'),
-							onPress: elm$core$Maybe$Just(author$project$Model$AddBot)
+							label: A2(
+								mdgriffith$elm_ui$Element$Input$labelLeft,
+								_List_Nil,
+								author$project$Elements$bold('Name')),
+							onChange: author$project$Model$UpdateUsername,
+							placeholder: elm$core$Maybe$Nothing,
+							text: model.settings.username
+						}),
+						A2(
+						mdgriffith$elm_ui$Element$Input$checkbox,
+						_List_Nil,
+						{
+							checked: model.settings.speechSynthesis,
+							icon: mdgriffith$elm_ui$Element$Input$defaultCheckbox,
+							label: A2(
+								mdgriffith$elm_ui$Element$Input$labelLeft,
+								_List_Nil,
+								author$project$Elements$bold('Speech Synthesis')),
+							onChange: author$project$Model$UpdateSpeechSynthesis
 						})
-					]))));
+					])),
+				A2(
+				author$project$Elements$settingsSection,
+				'Bots',
+				_Utils_ap(
+					A2(elm$core$List$indexedMap, author$project$Elements$botSettings, model.settings.botSettings),
+					_List_fromArray(
+						[
+							A2(
+							mdgriffith$elm_ui$Element$Input$button,
+							_Utils_ap(
+								author$project$Elements$buttonStyle,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+										mdgriffith$elm_ui$Element$Font$center
+									])),
+							{
+								label: mdgriffith$elm_ui$Element$text('Add bot'),
+								onPress: elm$core$Maybe$Just(author$project$Model$AddBot)
+							})
+						]))),
+				A2(
+				mdgriffith$elm_ui$Element$Input$button,
+				author$project$Elements$buttonStyle,
+				{
+					label: mdgriffith$elm_ui$Element$text('Save'),
+					onPress: elm$core$Maybe$Just(
+						author$project$Model$ShowSettings(false))
+				})
+			]));
 };
 var author$project$Elements$elements = function (model) {
 	return A2(

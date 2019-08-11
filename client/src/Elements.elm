@@ -122,34 +122,51 @@ settingsContent model =
       [ el
         (heading 2)
         <| text "Settings"
-      , el
-        (heading 3)
-        <| text "Main"
-      , Input.text []
-        { onChange = UpdateUsername
-        , text = model.settings.username
-        , placeholder = Nothing
-        , label = labelLeft [] <| bold "Name"
-        } 
-      , Input.checkbox []
-        { onChange = UpdateSpeechSynthesis
-        , icon = Input.defaultCheckbox
-        , checked = model.settings.speechSynthesis
-        , label = labelLeft [] <| bold "Speech Synthesis"
-        }
-      , el
-        (heading 3)
-        <| text "Bots"
-      ]
-      ++
-      (List.indexedMap botSettings model.settings.botSettings)
-      ++
-      [ button
+      , settingsSection "Main"
+        [ Input.text []
+          { onChange = UpdateUsername
+          , text = model.settings.username
+          , placeholder = Nothing
+          , label = labelLeft [] <| bold "Name"
+          } 
+        , Input.checkbox []
+          { onChange = UpdateSpeechSynthesis
+          , icon = Input.defaultCheckbox
+          , checked = model.settings.speechSynthesis
+          , label = labelLeft [] <| bold "Speech Synthesis"
+          }
+        ]
+      , settingsSection "Bots"
+          <|
+            (List.indexedMap botSettings model.settings.botSettings)
+            ++
+            [ button
+              ( buttonStyle ++ [ width fill, Font.center ] )
+              { onPress = Just AddBot
+              , label = text "Add bot"
+              }
+            ]
+      , button
         buttonStyle
-        { onPress = Just AddBot
-        , label = text "Add bot"
+        { onPress = Just <| ShowSettings False
+        , label = text "Save"
         }
       ]
+
+settingsSection : String -> List (Element Msg) -> Element Msg
+settingsSection title content =
+  column
+    [ spacing 10
+    , padding 10
+    ]
+    <|
+      [ el
+        (heading 3)
+        <| text title
+      ]
+      ++
+      content 
+
 
 botSettings : Int -> BotSettings -> Element Msg
 botSettings index settings =
