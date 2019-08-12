@@ -4,11 +4,13 @@ from neccsus import app, db
 
 import events, commands
 
-@app.route('/api/endpoint', methods=['POST'])
-def endpoint():
+@app.route('/api/bot', methods=['POST'])
+def bot():
+  room = request.values.get('room')
+  name = request.values.get('name')
   url = request.values.get('url')
-  endpoint = db.endpoints.set(url)
-  return jsonify(endpoint)
+  bot = db.bots.set(room=room, name=name, url=url)
+  return jsonify(bot)
 
 @app.route('/api/actions/message', methods=['GET'])
 @crossdomain(origin='*')
@@ -37,5 +39,8 @@ def do_command():
   text = message.get('text')
   endpoint = message.get('endpoint')
   user = message.get('author')
-  message_result = events.trigger_command(message, command, text, endpoint, user)
+  room = message.get('room', '')
+  bot = db.bots.find(room=room, name=command) or {'room': room, 'name': command, 'url': endpoint}
+
+  message_result = events.trigger_command(message, bot, text, user=user)
   return jsonify(message_result)

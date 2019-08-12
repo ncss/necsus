@@ -3,7 +3,7 @@ import requests
 from neccsus import db
 
 def interact(params):
-  endpoint_url = db.endpoints.find(endpoint='interactivity')
+  endpoint_url = db.bots.find(endpoint='interactivity')
   reply = requests.post(endpoint_url, params=params)
 
   if reply.status_code == requests.codes.ok:

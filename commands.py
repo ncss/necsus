@@ -2,26 +2,14 @@ import requests
 
 from neccsus import db
 
-def parse(text):
-  if text.startswith('/'):
-    try:
-      command, arg_text = text.split(maxsplit=1)
-      return command[1:], arg_text
-    except ValueError:
-      return text[1:].rstrip(), ''
-  else:
-    return None
-
-def run(command, text, endpoint=None, user=None):
-  if endpoint:
-    endpoint_url = endpoint
-  else:
-    endpoint_url = db.endpoints.find(command=command)
+def run(bot, text, user=None):
+  name = bot.get('name', 'bot')
+  endpoint_url = bot.get('url') 
 
   if endpoint_url:
     params = {
       'author': user,
-      'command': command,
+      'command': name,
       'text': text,
     }
     reply = requests.post(endpoint_url, params=params)
@@ -36,5 +24,5 @@ def run(command, text, endpoint=None, user=None):
   else:
     return {
       'author': 'neccsus',
-      'text': f'I don\'t understand the "{command}" command.',
+      'text': f'I don\'t understand the "{name}" command.',
     }
