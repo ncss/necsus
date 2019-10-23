@@ -1,0 +1,224 @@
+body {
+  padding: 0px;
+  margin: 0px;
+}
+
+/*
+* Page Layout
+*/
+
+#neccsus {
+  display: grid;
+
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+
+  grid-template-areas:
+      "space  header    header    controls"
+      ".      messages  messages  settings";
+
+  grid-template-columns: minmax(min-content, 1fr) 800px min-content 1fr;
+  grid-template-rows: min-content auto;
+  grid-row-gap: 10px;
+
+  box-sizing: border-box;
+}
+
+#header-space {
+  grid-area: space;
+}
+
+header {
+  grid-area: header;
+}
+
+#controls {
+  grid-area: controls;
+}
+
+#settings {
+  grid-area: settings;
+  overflow-y: scroll;
+}
+
+#messages {
+  grid-area: messages;
+  overflow: hidden;
+}
+
+/*
+* Element Layout
+*/
+
+header {
+}
+
+#title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 800px;
+}
+
+#title #main-title,
+#title #room {
+  display: inline-block;
+  margin: 10px;
+}
+
+#title #main-title {
+  margin-left: 0px;
+}
+#title #room {
+  text-align: right;
+  margin-right: 20px;
+}
+
+#controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 20px;
+}
+
+#settings {
+  padding: 10px;
+  padding-right: 20px;
+  margin-right: 20px;
+}
+
+#settings section {
+  margin-left: 20px;
+  display: grid;
+
+  grid-template-columns: min-content max-content;
+  align-items: center;
+  grid-gap: 10px;
+}
+
+#settings section {
+  grid-column: 1 / 3;
+  margin-bottom: 30px;
+}
+
+#settings section > h3,
+#settings section > button {
+  grid-column: 1 / 3;
+}
+
+#settings section > h3 {
+  margin-top: 0px;
+  margin-bottom: 10px;
+}
+
+#messages {
+  display: flex;
+  flex-direction: column;
+}
+
+#new-message {
+  display: flex;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+#messages-list {
+  overflow-y: scroll;
+}
+
+#messages-list #spacer {
+  display: inline-block;
+}
+
+.message {
+  margin-bottom: 10px;
+}
+
+#new-message #message-input {
+  width: 100%;
+}
+
+/*
+* Tag/Class Style
+*/
+
+body {
+  font-family: sans-serif;
+}
+
+#header-space,
+#controls,
+header {
+  border-bottom: 1px solid grey;
+}
+
+button {
+  font-family: sans-serif;
+
+  padding: 8px;
+
+  background-color: rgb(118, 181, 202);
+  border: 0px;
+  color: white;
+}
+
+button:active {
+  background-color: rgb(98, 161, 182);
+}
+
+label {
+  display: inline;
+  font-weight: bold;
+}
+
+/*
+* Element Style
+*/
+
+#settings.open {
+  display: block;
+}
+#settings.closed {
+  display: none;
+}
+
+#settings::-webkit-scrollbar,
+#messages-list::-webkit-scrollbar {
+  -webkit-appearance: none;
+}
+#settings::-webkit-scrollbar-track,
+#messages-list::-webkit-scrollbar-track {
+    background-color: rgb(255, 255, 255);
+    border-radius: 8px;
+}
+#settings::-webkit-scrollbar-thumb,
+#messages-list::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: rgba(156, 156, 156, .6);
+}
+#settings::-webkit-scrollbar:vertical,
+#messages-list::-webkit-scrollbar:vertical {
+    width: 11px;
+}
+#settings::-webkit-scrollbar:horizontal,
+#messages-list::-webkit-scrollbar:horizontal {
+    height: 11px;
+}
+
+#message-input {
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 4px 0px 0px 4px;
+  resize: none;
+}
+
+#message-input + button {
+  margin-left: 0px;
+  margin-right: 0px;
+  border-right: 1px solid lightgrey;
+}
+#message-input + button + button {
+  margin-left: 0px;
+  border-radius: 0px 4px 4px 0px;
+}
