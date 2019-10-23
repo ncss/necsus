@@ -1,7 +1,6 @@
 from flask import request, redirect, render_template, send_from_directory
 from neccsus import app, db
 import events
-import commands
 
 @app.route('/')
 @app.route('/client')
@@ -21,12 +20,7 @@ def form_page():
 @app.route('/form', methods=['POST'])
 def form_accept():
   message = dict(request.values)
-
-  command = commands.parse(message.get('text'))
-  if command:
-    events.trigger_command(message, command)
-  else:
-    events.trigger_message_post(message)
+  events.trigger_message_post(message)
 
   return redirect('/', code=302)
 

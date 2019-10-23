@@ -1,40 +1,29 @@
-var app = new Vue({
+let app = new Vue({
   el: '#neccsus',
   data: {
-    room: 'Group 1',
+    room: '',
     settings: {
-      open: true,
+      open: false,
       name: 'Kenni',
       speech: true,
-      bots: [{
-        name: 'Echo',
-        url: 'https://flask.repl.co'
-      }, {
-        name: 'Echo',
-        url: 'https://flask.repl.co'
-      }],
+      bots: [],
     },
-    messages: [
-      { author: 'Kenni', text: 'Hello Vue!' },
-      { author: 'Kenni', text: 'Hello Vue!' },
-      { author: 'Kenni', text: 'Hello Vue!' },
-      { author: 'Kenni', text: 'Hello Vue!' },
-      { author: 'Kenni', text: 'Hello Vue!' },
-    ],
+    messages: [],
     newMessage: '',
   },
-  mounted: function() {
-    var vm = this;
+  created: function() {
+    let vm = this;
 
     /*
-      Scroll to bottom of messages
+      Fetch the room's messages and settings 
     */
-    vm.scrollToBottomOfMessages();
+    vm.fetchBots();
+    vm.fetchMessages({silent: true});
 
     /*
       Speech recognition
     */
-    var recognition = new webkitSpeechRecognition();
+    let recognition = new webkitSpeechRecognition();
     vm.speechRecognition = recognition;
 
     recognition.lang = 'en-AU';
@@ -43,8 +32,8 @@ var app = new Vue({
     recognition.maxAlternatives = 1;
 
     recognition.onresult = function(event) {
-      var firstResult = event.results[0];
-      var firstAlternative = firstResult[0];
+      let firstResult = event.results[0];
+      let firstAlternative = firstResult[0];
 
       vm.speechRecognitionResult({
         result: firstAlternative.transcript,
@@ -52,22 +41,93 @@ var app = new Vue({
       });
     };
   },
+  updated: function() {
+    this.scrollToBottomOfMessages();
+  },
   methods: {
-    scrollToBottomOfMessages: function() {
-      var spacer = this.$el.querySelector('#messages-spacer');
-      var messagesContainer = this.$el.querySelector('#messages');
-      var messagesList = this.$el.querySelector('#messages-list');
-      var messages = [...this.$el.querySelectorAll('.message')];
-
-      var messagesHeight = messages[messages.length-1].getBoundingClientRect().bottom - messages[0].getBoundingClientRect().top;
-      spacer.style.height = (messagesContainer.scrollHeight - messagesHeight - 30) + 'px';
-      messagesList.scrollTo(0, messagesContainer.scrollHeight);
+    fetchBots: async function() {
+      let url = '/api/bots?room='+this.room;
+      let response = await fetch(url);
+      let bots = await response.json();
+      this.settings.bots = bots;
     },
-    rows: function() {
-      return this.newMessage.split(/\r\n|\r|\n/).length;
+    addBot: function() {
+      this.settings.bots.push({
+        name: '',
+        url: '',
+      });
+    },
+    removeBot: async function(bot) {
+      if (bot.id) {
+        let data = new FormData();
+        data.append('id', bot.id);
+
+        let url = '/api/actions/bot'
+        let response = await fetch(url, {
+          method: 'DELETE',
+          body: data,
+        });
+        let botResult = await response.json();
+      }
+      await this.fetchBots();
+    },
+    submitBot: async function(bot) {
+      let data = new FormData();
+      data.append('room', this.room);
+      if (bot.id)
+        data.append('id', bot.id);
+      data.append('name', bot.name);
+      data.append('url', bot.url);
+
+      let url = '/api/actions/bot'
+      let response = await fetch(url, {
+        method: 'POST',
+        body: data,
+      });
+      let botResult = await response.json();
+
+      await this.fetchBots();
+    },
+    fetchMessages: async function(options) {
+      let vm = this;
+      options = options || {};
+
+      let last_id = (this.lastMessage || {}).id;
+      let url = '/api/messages?room='+this.room
+      if (last_id != undefined)
+        url += '&since='+last_id;
+
+      let response = await fetch(url);
+      let newMessages = await response.json();
+
+      vm.messages = this.messages.concat(newMessages);
+
+      if (!options.silent) {
+        newMessages.forEach(function(message) {
+          if (message.author != vm.settings.name)
+            vm.speak(message.text);
+        });
+      }
+    },
+    submitMessage: async function() {
+      let data = new FormData();
+      data.append('room', this.room);
+      data.append('author', this.settings.name);
+      data.append('text', this.newMessage);
+
+      let url = '/api/actions/message'
+      let response = await fetch(url, {
+        method: 'POST',
+        body: data,
+      });
+      let messageResult = await response.json();
+
+      this.newMessage = '';
+
+      await this.fetchMessages();
     },
     speak: function(text) {
-      var utterance = new SpeechSynthesisUtterance(text);
+      let utterance = new SpeechSynthesisUtterance(text);
       speechSynthesis.speak(utterance);
     },
     listen: function() {
@@ -75,6 +135,43 @@ var app = new Vue({
     },
     speechRecognitionResult: function(speech) {
       this.newMessage = speech.result;
+      if (speech.isFinal)
+        this.submitMessage();
+    },
+    scrollToBottomOfMessages: function() {
+      let spacer = this.$el.querySelector('#messages-spacer');
+      let messagesContainer = this.$el.querySelector('#messages');
+      let messagesList = this.$el.querySelector('#messages-list');
+      let messages = [...this.$el.querySelectorAll('.message')];
+
+      let messagesTop, messagesBottom;
+      if (messages[0]) {
+        messagesTop = messages[0].getBoundingClientRect().top;
+        messagesBottom = messages[messages.length-1].getBoundingClientRect().bottom;
+      } else {
+        messagesTop = 0;
+        messagesBottom = 0;
+      }
+      let messagesHeight = messagesBottom - messagesTop;
+      let containerHeight = messagesContainer.getBoundingClientRect().height;
+
+      spacer.style.height = Math.max(containerHeight - messagesHeight - 30, 0) + 'px';
+      messagesList.scrollTo(0, messagesHeight);
+    },
+    lines: function(text) {
+      return text.split(/\r\n|\r|\n/);
+    },
+    rows: function() {
+      return this.lines(this.newMessage).length;
+    },
+  },
+  computed: {
+    lastMessage: function() {
+      if (this.messages.length > 0) {
+        return this.messages[this.messages.length-1];
+      } else {
+        return undefined;
+      };
     },
   },
 });

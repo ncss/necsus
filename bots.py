@@ -2,27 +2,26 @@ import requests
 
 from neccsus import db
 
-def run(bot, text, user=None):
+def run(room, bot, text, user=None):
   name = bot.get('name', 'bot')
   endpoint_url = bot.get('url') 
 
   if endpoint_url:
     params = {
+      'room': room,
       'author': user,
-      'command': name,
       'text': text,
     }
     reply = requests.post(endpoint_url, params=params)
 
     if reply.status_code == requests.codes.ok:
-      return reply.json()
+      message = reply.json()
+      if 'room' not in message:
+        message['room'] = room
+      return message
     else:
       return {
+        'room': room,
         'author': 'neccsus',
         'text': f'Something went wrong. There was a {reply.status_code} error',
       }
-  else:
-    return {
-      'author': 'neccsus',
-      'text': f'I don\'t understand the "{name}" command.',
-    }
