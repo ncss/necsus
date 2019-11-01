@@ -2,14 +2,14 @@ from flask import request, redirect, render_template, send_from_directory
 from necsus import app, db
 import events
 
-@app.route('/')
-@app.route('/client')
-def client():
-  return send_from_directory('client', 'index.html')
-
 @app.route('/client/<path:path>')
 def client_path(path):
   return send_from_directory('client', path)
+
+@app.route('/')
+@app.route('/<room>')
+def client(room=''):
+  return send_from_directory('client', 'index.html')
 
 @app.route('/form', methods=['GET'])
 def form_page():
