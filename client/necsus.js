@@ -24,6 +24,10 @@ let app = new Vue({
     */
     vm.fetchBots();
     vm.fetchMessages({silent: true});
+    // Initially scroll to the bottom of the message list
+    this.$nextTick(function() {
+      this.scrollToBottomOfMessages();
+    });
 
     /*
       Auto update message every few seconds
@@ -54,7 +58,6 @@ let app = new Vue({
     }
   },
   updated: function() {
-    this.scrollToBottomOfMessages();
   },
   methods: {
     fetchBots: async function() {
@@ -113,6 +116,13 @@ let app = new Vue({
       let newMessages = await response.json();
 
       vm.messages = this.messages.concat(newMessages);
+
+      // Move to new messages if there are any
+      if (newMessages.length > 0) {
+        this.$nextTick(function() {
+          this.scrollToBottomOfMessages();
+        });
+      }
 
       if (!options.silent) {
         newMessages.forEach(function(message) {
