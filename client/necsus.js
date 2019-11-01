@@ -1,5 +1,5 @@
 let app = new Vue({
-  el: '#neccsus',
+  el: '#necsus',
   data: {
     room: '',
     settings: {

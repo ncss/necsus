@@ -1,5 +1,5 @@
 from flask import request, redirect, render_template, send_from_directory
-from neccsus import app, db
+from necsus import app, db
 import events
 
 @app.route('/')

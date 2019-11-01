@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from crossdomain import crossdomain
-from neccsus import app, db
+from necsus import app, db
 
 import events 
 

@@ -65,10 +65,10 @@ messages = Message()
 bots = Bot()
 
 members.add(id='kenni')
-members.add(id='neccsus')
-members.add(id='neccsus-bot')
+members.add(id='necsus')
+members.add(id='necsus-bot')
 
-messages.add(room='', author='neccsus', text='Hello, World!')
+messages.add(room='', author='necsus', text='Hello, World!')
 messages.add(room='', author='kenni', text='Yo!')
 
 bots.set(room='', name='neccsus-bot', url='https://neccsus-bot.herokuapp.com/neccsus/command')

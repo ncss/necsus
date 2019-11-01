@@ -1,4 +1,4 @@
-from neccsus import app
+from necsus import app
 
 import api
 import frontend

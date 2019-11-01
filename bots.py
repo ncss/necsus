@@ -1,6 +1,6 @@
 import requests
 
-from neccsus import db
+from necsus import db
 
 def run(room, bot, text, user=None):
   name = bot.get('name', 'bot')
@@ -22,6 +22,6 @@ def run(room, bot, text, user=None):
     else:
       return {
         'room': room,
-        'author': 'neccsus',
+        'author': 'necsus',
         'text': f'Something went wrong. There was a {reply.status_code} error',
       }

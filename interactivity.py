@@ -1,6 +1,6 @@
 import requests
 
-from neccsus import db
+from necsus import db
 
 def interact(params):
   endpoint_url = db.bots.find(endpoint='interactivity')
@@ -10,6 +10,6 @@ def interact(params):
     return reply.json() 
   else:
     return {
-      'author': 'neccsus',
+      'author': 'necsus',
       'text': f'Something went wrong. There was a {reply.status_code} error',
     }

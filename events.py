@@ -1,4 +1,4 @@
-from neccsus import db
+from necsus import db
 import bots 
 import interactivity
 
