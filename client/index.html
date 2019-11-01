@@ -31,7 +31,7 @@
           <input id="name" name="name" v-bind:value="settings.name">
 
           <label for="speech">Speech synthesis</label>
-          <input id="speech" name="speech" type="checkbox" v-bind:checked="settings.speech">
+          <input id="speech" name="speech" type="checkbox" v-bind:checked="settings.speech" @click="autoUpdate">
         </section>
 
         <section>

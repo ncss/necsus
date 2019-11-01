@@ -21,25 +21,32 @@ let app = new Vue({
     vm.fetchMessages({silent: true});
 
     /*
+      Auto update message every few seconds
+    */
+    vm.autoUpdate();
+
+    /*
       Speech recognition
     */
-    let recognition = new webkitSpeechRecognition();
-    vm.speechRecognition = recognition;
+    if (window.webkitSpeechRecognition) {
+      let recognition = new webkitSpeechRecognition();
+      vm.speechRecognition = recognition;
 
-    recognition.lang = 'en-AU';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
+      recognition.lang = 'en-AU';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 1;
 
-    recognition.onresult = function(event) {
-      let firstResult = event.results[0];
-      let firstAlternative = firstResult[0];
+      recognition.onresult = function(event) {
+        let firstResult = event.results[0];
+        let firstAlternative = firstResult[0];
 
-      vm.speechRecognitionResult({
-        result: firstAlternative.transcript,
-        isFinal: firstResult.isFinal,
-      });
-    };
+        vm.speechRecognitionResult({
+          result: firstAlternative.transcript,
+          isFinal: firstResult.isFinal,
+        });
+      };
+    }
   },
   updated: function() {
     this.scrollToBottomOfMessages();
@@ -126,9 +133,18 @@ let app = new Vue({
 
       await this.fetchMessages();
     },
+    autoUpdate: function() {
+      let vm = this;
+      if (vm.autoUpdater) window.clearInterval();
+      vm.autoUpdater = window.setInterval(function() {
+        vm.fetchMessages();
+      }, 1500);
+    },
     speak: function(text) {
-      let utterance = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utterance);
+      if (window.SpeechSynthesisUtterance) {
+        let utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+      }
     },
     listen: function() {
       this.speechRecognition.start()
