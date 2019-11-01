@@ -145,8 +145,6 @@ let app = new Vue({
       let messageResult = await response.json();
 
       this.newMessage = '';
-
-      await this.fetchMessages();
     },
     autoUpdate: function() {
       let vm = this;
