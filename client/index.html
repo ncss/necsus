@@ -61,10 +61,11 @@
         </div>
 
         <div id="new-message">
-          <textarea id="message-input" v-model="newMessage" v-bind="{placeholder: 'Message '+ room}" v-bind:rows="rows()"
+          <textarea id="message-input" v-model="newMessage" v-bind="{placeholder: 'Message '+ room}" 
+            v-bind:rows="rows()" v-bind:disabled="sendingMessage"
             @keydown.enter.exact.prevent v-on:keyup.enter.exact="submitMessage(newMessage)"></textarea>
-          <button @click="listen()">listen</button>
-          <button>submit</button>
+          <button @click="listen()" v-bind:disabled="sendingMessage">listen</button>
+          <button @click="submitMessage(newMessage)" v-bind:disabled="sendingMessage">submit</button>
         </div>
       </section>
     </div>

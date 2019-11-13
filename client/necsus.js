@@ -10,6 +10,7 @@ let app = new Vue({
     },
     messages: [],
     newMessage: '',
+    sendingMessage: false,
   },
   created: function() {
     let vm = this;
@@ -113,9 +114,15 @@ let app = new Vue({
         url += '&since='+last_id;
 
       let response = await fetch(url);
-      let newMessages = await response.json();
+      let fetchedMessages = await response.json();
+      let newMessages = fetchedMessages.filter(function(newMessage) {
+        // Only messages with a new ID are new messages
+        return !vm.messages.some(function(message) {
+          return message.id == newMessage.id;
+        });
+      });
 
-      vm.messages = this.messages.concat(newMessages);
+      vm.messages = vm.messages.concat(newMessages);
 
       // Move to new messages if there are any
       if (newMessages.length > 0) {
@@ -137,12 +144,16 @@ let app = new Vue({
       data.append('author', this.settings.name);
       data.append('text', this.newMessage);
 
+      this.sendingMessage = true;
+
       let url = '/api/actions/message'
       let response = await fetch(url, {
         method: 'POST',
         body: data,
       });
       let messageResult = await response.json();
+
+      this.sendingMessage = false;
 
       this.newMessage = '';
     },

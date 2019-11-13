@@ -212,6 +212,9 @@ label {
   border-radius: 4px 0px 0px 4px;
   resize: none;
 }
+#message-input:disabled {
+  background: #ccc;
+}
 
 #message-input + button {
   margin-left: 0px;
