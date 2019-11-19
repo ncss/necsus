@@ -4,7 +4,7 @@ from crossdomain import crossdomain
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 
-from necsus import app, db
+from necsus import app, get_db
 import events 
 
 SWAGGER_URL = '/docs'
@@ -69,6 +69,7 @@ def get_new_messages():
   since_id = request.values.get('since')
   room = request.values.get('room')
 
+  db = get_db()
   new_messages = list(db.messages.new(since_id, room=room))
 
   return jsonify(new_messages)
@@ -109,6 +110,8 @@ def get_bots():
                    description: the bot's url
   """
   room = request.values.get('room')
+
+  db = get_db()
 
   if room != None:
     bots = list(db.bots.find_all(room=room))
@@ -169,7 +172,10 @@ def post_bot():
   id = request.values.get('id')
   name = request.values.get('name')
   url = request.values.get('url')
-  bot = db.bots.set(id=id, room=room, name=name, url=url)
+
+  db = get_db()
+  bot = db.bots.update_or_add(id=id, room=room, name=name, url=url)
+
   return jsonify(bot)
 
 @app.route('/api/actions/bot', methods=['DELETE'])
@@ -197,7 +203,10 @@ def delete_bot():
                  description: the bot's unique ID 
   """
   id = request.values.get('id')
+
+  db = get_db()
   bot = db.bots.remove(id)
+
   return jsonify({id: id})
 
 @app.route('/api/actions/message', methods=['POST'])
@@ -230,6 +239,9 @@ def post_message():
             schema:
               id: Message
   """
+
+  db = get_db()
   message = dict(request.values)
-  message_result = events.trigger_message_post(message)
+  message_result = events.trigger_message_post(db, message)
+
   return jsonify(message_result)

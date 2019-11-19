@@ -1,37 +1,96 @@
 import sqlite3
 
+from pypika import Query, Table, Field
+
 class DBList(dict):
-  data = []
+  table = Table('')
+
+  def __init__(self, connection):
+    self.connection = connection
+    self.connection.row_factory = lambda x,y: dict(sqlite3.Row(x,y))
 
   def list(self):
-    return self.data
+    c = self.connection.cursor()
+    q = Query._from(self.table)
+    c.execute(q.get_sql())
+    return c.fetchall()
+
+  def _find(self, **kwargs):
+    c = self.connection.cursor()
+
+    search = [getattr(self.table, key) == value for key, value in kwargs.items()]
+    q = Query.from_(self.table).select(self.table.star)
+    for condition in search:
+      q = q.where(condition)
+
+    c.execute(q.get_sql())
+    return c
 
   def find(self, **kwargs):
-    return next(self.find_all(**kwargs), None)
+    return self._find(**kwargs).fetchone()
 
   def find_all(self, **kwargs):
-    for item in self.data:
-      if all(item.get(key) == value for key, value in kwargs.items()):
-        yield item
+    return self._find(**kwargs).fetchall()
 
   def add(self, **kwargs):
-    if kwargs.get('id') == None:
-      kwargs['id'] = str(len(self.data))
+    c = self.connection.cursor()
+    q = Query.into(self.table).columns(*kwargs.keys()).insert(*kwargs.values())
+    c.execute(q.get_sql())
+    self.connection.commit()
+    return kwargs
 
-    itemClass = type(self)
-    item = itemClass(**kwargs)
-    self.data.append(item)
-    return item
+  def update_or_add(self, **kwargs):
+    c = self.connection.cursor()
+
+    try:
+      # Try to add
+      q = Query.into(self.table)\
+      .columns(*kwargs.keys())\
+      .insert(*kwargs.values())
+      c.execute(q.get_sql())
+    except sqlite3.IntegrityError:
+      # If the key is a duplicate
+      # then update
+      q = Query.update(self.table).where(self.table.id == kwargs['id'])
+      for key, value in kwargs.items():
+        if key != id:
+          q = q.set(key, value)
+      c.execute(q.get_sql())
+
+    self.connection.commit()
+    return kwargs
+
+  def add_if_new(self, **kwargs):
+    c = self.connection.cursor()
+
+    search = [getattr(self.table, key) == value for key, value in kwargs.items()]
+    q = Query.from_(self.table).select(self.table.star)
+    for condition in search:
+      q = q.where(condition)
+    c.execute(q.get_sql())
+
+    result = c.fetchone()
+    new = result == None
+
+    if new:
+      q = Query.into(self.table)\
+      .columns(*kwargs.keys())\
+      .insert(*kwargs.values())
+      c.execute(q.get_sql())
+
+    self.connection.commit()
+    return kwargs
 
   def remove(self, id):
-    item = self.find(id=id)
-    self.data.remove(item)
+    c = self.connection.cursor()
+    q = Query.from_(self.table).delete().where(self.table.id == id)
+    c.execute(q.get_sql())
+    self.connection.commit()
+    return c.fetchone()
+    
 
-class Member(DBList):
-  data = []
-
-class Message(DBList):
-  data = []
+class Messages(DBList):
+  table = Table('messages')
 
   def new(self, since_id, **kwargs):
     messages = self.find_all(**kwargs)
@@ -40,38 +99,23 @@ class Message(DBList):
     for message in messages:
       if after_old_message:
         yield message
-      if message['id'] == since_id:
+      if str(message['id']) == since_id:
         after_old_message = True
 
-class Bot(DBList):
-  data = []
+class Bots(DBList):
+  table = Table('bots')
 
-  def set(self, id=None, room=None, name=None, url=None):
-    existing_bot = self.find(id=id)
 
-    if existing_bot:
-      existing_bot.update({
-        'room': room,
-        'name': name,
-        'url': url,
-      })
-      return existing_bot 
+class DB():
+  def __init__(self, connection):
+    self.messages = Messages(connection)
+    self.bots = Bots(connection)
 
-    else:
-      return self.add(id=id, room=room, name=name, url=url)
+  def load_dummy_data(self):
+    self.messages.add_if_new(room='', author='kenni', text='Welcome!')
 
-members = Member() 
-messages = Message()
-bots = Bot()
-
-members.add(id='kenni')
-members.add(id='necsus')
-members.add(id='necsus-bot')
-
-messages.add(room='', author='necsus', text='Hello, World!')
-messages.add(room='', author='kenni', text='Yo!')
-
-bots.set(room='', name='necsus-bot', url='https://neccsus-bot.herokuapp.com/neccsus/command')
-bots.set(room='', name='Echo', url='https://flask-endpoint-echo.kennib.repl.co')
-bots.set(room='', name='Repeat', url='https://flask-endpoint-echo.kennib.repl.co')
-bots.set(room='baking', name='I want to make', url='https://baking-assistant.kennib.repl.co/recipe')
+    self.bots.add_if_new(room='', name='necsus-bot', url='https://neccsus-bot.herokuapp.com/neccsus/command')
+    self.bots.add_if_new(room='', name='Echo', url='https://flask-endpoint-echo.kennib.repl.co')
+    self.bots.add_if_new(room='', name='Repeat', url='https://flask-endpoint-echo.kennib.repl.co')
+    self.bots.add_if_new(room='baking', name='I want to make', url='https://baking-assistant.kennib.repl.co/recipe')
+    self.bots.add_if_new(room='games', name='roll', url='https://roll-bot.kennib.repl.co')

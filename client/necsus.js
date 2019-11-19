@@ -65,6 +65,7 @@ let app = new Vue({
       let url = '/api/bots?room='+this.room;
       let response = await fetch(url);
       let bots = await response.json();
+      console.log(bots);
       this.settings.bots = bots;
     },
     addBot: function() {

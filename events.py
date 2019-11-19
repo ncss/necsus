@@ -1,15 +1,13 @@
-from necsus import db
 import bots 
 import interactivity
 
-def trigger_message_post(message):
+def trigger_message_post(db, message):
   message_result = db.messages.add(**message)
-
-  replies = trigger_bots(message)
+  replies = trigger_bots(db, message)
 
   return message_result
 
-def trigger_bots(message):
+def trigger_bots(db, message):
   text = message.get('text')
   user = message.get('author')
   room = message.get('room', '')
@@ -19,12 +17,12 @@ def trigger_bots(message):
 
   for bot in room_bots:
     if bot.get('name').lower() in text.lower():
-      reply = trigger_bot(message, bot, user)
+      reply = trigger_bot(db, message, bot, user)
       replies.append(reply)
 
   return replies 
 
-def trigger_bot(message, bot, user=None):
+def trigger_bot(db, message, bot, user=None):
   text = message.get('text')
   room = message.get('room')
   reply_message = bots.run(room, bot, text, user=user)
@@ -32,7 +30,7 @@ def trigger_bot(message, bot, user=None):
 
   return reply_message
 
-def trigger_interaction(interaction):
+def trigger_interaction(db, interaction):
   reply_message = interactivity.interact(interaction)
   reply_message_result = db.messages.add(**reply_message)
   return reply_message 
