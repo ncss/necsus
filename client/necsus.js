@@ -197,7 +197,7 @@ let app = new Vue({
       let containerHeight = messagesContainer.getBoundingClientRect().height;
 
       spacer.style.height = Math.max(containerHeight - messagesHeight - 30, 0) + 'px';
-      messagesList.scrollTo(0, messagesHeight);
+      messagesList.scrollTo(0, messagesBottom);
     },
     lines: function(text) {
       return text.split(/\r\n|\r|\n/);
