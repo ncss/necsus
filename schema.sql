@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS bots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room TEXT,
   name TEXT,
+  responds_to TEXT,
   url TEXT
 );

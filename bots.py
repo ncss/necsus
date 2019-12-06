@@ -2,17 +2,18 @@ import requests
 
 from necsus import db
 
-def run(room, bot, text, user=None):
+def run(room, bot, text, params, user=None):
   name = bot.get('name', 'bot')
   endpoint_url = bot.get('url') 
 
   if endpoint_url:
-    params = {
+    data = {
       'room': room,
       'author': user,
       'text': text,
+      'params': params,
     }
-    reply = requests.post(endpoint_url, params=params)
+    reply = requests.post(endpoint_url, json=data)
 
     if reply.status_code == requests.codes.ok:
       message = reply.json()

@@ -41,6 +41,9 @@
             <label for="bot-name">Name</label>
             <input id="bot-name" name="bot-name" v-model="bot.name" @change="submitBot(bot)">
 
+            <label for="bot-responds-to">Responds to</label>
+            <input id="bot-responds-to" name="bot-responds-to" v-model="bot.responds_to" @change="submitBot(bot)">
+
             <label for="bot-url">Endpoint URL</label>
             <input id="bot-url" name="bot-url" v-model="bot.url" @change="submitBot(bot)">
 

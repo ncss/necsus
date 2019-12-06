@@ -161,20 +161,25 @@ def post_bot():
                  description: the bot's unique ID 
                 name:
                  type: string
-                 example: NeCSuS Bot
+                 example: Repeat Bot
                  description: the bot's name
+                responds_to:
+                 type: string
+                 example: repeat (?P<word>\w+) (?P<count>\d+) times
+                 description: the regular expression that the bot listens for in messages
                 url:
                  type: string
-                 example: https://necsus-bot.ncss.cloud
+                 example: https://repeat-bot.kennib.repl.co
                  description: the bot's url
   """
   room = request.values.get('room')
   id = request.values.get('id')
   name = request.values.get('name')
+  responds_to = request.values.get('reponds_to')
   url = request.values.get('url')
 
   db = get_db()
-  bot = db.bots.update_or_add(id=id, room=room, name=name, url=url)
+  bot = db.bots.update_or_add(id=id, room=room, name=name, responds_to=responds_to, url=url)
 
   return jsonify(bot)
 

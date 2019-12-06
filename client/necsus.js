@@ -65,7 +65,6 @@ let app = new Vue({
       let url = '/api/bots?room='+this.room;
       let response = await fetch(url);
       let bots = await response.json();
-      console.log(bots);
       this.settings.bots = bots;
     },
     addBot: function() {
@@ -95,6 +94,7 @@ let app = new Vue({
         data.append('id', bot.id);
       data.append('name', bot.name);
       data.append('url', bot.url);
+      data.append('responds_to', bot.responds_to);
 
       let url = '/api/actions/bot'
       let response = await fetch(url, {
