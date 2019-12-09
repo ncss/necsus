@@ -140,6 +140,9 @@ let app = new Vue({
       }
     },
     submitMessage: async function() {
+      if (this.newMessage.length <= 0) {
+        return;
+      }
       let data = new FormData();
       data.append('room', this.room);
       data.append('author', this.settings.name);
