@@ -4,7 +4,7 @@ let app = new Vue({
     room: '',
     settings: {
       open: false,
-      name: 'Kenni',
+      name: 'Anonymous',
       speech: true,
       bots: [],
     },
