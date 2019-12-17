@@ -200,10 +200,12 @@ let app = new Vue({
       messagesList.scrollTo(0, messagesBottom);
     },
     lines: function(text) {
+      text = text || '';
       return text.split(/\r\n|\r|\n/);
     },
     rows: function() {
-      return this.lines(this.newMessage).length;
+      let message = this.newMessage || '';
+      return this.lines(message).length;
     },
   },
   computed: {
