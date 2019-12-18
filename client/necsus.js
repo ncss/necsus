@@ -193,11 +193,11 @@ let app = new Vue({
         messagesTop = 0;
         messagesBottom = 0;
       }
-      let messagesHeight = messagesBottom - messagesTop;
-      let containerHeight = messagesContainer.getBoundingClientRect().height;
+      let visibleMessagesHeight = messagesBottom - messagesTop;
+      let allMessagesHeight = messagesList.scrollHeight;
 
-      spacer.style.height = Math.max(containerHeight - messagesHeight - 30, 0) + 'px';
-      messagesList.scrollTo(0, messagesBottom);
+      spacer.style.height = Math.max(allMessagesHeight - visibleMessagesHeight - 30, 0) + 'px';
+      messagesList.scrollTo(0, allMessagesHeight);
     },
     lines: function(text) {
       text = text || '';
