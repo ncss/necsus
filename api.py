@@ -175,7 +175,7 @@ def post_bot():
   room = request.values.get('room')
   id = request.values.get('id')
   name = request.values.get('name')
-  responds_to = request.values.get('reponds_to')
+  responds_to = request.values.get('responds_to')
   url = request.values.get('url')
 
   db = get_db()

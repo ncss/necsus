@@ -28,10 +28,10 @@
           <h3>Main</h3>
 
           <label for="name">Name</label>
-          <input id="name" name="name" v-bind:value="settings.name">
+          <input id="name" name="name" v-model="settings.name">
 
           <label for="speech">Speech synthesis</label>
-          <input id="speech" name="speech" type="checkbox" v-bind:checked="settings.speech" @click="autoUpdate">
+          <input id="speech" name="speech" type="checkbox" v-model="settings.speech" @click="autoUpdate">
         </section>
 
         <section>
