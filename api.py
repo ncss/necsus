@@ -245,10 +245,10 @@ def post_message():
               id: Message
   """
 
+  if request.values['text'].strip() == "":
+      return jsonify({}), 400
   db = get_db()
   message = dict(request.values)
-  if message['text'].strip() == "":
-      return jsonify({}), 400
   message_result = events.trigger_message_post(db, message)
 
   return jsonify(message_result)
