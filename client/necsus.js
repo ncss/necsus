@@ -6,6 +6,7 @@ let app = new Vue({
       open: false,
       name: 'Anonymous',
       speech: true,
+      resetRoom: false,
       bots: [],
     },
     messages: [],
@@ -61,6 +62,17 @@ let app = new Vue({
   updated: function() {
   },
   methods: {
+    resetRoom: async function() {
+      let url = '/api/actions/reset-room?room='+this.room;
+      let response = await fetch(url, {
+        method: 'POST',
+      });
+
+      this.messages = [];
+      this.fetchMessages();
+
+      this.settings.resetRoom = false;
+    },
     fetchBots: async function() {
       let url = '/api/bots?room='+this.room;
       let response = await fetch(url);

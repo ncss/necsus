@@ -38,3 +38,7 @@ def trigger_interaction(db, interaction):
   reply_message = interactivity.interact(interaction)
   reply_message_result = db.messages.add(**reply_message)
   return reply_message 
+
+def trigger_room_reset(db, room):
+  db.messages.delete(room=room)
+  return None
