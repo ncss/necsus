@@ -163,6 +163,14 @@ button {
   color: white;
 }
 
+button.danger {
+  background-color: rgb(212, 73, 73);
+}
+
+button:disabled {
+  background-color: rgb(161, 161, 161);
+}
+
 button:active {
   background-color: rgb(98, 161, 182);
 }
