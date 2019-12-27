@@ -81,6 +81,18 @@ class DBList(dict):
     self.connection.commit()
     return kwargs
 
+  def delete(self, **kwargs):
+    c = self.connection.cursor()
+
+    search = [getattr(self.table, key) == value for key, value in kwargs.items()]
+    q = Query.from_(self.table).delete()
+    for condition in search:
+      q = q.where(condition)
+    c.execute(q.get_sql())
+    self.connection.commit()
+
+    return c.fetchone()
+
   def remove(self, id):
     c = self.connection.cursor()
     q = Query.from_(self.table).delete().where(self.table.id == id)

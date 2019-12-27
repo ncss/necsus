@@ -250,3 +250,35 @@ def post_message():
   message_result = events.trigger_message_post(db, message)
 
   return jsonify(message_result)
+
+@app.route('/api/actions/reset-room', methods=['POST'])
+@crossdomain(origin='*')
+def reset_room():
+  """
+        Remove a room's messages
+        ---
+        tags:
+          - room
+        parameters:
+          - in: query
+            name: room
+            schema:
+              type: string
+        responses:
+          200:
+            description: Room
+            schema:
+              id: Message
+              properties:
+                room:
+                 type: string
+                 example: tutors
+                 description: the room that was reset
+  """
+
+  room = request.values['room']
+
+  db = get_db()
+  events.trigger_room_reset(db, room)
+
+  return jsonify({'room': room})
