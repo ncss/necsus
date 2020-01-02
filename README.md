@@ -13,3 +13,8 @@ Documentation on the API can be found on [the main NeCSuS server](https://chat.n
 
 ### What is NeCSuS?
 An web app for chat.
+
+### How do I post (images|links|formatted text)?
+The client uses [markdown-it](https://markdown-it.github.io) to render the text.
+This means you need to use plain text to post any content.
+Look at the [demo page](https://markdown-it.github.io) to see examples of the plain text used to post (images|links|formatted text).

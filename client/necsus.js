@@ -1,3 +1,5 @@
+let md = window.markdownit();
+
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -213,6 +215,9 @@ let app = new Vue({
 
       spacer.style.height = Math.max(allMessagesHeight - visibleMessagesHeight - 30, 0) + 'px';
       messagesList.scrollTo(0, allMessagesHeight);
+    },
+    markdownToHTML: function(text) {
+      return md.render(text);
     },
     lines: function(text) {
       text = text || '';

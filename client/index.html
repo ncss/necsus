@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>NeCSuS</title>
+    <script src="client/js/markdown-it.min.js"></script>
     <script src="client/js/vue.js"></script>
     <link rel="stylesheet" type="text/css" href="client/necsus.css">
   </head>
@@ -68,7 +69,7 @@
           <div id="messages-spacer"></div>
           <article class="message" v-for="message in messages">
             <h4 class="author">{{ message.author }}</h4>
-            <p v-for="paragraph in lines(message.text)" v-text="paragraph"></p>
+            <div v-html="markdownToHTML(message.text)"></p>
           </article>
         </div>
 
