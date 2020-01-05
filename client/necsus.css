@@ -132,8 +132,26 @@ header {
 }
 
 .message {
-  margin-bottom: 10px;
+  margin-bottom: 1ex;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 1ex;
 }
+
+.author {
+  float: left;
+  width: 80%;
+}
+
+.when {
+  float: right;
+  text-align: right;
+  width: 20%;
+  color: #999;
+  font-size: 12px;
+}
+
+.message .content { clear: both; }
 
 #new-message #message-input {
   width: 100%;
@@ -179,6 +197,8 @@ label {
   display: inline;
   font-weight: bold;
 }
+
+h4 { margin: 0 0 1ex 0; padding: 0; }
 
 /*
 * Element Style

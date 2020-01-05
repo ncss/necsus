@@ -1,6 +1,10 @@
+import datetime
+import pytz
 import sqlite3
 
 from pypika import Query, Table, Field
+
+SYDNEY = pytz.timezone('Australia/Sydney')
 
 class DBList(dict):
   table = Table('')
@@ -103,6 +107,14 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
+
+  def add(self, **message):
+    # I'm sorry about this.
+    # I tried to store datetimes, but DBList is not an ORM.
+    now = datetime.datetime.utcnow()
+    local = SYDNEY.localize(now)
+    message['when'] = local.strftime('%-I:%M%p').lower()
+    super().add(**message)
 
   def new(self, since_id, **kwargs):
     messages = self.find_all(**kwargs)

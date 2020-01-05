@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room TEXT,
   author TEXT,
-  text TEXT
+  text TEXT,
+  "when" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS bots (
