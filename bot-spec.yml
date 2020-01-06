@@ -21,10 +21,22 @@ paths:
       description: Endpoint that receives new messages from the chat.
       responses:
         '200':
-          description: 'A message?'
+          description: 'A message to send to the chat room in reply'
           content:
             application/json:
-              - TODO
+              schema:
+                type: object
+                required:
+                  - text
+                  - author # this should not be required
+                properties:
+                  room:
+                    type: string
+                  author:
+                    type: string # XXX: bot shouldn't be able to set author
+                  text:
+                    type: string
+
       requestBody:
         description: A message from the server.
         required: true
@@ -41,13 +53,13 @@ paths:
                 room:
                   type: string
                 author:
-                  type: string
+                  type: string # TODO: or null
                 text:
                   type: string
                 params:
                   type: object
                   properties:
-                    TODO:
+                    TODO: # it's a groupdict from the responds-to re
                       type: string
 
     parameters:
