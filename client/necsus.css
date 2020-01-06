@@ -37,6 +37,10 @@ header {
   grid-area: controls;
 }
 
+#controls button:not(:last-child) {
+  margin-right: 4px;
+}
+
 #settings {
   grid-area: settings;
   overflow-y: scroll;
@@ -171,7 +175,7 @@ header {
   border-bottom: 1px solid grey;
 }
 
-button {
+button,.button {
   font-family: sans-serif;
 
   padding: 8px;
