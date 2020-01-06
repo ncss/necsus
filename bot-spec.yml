@@ -8,9 +8,12 @@ info:
   version: 1.0
 
 servers:
-  - url: localhost:5000
-    description: development server
-    # TODO: allow users to freeform enter this to test their live bots
+  - url: '{url}'
+    description: Url to your bot
+    variables:
+      url:
+        description: Full url to your bot.
+        default: http://localhost:5000
 
 paths:
   /{path}:
@@ -18,7 +21,7 @@ paths:
       description: Endpoint that receives new messages from the chat.
       responses:
         '200':
-          description: A message?
+          description: 'A message?'
           content:
             application/json:
               - TODO
