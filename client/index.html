@@ -23,6 +23,7 @@
 
       <div id="controls">
         <button v-on:click="settings.open = !settings.open" v-text="settings.open ? 'close settings' : 'open settings'"></button>
+        <a class="button" href="/docs">docs</a>
       </div>
 
       <div id="settings" v-bind:class="{open: settings.open, closed: !settings.open}">
