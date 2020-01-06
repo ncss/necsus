@@ -1,0 +1,56 @@
+openapi: "3.0.2"
+info:
+  title: Bot API
+  description: API
+  contact:
+    name: Source
+    url: https://github.com/kennib/necsus
+  version: 1.0
+
+servers:
+  - url: localhost:5000
+    description: development server
+    # TODO: allow users to freeform enter this to test their live bots
+
+paths:
+  /{path}:
+    post:
+      description: Endpoint that receives new messages from the chat.
+      responses:
+        '200':
+          description: A message?
+          content:
+            application/json:
+              - TODO
+      requestBody:
+        description: A message from the server.
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              required:
+                - room
+                - author
+                - text
+                - params
+              properties:
+                room:
+                  type: string
+                author:
+                  type: string
+                text:
+                  type: string
+                params:
+                  type: object
+                  properties:
+                    TODO:
+                      type: string
+
+    parameters:
+    - name: path
+      in: path
+      description: Path to the registered endpoint
+      required: false
+      schema:
+        type: string

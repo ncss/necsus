@@ -1,5 +1,6 @@
 from flask import request, jsonify, send_from_directory
 from crossdomain import crossdomain
+import yaml
 
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -22,6 +23,22 @@ def spec():
     swag = swagger(app)
     swag['info']['version'] = '1.0'
     swag['info']['title'] = 'NeCSuS API'
+    return jsonify(swag)
+
+BOT_SWAGGER_URL = '/bot/docs'
+BOT_API_URL = '/bot/spec'
+bot_swaggerui_blueprint = get_swaggerui_blueprint(
+    BOT_SWAGGER_URL,
+    BOT_API_URL,
+    config={'app_name': 'Bot'},
+    blueprint_name='bot_swagger_ui',
+)
+app.register_blueprint(bot_swaggerui_blueprint, url_prefix=BOT_SWAGGER_URL)
+
+@app.route("/bot/spec")
+def bot_spec():
+    with app.open_resource('bot-spec.yml', mode='r') as f:
+      swag = yaml.load(f)
     return jsonify(swag)
 
 @app.route('/api/messages', methods=['GET'])
