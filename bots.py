@@ -19,6 +19,12 @@ def run(room, bot, text, params, user=None):
       message = reply.json()
       if 'room' not in message:
         message['room'] = room
+      # XXX: returning the raw data from a bot could result in 500 errors
+      # (unexpected keys, type errors, etc.) and a bot impersonating another
+      # author name (unwanted)
+
+      # TODO: allow for the bot to not return a message (eg. 204) - a bot may
+      # not need/wish to reply with a message immediately
       return message
     else:
       return {
