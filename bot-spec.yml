@@ -21,24 +21,35 @@ paths:
       description: Endpoint that receives new messages from the chat.
       responses:
         '200':
-          description: 'A message to send to the chat room in reply'
+          description: |
+            A message to send to the chat room in reply.
+
+            Include a `"text"` key in the response to reply immediately with a message. The message will be sent to the same room as where the received message originated. If you wish the message to go to another room, include a `"room"` key in the response.
+
+            If the bot does not want to reply with a message, just respond with an empty 200 response (or at least without the `"text"` key).
           content:
             application/json:
               schema:
                 type: object
-                required:
-                  - text
-                  - author # this should not be required
                 properties:
                   room:
                     type: string
-                  author:
-                    type: string # XXX: bot shouldn't be able to set author
+                    example: "my_room"
                   text:
                     type: string
+                    example: "Hello!"
 
       requestBody:
-        description: A message from the server.
+        description: |
+          A new message in the chat room.
+
+
+          Note that `params` is a key/value dictionary formed from named
+          subgroups in the 'responds to' field. For example, if the 'responds to'
+          field has `(?P<greeting>hi|hello) (?P<name>.*)`, and a message is
+          "hello sam", then the `params` value will be `{"greeting": "hello",
+          "name": "sam"}`.
+
         required: true
         content:
           'application/json':
@@ -52,15 +63,19 @@ paths:
               properties:
                 room:
                   type: string
+                  example: 'party-room'
                 author:
-                  type: string # TODO: or null
+                  type: string
+                  nullable: true
+                  example: 'Kenni'
                 text:
                   type: string
+                  example: 'Hello sam'
                 params:
                   type: object
-                  properties:
-                    TODO: # it's a groupdict from the responds-to re
-                      type: string
+                  description: |
+                    A key/value dictionary formed from named subgroups in the 'responds to' field.
+                  example: {"greeting": "Hello", "name": "sam"}
 
     parameters:
     - name: path

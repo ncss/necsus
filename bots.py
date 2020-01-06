@@ -4,7 +4,7 @@ from necsus import db
 
 def run(room, bot, text, params, user=None):
   name = bot.get('name', 'bot')
-  endpoint_url = bot.get('url') 
+  endpoint_url = bot.get('url')
 
   if endpoint_url:
     data = {
@@ -16,16 +16,22 @@ def run(room, bot, text, params, user=None):
     reply = requests.post(endpoint_url, json=data)
 
     if reply.status_code == requests.codes.ok:
-      message = reply.json()
-      if 'room' not in message:
-        message['room'] = room
-      # XXX: returning the raw data from a bot could result in 500 errors
-      # (unexpected keys, type errors, etc.) and a bot impersonating another
-      # author name (unwanted)
+      safe_message = {
+        'author': name,
+      }
 
-      # TODO: allow for the bot to not return a message (eg. 204) - a bot may
-      # not need/wish to reply with a message immediately
-      return message
+      message = reply.json()
+      if isinstance(message, dict) and 'text' in message and isinstance(message['text'], str):
+        safe_message['text'] = message['text']
+      else:
+        return None
+
+      if 'room' in message and isinstance(message['room'], str):
+        safe_message['room'] = message['room']
+      else:
+        safe_message['room'] = room
+
+      return safe_message
     else:
       return {
         'room': room,

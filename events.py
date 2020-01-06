@@ -30,7 +30,8 @@ def trigger_bot(db, message, bot, params, user=None):
   text = message.get('text')
   room = message.get('room')
   reply_message = bots.run(room, bot, text, params, user=user)
-  reply_message_result = db.messages.add(**reply_message)
+  if reply_message:
+    reply_message_result = db.messages.add(**reply_message)
 
   return reply_message
 
