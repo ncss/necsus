@@ -8,6 +8,14 @@ NeCSuS has the ability to host chats in "rooms", listen to voice commands and sp
 
 Documentation on the API can be found on [the main NeCSuS server](https://chat.ncss.cloud/docs) or at `/docs` on your local instance.
 
+## Development
+
+Run `python server.py` for the development server. This also inits the db if it
+isn't already.
+
+Gunicorn is used for the production server (see the `Procfile`). `python
+server.py` must still be run at least once beforehand to init the db.
+
 
 ## FAQ
 
