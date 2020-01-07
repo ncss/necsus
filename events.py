@@ -6,7 +6,6 @@ import re
 def trigger_message_post(db, message):
   message_result = db.messages.add(**message)
   replies = trigger_bots(db, message)
-
   return message_result
 
 def trigger_bots(db, message):

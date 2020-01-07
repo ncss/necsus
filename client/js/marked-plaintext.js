@@ -11,7 +11,9 @@ PlainTextRenderer.prototype.blockquote = function(quote) {
   return '\t' + quote + this.whitespaceDelimiter;
 }
 PlainTextRenderer.prototype.html = function(html) {
-  return html;
+  let d = document.createElement('div');
+  d.innerHTML = html;
+  return d.textContent
 }
 PlainTextRenderer.prototype.heading = function(text, level, raw) {
   return text;
