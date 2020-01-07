@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS messages (
   room TEXT,
   author TEXT,
   text TEXT,
-  "when" TEXT
+  "when" TEXT,
+  image TEXT
 );
 
 CREATE TABLE IF NOT EXISTS bots (
