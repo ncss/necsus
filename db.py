@@ -109,14 +109,6 @@ class DBList(dict):
 class Messages(DBList):
   table = Table('messages')
 
-  def add(self, **message):
-    # I'm sorry about this.
-    # I tried to store datetimes, but DBList is not an ORM.
-    now = UTC.localize(datetime.datetime.utcnow())
-    local = now.astimezone(SYDNEY)
-    message['when'] = local.strftime('%-I:%M%p').lower()
-    super().add(**message)
-
   def new(self, since_id, **kwargs):
     messages = self.find_all(**kwargs)
 
@@ -126,6 +118,15 @@ class Messages(DBList):
         yield message
       if str(message['id']) == since_id:
         after_old_message = True
+
+  def add(self, **kwargs):
+    c = self.connection.cursor()
+    keys = [key for key in kwargs.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    values = [value for key,value in kwargs.items() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    q = Query.into(self.table).columns(*keys).insert(*values)
+    c.execute(q.get_sql())
+    self.connection.commit()
+    return kwargs
 
 class Bots(DBList):
   table = Table('bots')
