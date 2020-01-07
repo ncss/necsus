@@ -151,7 +151,11 @@ header {
   font-size: 12px;
 }
 
-.message .content { clear: both; }
+.message .content {
+  clear: both;
+  /* Wrap long lines. */
+  word-break: break-all;
+}
 
 #new-message #message-input {
   width: 100%;

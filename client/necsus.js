@@ -1,4 +1,4 @@
-let md = window.markdownit();
+let plainTextRenderer = new PlainTextRenderer;
 
 let app = new Vue({
   el: '#necsus',
@@ -149,7 +149,7 @@ let app = new Vue({
       if (!options.silent) {
         newMessages.forEach(function(message) {
           if (message.author != vm.settings.name)
-            vm.speak(message.text);
+            vm.speak(vm.markdownToText(message.text));
         });
       }
     },
@@ -216,8 +216,11 @@ let app = new Vue({
       spacer.style.height = Math.max(allMessagesHeight - visibleMessagesHeight - 30, 0) + 'px';
       messagesList.scrollTo(0, allMessagesHeight);
     },
-    markdownToHTML: function(text) {
-      return md.render(text);
+    markdownToText(text) {
+      return marked(text, {renderer: plainTextRenderer});
+    },
+    markdownToHTML(text) {
+      return marked(text);
     },
     lines: function(text) {
       text = text || '';
