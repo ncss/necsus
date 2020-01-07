@@ -48,7 +48,10 @@ Awesome! You can use named capturing groups to do this! For example, [repeat bot
   * A string to repeat (lets call this `word`)
   * How many times to repeat it (lets call this `count`)
 
-We can then use the following regex string in the `Responds to` field of our NeCSuS bot to get these: `repeat (?P<word>\w+) (?P<count>\d+) times`
+We can then use the following regex string in the `Responds to` field of our NeCSuS bot to get these: 
+
+>`repeat (?P<word>\w+) (?P<count>\d+) times`
+
 So, if I sent the message `repeat hello 5 times` to a chatroom with repeat bot - NeCSuS would send data in the following way.
 ```JSON
 {
