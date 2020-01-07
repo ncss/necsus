@@ -218,7 +218,7 @@ let app = new Vue({
       messagesList.scrollTo(0, allMessagesHeight);
     },
     markdownToText(text) {
-      return marked(text, {renderer: plainTextRenderer});
+      return marked(text, {renderer: plainTextRenderer, smartypants: true});
     },
     markdownToHTML(text) {
       return marked(text);
