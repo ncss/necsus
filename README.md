@@ -61,9 +61,8 @@ So, if I sent the message `repeat hello 5 times` to a chatroom with repeat bot -
               }
 }
 ```
-```
-    you can get this data by using request.get_json() in your python server :) 
-```
+
+>you can get this data by using request.get_json() in your python server :) 
 
 ### What output should I send from my bot back to NeCSuS
 
