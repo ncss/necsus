@@ -85,6 +85,7 @@ let app = new Vue({
       this.settings.bots.push({
         name: '',
         url: '',
+        responds_to: '',
       });
     },
     removeBot: async function(bot) {
