@@ -35,22 +35,22 @@ All bots should consist of 3 main elements:
 
 Clicking on the **"open settings"** button at the top right hand section of the page, we can see a new side panel open up.
 Under the red **reset room** button - press the "add bot" button to create a new blank bot. 
-From there, fill in the bot name (preferably something unique and not normally used in a sentance - see [how do my bots work](#how-do-my-bots-work-with-necsus))
+From there, fill in the bot name (preferably something unique and not normally used in a sentance).
 You can then post the base link for the bot.
 
 ### How do I send input from NeCSuS to my bot?
 
-Every time a message is sent by a user to a room - NeCSuS scans the message to see if there is a message that matches either an existing bot `name`, or the `responds to` field for all active bots in the chatroom. 
+Every time a message is sent by a user to a room - NeCSuS scans the message to see if there is a message that matches either an existing `bot name`, or the `Responds to` field for all active bots in the chatroom. 
 Depending on the contents of the `Responds to` field - the data will be sent to the bot either as plain text or it will have additional `key:value` pairs
 
 #### I want key value pairs!!
-Awesome! You can use named capturing groups to do this! For example, [repeat bot]() requires two things from a message:
+Awesome! You can use named capturing groups to do this. For example, [repeat bot](https://repl.it/@kennib/repeat-bot) requires two things from a message:
   * A string to repeat (lets call this `word`)
   * How many times to repeat it (lets call this `count`)
 
 We can then use the following regex string in the `Responds to` field of our NeCSuS bot to get these: 
 
->`repeat (?P<word>\w+) (?P<count>\d+) times`
+`repeat (?P<word>\w+) (?P<count>\d+) times`
 
 So, if I sent the message `repeat hello 5 times` to a chatroom with repeat bot - NeCSuS would send data in the following way.
 ```JSON
