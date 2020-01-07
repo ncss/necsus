@@ -35,7 +35,7 @@ All bots should consist of 3 main elements:
 
 Clicking on the **"open settings"** button at the top right hand section of the page, we can see a new side panel open up.
 Under the red **reset room** button - press the "add bot" button to create a new blank bot. 
-From there, fill in the bot name (preferably something unique and not normally used in a sentance).
+From there, fill in the bot name (preferably something unique and not normally used in a sentence).
 You can then post the base link for the bot.
 
 ### How do I send input from NeCSuS to my bot?
