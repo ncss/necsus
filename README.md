@@ -37,26 +37,26 @@ if you do not wish them to be interpreted as HTML. For example: `{"text": "1 &lt
 
 ### How do I create a room?
 The simplest way to create a room is to add your name onto the end of your group's room such that it has the form:
-https://chat.ncss.cloud/group<group_number>-<your_name>
+`https://chat.ncss.cloud/group<group_number>-<your_name>`
 
-For example: https://chat.ncss.cloud/group4-kenni
+For example: `https://chat.ncss.cloud/group4-kenni`
 
-### How do I create a bot? 
+### How do I create a bot?
 All bots should consist of 3 main elements:
   * route
   * [input](#how-do-i-send-input-from-necsus-to-my-bot)
   * [output](#what-output-should-i-send-from-my-bot-back-to-necsus)
 
-### How do I link my bot to a room? 
+### How do I link my bot to a room?
 
 Clicking on the **"open settings"** button at the top right hand section of the page, we can see a new side panel open up.
-Under the red **reset room** button - press the "add bot" button to create a new blank bot. 
+Under the red **reset room** button - press the "add bot" button to create a new blank bot.
 From there, fill in the bot name (preferably something unique and not normally used in a sentence).
 You can then post the base link for the bot. This is the link to your bot endpoint in Flask (e.g. `<url>/<app route>`.
 
 ### How do I send input from NeCSuS to my bot?
 
-Every time a message is sent by a user to a room - NeCSuS scans the message to see if there is a message that matches either an existing `bot name`, or the `Responds to` field for all active bots in the chatroom. 
+Every time a message is sent by a user to a room - NeCSuS scans the message to see if there is a message that matches either an existing `bot name`, or the `Responds to` field for all active bots in the chatroom.
 Depending on the contents of the `Responds to` field - the data will be sent to the bot either as plain text or it will have additional `key:value` pairs
 
 #### I want key value pairs!!
@@ -64,28 +64,28 @@ Awesome! You can use named capturing groups to do this. For example, [repeat bot
   * A string to repeat (lets call this `word`)
   * How many times to repeat it (lets call this `count`)
 
-We can then use the following regex string in the `Responds to` field of our NeCSuS bot to get these: 
+We can then use the following regex string in the `Responds to` field of our NeCSuS bot to get these:
 
 `repeat (?P<word>\w+) (?P<count>\d+) times`
 
 So, if I sent the message `repeat hello 5 times` to a chatroom with repeat bot - NeCSuS would send data in the following way.
 ```JSON
 {
-    "room": "shrey", 
-    "author": "Anonymous", 
-    "text": "repeat hello 5 times", 
+    "room": "shrey",
+    "author": "Anonymous",
+    "text": "repeat hello 5 times",
     "params": {
-                "word": "hello", 
+                "word": "hello",
                 "count": "5"
               }
 }
 ```
 
->you can get this data by using request.get_json() in your python server :) 
+>you can get this data by using request.get_json() in your python server :)
 
 ### What output should I send from my bot back to NeCSuS
 
-NeCSuS expects two things to be returned as JSON from bot. 
+NeCSuS expects two things to be returned as JSON from bot.
 So, a basic server that sends the same message every time should look like:
 
 ```py3
