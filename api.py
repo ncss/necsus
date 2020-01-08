@@ -117,7 +117,7 @@ def get_bots():
             name: room
             schema:
               type: string
-            description: the name of the room to list bots for
+            description: The name of the room to list bots for. If not provided, will list all registered bots.
         responses:
           200:
             description: Bots and their endpoints
@@ -134,21 +134,29 @@ def get_bots():
                    type: string
                    example: NeCSuS Bot
                    description: the bot's name
+                  responds_to:
+                   type: string
+                   example: "(?P<greeting>hi|hello)(?P<other>.*)"
+                   description: regex that triggers sending the message to the bot
+                  room:
+                   type: string
+                   example: my_room
+                   description: room that the bot is registered in
                   url:
                    type: string
                    example: https://necsus-bot.ncss.cloud
                    description: the bot's url
   """
-  room = request.values.get('room')
+  room = request.args.get('room')
 
   db = get_db()
 
-  if room != None:
+  if room is not None:
     bots = list(db.bots.find_all(room=room))
     return jsonify(bots)
   else:
-    bot = db.bots.list()
-    return jsonify(bot)
+    bots = list(db.bots.find_all())
+    return jsonify(bots)
 
 @app.route('/api/actions/bot', methods=['POST'])
 @crossdomain(origin='*')
