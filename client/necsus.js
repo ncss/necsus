@@ -158,17 +158,21 @@ let app = new Vue({
       if (this.newMessage.length <= 0) {
         return;
       }
-      let data = new FormData();
-      data.append('room', this.room);
-      data.append('author', this.settings.name);
-      data.append('text', this.newMessage);
+      let data = {
+        room: this.room,
+        author: this.settings.name,
+        text: this.newMessage,
+      };
 
       this.sendingMessage = true;
 
-      let url = '/api/actions/message'
+      let url = '/api/actions/message';
       let response = await fetch(url, {
         method: 'POST',
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       let messageResult = await response.json();
 
