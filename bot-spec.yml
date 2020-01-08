@@ -38,6 +38,10 @@ paths:
                   text:
                     type: string
                     example: "Hello!"
+                  author:
+                    type: string
+                    nullable: true
+                    example: 'Cool Bot'
 
       requestBody:
         description: |
