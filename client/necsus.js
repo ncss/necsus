@@ -65,9 +65,13 @@ let app = new Vue({
   },
   methods: {
     resetRoom: async function() {
-      let url = '/api/actions/reset-room?room='+this.room;
+      let url = '/api/actions/reset-room';
       let response = await fetch(url, {
         method: 'POST',
+        body: JSON.stringify({room: this.room}),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       this.messages = [];
@@ -90,31 +94,36 @@ let app = new Vue({
     },
     removeBot: async function(bot) {
       if (bot.id) {
-        let data = new FormData();
-        data.append('id', bot.id);
 
-        let url = '/api/actions/bot'
+        let url = '/api/actions/bot?id='+bot.id;
         let response = await fetch(url, {
           method: 'DELETE',
-          body: data,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
         let botResult = await response.json();
       }
       await this.fetchBots();
     },
     submitBot: async function(bot) {
-      let data = new FormData();
-      data.append('room', this.room);
-      if (bot.id)
-        data.append('id', bot.id);
-      data.append('name', bot.name);
-      data.append('url', bot.url);
-      data.append('responds_to', bot.responds_to);
+      let data = {
+        room: this.room,
+        name: bot.name,
+        url: bot.url,
+        responds_to: bot.responds_to,
+      };
+      if (bot.id) {
+        data.id = bot.id;
+      }
 
       let url = '/api/actions/bot'
       let response = await fetch(url, {
         method: 'POST',
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       let botResult = await response.json();
 
