@@ -25,7 +25,15 @@ A web app that allows you to create rooms in which you can import and interact w
 ### How do I post (images|links|formatted text)?
 
 The client renders HTML in messages. All the usual HTML elements for images,
-links, and text formatting will work.
+links, and text formatting will work. For example, the bot can respond with:
+
+```
+{"text": "Lasagna <i>is</i> a <b>sandwich</b>!"}
+```
+
+Note that some characters should be escaped using [character
+references](https://en.wikipedia.org/wiki/Character_encodings_in_HTML#HTML_character_references)
+if you do not wish them to be interpreted as HTML. For example: `{"text": "1 &lt; 2"}` would produce `1 < 2`.
 
 ### How do I create a room?
 The simplest way to create a room is to add your name onto the end of your group's room such that it has the form:

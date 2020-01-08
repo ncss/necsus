@@ -24,9 +24,14 @@ paths:
           description: |
             A message to send to the chat room in reply.
 
-            Include a `"text"` key in the response to reply immediately with a message. The message will be sent to the same room as where the received message originated. If you wish the message to go to another room, include a `"room"` key in the response.
+            Include a `"text"` key in the response to reply immediately with a
+            message. This message is displayed as HTML. The message will be sent to
+            the same room as where the received message originated. If you wish
+            the message to go to another room, include a `"room"` key in the
+            response.
 
-            If the bot does not want to reply with a message, just respond with an empty 200 response (or at least without the `"text"` key).
+            If the bot does not want to reply with a message, just respond with
+            an empty 200 response (or at least without the `"text"` key).
           content:
             application/json:
               schema:
