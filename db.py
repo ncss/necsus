@@ -119,10 +119,14 @@ class Messages(DBList):
       if str(message['id']) == since_id:
         after_old_message = True
 
-  def add(self, **kwargs):
+  def add(self, **message):
+    now = UTC.localize(datetime.datetime.utcnow())
+    local = now.astimezone(SYDNEY)
+    message['when'] = local.strftime('%-I:%M%p').lower()
+
     c = self.connection.cursor()
-    keys = [key for key in kwargs.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
-    values = [value for key,value in kwargs.items() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    keys = [key for key in message.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    values = [value for key,value in message.items() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()
