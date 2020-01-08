@@ -130,7 +130,7 @@ class Messages(DBList):
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()
-    return kwargs
+    return message 
 
 class Bots(DBList):
   table = Table('bots')
