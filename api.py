@@ -162,6 +162,11 @@ def post_bot():
               type: string
             description: the name of the bot, the bot's name is not updated if no url parameter is given 
           - in: query
+            name: responds_to 
+            schema:
+              type: string
+            description: a regular expression for matching messages to send to the bot, not updated if the parameter is not given
+          - in: query
             name: url 
             schema:
               type: string
