@@ -116,7 +116,7 @@ class Messages(DBList):
     for message in messages:
       if after_old_message:
         yield message
-      if str(message['id']) == since_id:
+      if str(message['id']) == str(since_id):
         after_old_message = True
 
   def add(self, **message):

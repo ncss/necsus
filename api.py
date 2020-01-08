@@ -52,6 +52,7 @@ def get_new_messages():
         parameters:
           - in: query
             name: room
+            required: true
             schema:
               type: string
             description: the name of the room
@@ -83,11 +84,20 @@ def get_new_messages():
                  example: Hello, World!
                  description: the message's text
   """
-  since_id = request.values.get('since')
-  room = request.values.get('room')
+  since_id = request.args.get('since')
+  room = request.args.get('room')
+
+  if room is None:
+    return jsonify({'message': 'room name is required'}), 400
+
+  if since_id is not None:
+    try:
+      _ = int(since_id)
+    except ValueError:
+      return jsonify({'message': 'since_id must be an integer'}), 400
 
   db = get_db()
-  new_messages = list(db.messages.new(since_id, room=room))
+  new_messages = list(db.messages.new(since_id, room=str(room)))
 
   return jsonify(new_messages)
 
