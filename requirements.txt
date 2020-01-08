@@ -5,4 +5,4 @@ flask-swagger
 flask-swagger-ui
 pypika
 pytz
-yaml
+pyyaml
