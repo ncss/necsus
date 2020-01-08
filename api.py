@@ -136,28 +136,29 @@ def get_bots():
             schema:
               type: array
               items:
-                id: Bot
-                properties:
-                  id:
-                   type: integer
-                   example: 1
-                   description: the bot's unique ID
-                  name:
-                   type: string
-                   example: NeCSuS Bot
-                   description: the bot's name
-                  responds_to:
-                   type: string
-                   example: "(?P<greeting>hi|hello)(?P<other>.*)"
-                   description: regex that triggers sending the message to the bot
-                  room:
-                   type: string
-                   example: my_room
-                   description: room that the bot is registered in
-                  url:
-                   type: string
-                   example: https://necsus-bot.ncss.cloud
-                   description: the bot's url
+                schema:
+                  id: Bot
+                  properties:
+                    id:
+                     type: integer
+                     example: 1
+                     description: the bot's unique ID
+                    name:
+                     type: string
+                     example: NeCSuS Bot
+                     description: the bot's name
+                    responds_to:
+                     type: string
+                     example: "(?P<greeting>hi|hello)(?P<other>.*)"
+                     description: regex that triggers sending the message to the bot
+                    room:
+                     type: string
+                     example: my_room
+                     description: room that the bot is registered in
+                    url:
+                     type: string
+                     example: https://necsus-bot.ncss.cloud
+                     description: the bot's url
   """
   room = request.args.get('room')
 
@@ -209,23 +210,6 @@ def post_bot():
             description: Returns a bot
             schema:
               id: Bot
-              properties:
-                id:
-                 type: integer
-                 example: 1
-                 description: the bot's unique ID
-                name:
-                 type: string
-                 example: Repeat Bot
-                 description: the bot's name
-                responds_to:
-                 type: string
-                 example: repeat (?P<word>\w+) (?P<count>\d+) times
-                 description: the regular expression that the bot listens for in messages
-                url:
-                 type: string
-                 example: https://repeat-bot.kennib.repl.co
-                 description: the bot's url
   """
   room = request.values.get('room')
   id = request.values.get('id')
