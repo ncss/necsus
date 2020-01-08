@@ -41,4 +41,4 @@ def trigger_interaction(db, interaction):
 
 def trigger_room_reset(db, room):
   db.messages.delete(room=room)
-  return None
+  return room

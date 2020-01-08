@@ -1,4 +1,5 @@
 from flask import request, jsonify, send_from_directory
+from werkzeug.exceptions import HTTPException
 from crossdomain import crossdomain
 import yaml
 
@@ -17,6 +18,17 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
+@app.errorhandler(Exception)
+def handle_error(e):
+    if isinstance(e, HTTPException):
+        code = e.code
+        message = e.description
+    else:
+      code = 500
+      message = f'There was an internal server error'
+      app.logger.error(e)
+
+    return jsonify({'error': code, 'message': message}), code
 
 @app.route("/api/spec")
 def spec():
@@ -320,25 +332,36 @@ def reset_room():
         tags:
           - room
         parameters:
-          - in: query
-            name: room
+          - in: body
+            description: the room to reset
+            name: content
+            required: true
             schema:
-              type: string
-        responses:
-          200:
-            description: Room
-            schema:
-              id: Message
+              type: object
+              required:
+                - room
               properties:
                 room:
-                 type: string
-                 example: tutors
-                 description: the room that was reset
+                  type: string
+                  example: my_room
+
+        responses:
+          200:
+            description: room successfully reset
+            schema:
+              properties:
+                room:
+                  type: string
+                  example: tutors
+                  description: the room that was reset
   """
 
-  room = request.values['room']
+  data = request.get_json()
+
+  if not data or data.get('room') is None:
+    return jsonify({'message': 'room name is required'}), 400
 
   db = get_db()
-  events.trigger_room_reset(db, room)
+  room = events.trigger_room_reset(db, str(data.get('room')))
 
   return jsonify({'room': room})
