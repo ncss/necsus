@@ -138,6 +138,11 @@ def get_bots():
               items:
                 schema:
                   id: Bot
+                  required:
+                    - name
+                    - responds_to
+                    - room
+                    - url
                   properties:
                     id:
                      type: integer
@@ -180,42 +185,27 @@ def post_bot():
         tags:
           - bots
         parameters:
-          - in: query
-            name: id
+          - in: body
+            name: content
+            required: true
             schema:
-              type: integer
-            description: the ID of the bot to update, creates a new bot if no is ID given
-          - in: query
-            name: room
-            schema:
-              type: string
-            description: the name of the room the bot is in, the bot's room is not updated if no room parameter is given
-          - in: query
-            name: name
-            schema:
-              type: string
-            description: the name of the bot, the bot's name is not updated if no url parameter is given
-          - in: query
-            name: responds_to
-            schema:
-              type: string
-            description: a regular expression for matching messages to send to the bot, not updated if the parameter is not given
-          - in: query
-            name: url
-            schema:
-              type: string
-            description: the URL endpoint for the bot, the bot's url is not updated if no url parameter is given
+              id: Bot
+
         responses:
           200:
-            description: Returns a bot
+            description: The created or updated bot
             schema:
               id: Bot
   """
-  room = request.values.get('room')
-  id = request.values.get('id')
-  name = request.values.get('name')
-  responds_to = request.values.get('responds_to')
-  url = request.values.get('url')
+  data = request.get_json()
+
+  # TODO: verify these; make nicer behaviour if bot with supplied id exists,
+  # reject if will create new bot and missing fields.
+  room = data.get('room')
+  id = data.get('id')
+  name = data.get('name')
+  responds_to = data.get('responds_to')
+  url = data.get('url')
 
   db = get_db()
   bot = db.bots.update_or_add(id=id, room=room, name=name, responds_to=responds_to, url=url)
@@ -235,22 +225,26 @@ def delete_bot():
             name: id
             schema:
               type: integer
-            description: the ID of the bot to update, creates a new bot if no is ID given
+            description: ID of the bot to delete
         responses:
           200:
-            description: Returns the ID of the removed bot
+            description: bot was successfully removed, or bot never existed
             schema:
               properties:
                 id:
                  type: integer
                  example: 1
-                 description: the bot's unique ID
+                 description: ID of the removed bot
   """
-  id = request.values.get('id')
+  id = request.args.get('id')
+
+  if id is None:
+    return jsonify({'message': 'id of a bot to remove is required'}), code
 
   db = get_db()
   bot = db.bots.remove(id)
 
+  print(bot)
   return jsonify({id: id})
 
 @app.route('/api/actions/message', methods=['POST'])
@@ -263,7 +257,6 @@ def post_message():
           - messages
         parameters:
           - in: body
-            description: thing
             name: content
             required: true
             schema:

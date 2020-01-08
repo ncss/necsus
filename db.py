@@ -47,6 +47,7 @@ class DBList(dict):
       .columns(*kwargs.keys())\
       .insert(*kwargs.values())
       c.execute(q.get_sql())
+      # TODO: get id of created item
     except sqlite3.IntegrityError:
       # If the key is a duplicate
       # then update
@@ -57,6 +58,7 @@ class DBList(dict):
       c.execute(q.get_sql())
 
     self.connection.commit()
+    # TODO: return legit data instead of kwargs
     return kwargs
 
   def add_if_new(self, **kwargs):
@@ -98,7 +100,7 @@ class DBList(dict):
     c.execute(q.get_sql())
     self.connection.commit()
     return c.fetchone()
-    
+
 
 class Messages(DBList):
   table = Table('messages')
@@ -124,7 +126,7 @@ class Messages(DBList):
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()
-    return message 
+    return message
 
 class Bots(DBList):
   table = Table('bots')
