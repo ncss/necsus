@@ -16,9 +16,7 @@ def run(room, bot, text, params, user=None):
     reply = requests.post(endpoint_url, json=data)
 
     if reply.status_code == requests.codes.ok:
-      safe_message = {
-        'author': name,
-      }
+      safe_message = {}
 
       message = reply.json()
       if isinstance(message, dict) and 'text' in message and isinstance(message['text'], str):
@@ -26,12 +24,18 @@ def run(room, bot, text, params, user=None):
       else:
         return None
 
+      if 'author' in message and isinstance(message['author'], str):
+        safe_message['author'] = message['author']
+      else:
+        safe_message['author'] = name
+
       if 'room' in message and isinstance(message['room'], str):
         safe_message['room'] = message['room']
       else:
         safe_message['room'] = room
 
       return safe_message
+
     else:
       return {
         'room': room,
