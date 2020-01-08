@@ -6,7 +6,7 @@ from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from necsus import app, get_db
-import events 
+import events
 
 SWAGGER_URL = '/docs'
 API_URL = '/api/spec'
@@ -48,7 +48,7 @@ def get_new_messages():
         List messages
         ---
         tags:
-          - messages 
+          - messages
         parameters:
           - in: query
             name: room
@@ -56,10 +56,10 @@ def get_new_messages():
               type: string
             description: the name of the room
           - in: query
-            name: since 
+            name: since
             schema:
-              type: integer 
-            description: the ID of the last message you already have 
+              type: integer
+            description: the ID of the last message you already have
         responses:
           200:
             description: Messages since last message
@@ -69,7 +69,7 @@ def get_new_messages():
                 id:
                  type: integer
                  example: 1
-                 description: the messages's unique ID 
+                 description: the messages's unique ID
                 room:
                  type: string
                  example: tutors
@@ -98,7 +98,7 @@ def get_bots():
         List Bots
         ---
         tags:
-          - bots 
+          - bots
         parameters:
           - in: query
             name: room
@@ -110,13 +110,13 @@ def get_bots():
             description: Bots and their endpoints
             schema:
               type: array
-              items: 
+              items:
                 id: Bot
                 properties:
                   id:
                    type: integer
                    example: 1
-                   description: the bot's unique ID 
+                   description: the bot's unique ID
                   name:
                    type: string
                    example: NeCSuS Bot
@@ -134,7 +134,7 @@ def get_bots():
     bots = list(db.bots.find_all(room=room))
     return jsonify(bots)
   else:
-    bot = db.bots.list() 
+    bot = db.bots.list()
     return jsonify(bot)
 
 @app.route('/api/actions/bot', methods=['POST'])
@@ -144,10 +144,10 @@ def post_bot():
         Create or Update a Bot
         ---
         tags:
-          - bots 
+          - bots
         parameters:
           - in: query
-            name: id 
+            name: id
             schema:
               type: integer
             description: the ID of the bot to update, creates a new bot if no is ID given
@@ -155,19 +155,19 @@ def post_bot():
             name: room
             schema:
               type: string
-            description: the name of the room the bot is in, the bot's room is not updated if no room parameter is given 
+            description: the name of the room the bot is in, the bot's room is not updated if no room parameter is given
           - in: query
-            name: name 
+            name: name
             schema:
               type: string
-            description: the name of the bot, the bot's name is not updated if no url parameter is given 
+            description: the name of the bot, the bot's name is not updated if no url parameter is given
           - in: query
-            name: responds_to 
+            name: responds_to
             schema:
               type: string
             description: a regular expression for matching messages to send to the bot, not updated if the parameter is not given
           - in: query
-            name: url 
+            name: url
             schema:
               type: string
             description: the URL endpoint for the bot, the bot's url is not updated if no url parameter is given
@@ -180,7 +180,7 @@ def post_bot():
                 id:
                  type: integer
                  example: 1
-                 description: the bot's unique ID 
+                 description: the bot's unique ID
                 name:
                  type: string
                  example: Repeat Bot
@@ -212,10 +212,10 @@ def delete_bot():
         Remove a Bot
         ---
         tags:
-          - bots 
+          - bots
         parameters:
           - in: query
-            name: id 
+            name: id
             schema:
               type: integer
             description: the ID of the bot to update, creates a new bot if no is ID given
@@ -227,7 +227,7 @@ def delete_bot():
                 id:
                  type: integer
                  example: 1
-                 description: the bot's unique ID 
+                 description: the bot's unique ID
   """
   id = request.values.get('id')
 
@@ -240,37 +240,52 @@ def delete_bot():
 @crossdomain(origin='*')
 def post_message():
   """
-        Post a Bot
+        Post a message to a room
         ---
         tags:
-          - messages 
+          - messages
         parameters:
-          - in: query
-            name: room
+          - in: body
+            description: thing
+            name: content
+            required: true
             schema:
-              type: string
-            description: the name of the room to post the message
-          - in: query
-            name: author 
-            schema:
-              type: string 
-            description: the name of the message's author
-          - in: query
-            name: text 
-            schema:
-              type: string 
-            description: the name of the message's text
+              type: object
+              required:
+                - room
+                - author
+                - text
+              properties:
+                room:
+                  type: string
+                  example: 'party-room'
+                author:
+                  type: string
+                  nullable: true
+                  example: 'Kenni'
+                text:
+                  type: string
+                  example: 'Hello sam'
+
         responses:
           200:
-            description: The message was successfully posted. 
+            description: The message was successfully posted.
             schema:
               id: Message
   """
 
-  if request.values['text'].strip() == "":
-      return jsonify({}), 400
+  data = request.get_json()
+  # room is allowed to be blank because "" is a room
+  if not data or not data.get('text') or data.get('room') is None or not data.get('author'):
+    return jsonify({'message': 'text, room, and author keys are required'}), 400
+
   db = get_db()
-  message = dict(request.values)
+
+  message = {
+    'text': str(data['text']),
+    'room': str(data['room']),
+    'author': str(data['author']),
+  }
   message_result = events.trigger_message_post(db, message)
 
   return jsonify(message_result)
