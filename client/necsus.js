@@ -236,9 +236,6 @@ let app = new Vue({
     markdownToText(text) {
       return marked(text, {renderer: plainTextRenderer, smartypants: true});
     },
-    markdownToHTML(text) {
-      return marked(text);
-    },
     lines: function(text) {
       text = text || '';
       return text.split(/\r\n|\r|\n/);
