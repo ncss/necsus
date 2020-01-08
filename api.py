@@ -239,7 +239,7 @@ def delete_bot():
   id = request.args.get('id')
 
   if id is None:
-    return jsonify({'message': 'id of a bot to remove is required'}), code
+    return jsonify({'message': 'id of a bot to remove is required'}), 400
 
   db = get_db()
   bot = db.bots.remove(id)
