@@ -14,12 +14,6 @@ class DBList(dict):
     self.connection = connection
     self.connection.row_factory = lambda x,y: dict(sqlite3.Row(x,y))
 
-  def list(self):
-    c = self.connection.cursor()
-    q = Query._from(self.table)
-    c.execute(q.get_sql())
-    return c.fetchall()
-
   def _find(self, **kwargs):
     c = self.connection.cursor()
 
