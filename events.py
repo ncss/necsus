@@ -1,12 +1,39 @@
-import bots 
+import bots
 import interactivity
 
 import re
 
 def trigger_message_post(db, message):
+  special_state = db.messages.room_state(room_name=message['room'])
   message_result = db.messages.add(**message)
-  replies = trigger_bots(db, message)
+
+  if special_state:
+    bot_id, state = special_state
+    bots = db.bots.find_all(id=bot_id)
+    if len(bots) != 1:
+      return message_result
+    
+    bot = bots[0]
+    message['state'] = state
+    trigger_bot(db, message, bot, {}, state=state)
+  else:
+    trigger_bots(db, message)
+  
   return message_result
+
+
+def trigger_clear_room_state(db, room):
+  """Post an emptyish message to a room to clear any state left over from the last
+  message. This is meant to be used for debugging and development purposes."""
+
+  if db.messages.room_state(room_name=room):
+    clearing_message = {
+      'room': room,
+      'author': 'NeCSuS',
+      'text': 'The room state has been cleared',
+    }
+    db.messages.add(**clearing_message)
+
 
 def trigger_bots(db, message):
   text = message.get('text')
@@ -25,10 +52,10 @@ def trigger_bots(db, message):
 
   return replies 
 
-def trigger_bot(db, message, bot, params, user=None):
+def trigger_bot(db, message, bot, params, user=None, state=None):
   text = message.get('text')
   room = message.get('room')
-  reply_message = bots.run(room, bot, text, params, user=user)
+  reply_message = bots.run(room, bot, text, params, user=user, state=state)
   if reply_message:
     reply_message_result = db.messages.add(**reply_message)
 

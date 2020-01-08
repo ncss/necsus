@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS messages (
   author TEXT,
   text TEXT,
   "when" TEXT,
-  image TEXT
+  image TEXT,
+  reply_to INTEGER,  -- If this message is last, forward responses to the bot with this id
+  state BLOB         -- Only forward to the bot if this state is a nonempty string of json data.
 );
 
 CREATE TABLE IF NOT EXISTS bots (

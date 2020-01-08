@@ -275,6 +275,36 @@ def post_message():
 
   return jsonify(message_result)
 
+@app.route('/api/actions/clear-room-state', methods=['POST'])
+@crossdomain(origin='*')
+def clear_room_state():
+  """
+        Clear any pending conversation state on a room
+        ---
+        tags:
+          - room
+        parameters:
+          - in: query
+            name: room
+            schema:
+              type: string
+        responses:
+          200:
+            description: Room
+            schema:
+              id: Message
+              properties:
+                room:
+                 type: string
+                 example: tutors
+                 description: the room that had its state cleared
+  """
+
+  room = request.values['room']
+  db = get_db()
+  events.trigger_clear_room_state(db, room)
+  return jsonify({'room': room})
+
 @app.route('/api/actions/reset-room', methods=['POST'])
 @crossdomain(origin='*')
 def reset_room():

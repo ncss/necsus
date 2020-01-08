@@ -81,8 +81,10 @@
           <article class="message" v-for="message in messages">
             <h4 class="author">{{ message.author }}</h4>
             <div class="when">{{ message.when }}</div>
-            <div class="content" v-html="markdownToHTML(message.text)"></p>
+            <div class="content" v-html="markdownToHTML(message.text)"></div>
+            <div class="state" v-if="message.state">{{ JSON.stringify(message.state) }}</div>
           </article>
+          <button @click="clearState()" v-if="statePresent">clear state</button>
         </div>
 
         <div id="new-message">

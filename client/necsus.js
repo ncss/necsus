@@ -14,6 +14,7 @@ let app = new Vue({
     messages: [],
     newMessage: '',
     sendingMessage: false,
+    statePresent: false
   },
   created: function() {
     let vm = this;
@@ -147,6 +148,12 @@ let app = new Vue({
         });
       }
 
+      // Check if the last message contains a state which we might have to clear
+      if (newMessages.length > 0) {
+        let lastMessage = newMessages[newMessages.length - 1];
+        this.statePresent = (lastMessage.state) ? true : false;
+      }
+
       if (!options.silent) {
         newMessages.forEach(function(message) {
           if (message.author != vm.settings.name)
@@ -175,6 +182,21 @@ let app = new Vue({
       this.sendingMessage = false;
 
       this.newMessage = '';
+    },
+    clearState: async function() {
+      let data = new FormData();
+      data.append('room', this.room);
+      
+      this.sendingMessage = true;
+      
+      let url = '/api/actions/clear-room-state'
+      let response = await fetch(url, {
+        method: 'POST',
+        body: data,
+      });
+      await response.json();
+
+      this.sendingMessage = false;
     },
     autoUpdate: function() {
       let vm = this;

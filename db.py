@@ -108,16 +108,16 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
+  allowed_keys = ['id', 'room', 'author', 'text', 'when', 'image', 'reply_to', 'state']
 
   def new(self, since_id, **kwargs):
+    "Return a generator of messages since a given id (which may be None to return all messages)"
+
     messages = self.find_all(**kwargs)
 
-    after_old_message = True if since_id == None else False
-    for message in messages:
-      if after_old_message:
-        yield message
-      if str(message['id']) == since_id:
-        after_old_message = True
+    since_id = 0 if since_id == None else int(since_id)
+    yield from (message for message in messages if message['id'] >= since_id)
+
 
   def add(self, **message):
     now = UTC.localize(datetime.datetime.utcnow())
@@ -125,12 +125,28 @@ class Messages(DBList):
     message['when'] = local.strftime('%-I:%M%p').lower()
 
     c = self.connection.cursor()
-    keys = [key for key in message.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
-    values = [value for key,value in message.items() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    keys = [key for key in message.keys() if key in self.allowed_keys]
+    values = [value for key,value in message.items() if key in self.allowed_keys]
     q = Query.into(self.table).columns(*keys).insert(*values)
+    print('Executing:', q.get_sql())
     c.execute(q.get_sql())
     self.connection.commit()
-    return message 
+    return message
+
+
+  def room_state(self, room_name):
+    "Return None if the room has no special state, otherwise (bot_id, state)"
+    
+    room_messages = self.find_all(room=room_name)
+    if room_messages == []:
+      return None
+    
+    last_message = room_messages[-1]
+    if last_message['reply_to'] != None:
+      return last_message['reply_to'], last_message['state']
+    
+    return None
+
 
 class Bots(DBList):
   table = Table('bots')

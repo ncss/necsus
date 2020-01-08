@@ -1,8 +1,9 @@
 import requests
+import json
 
 from necsus import db
 
-def run(room, bot, text, params, user=None):
+def run(room, bot, text, params, user=None, state=None):
   name = bot.get('name', 'bot')
   endpoint_url = bot.get('url')
 
@@ -13,6 +14,10 @@ def run(room, bot, text, params, user=None):
       'text': text,
       'params': params,
     }
+
+    if state != None:
+      data['state'] = json.loads(state)
+
     reply = requests.post(endpoint_url, json=data)
 
     if reply.status_code == requests.codes.ok:
@@ -33,6 +38,10 @@ def run(room, bot, text, params, user=None):
         safe_message['room'] = message['room']
       else:
         safe_message['room'] = room
+
+      if 'state' in message and message['state'] != None:
+        safe_message['state'] = json.dumps(message['state'])
+        safe_message['reply_to'] = bot.get('id')
 
       return safe_message
 
