@@ -40,7 +40,6 @@ paths:
                     example: "Hello!"
                   author:
                     type: string
-                    nullable: true
                     example: 'Cool Bot'
 
       requestBody:
