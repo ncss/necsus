@@ -65,24 +65,27 @@ def get_new_messages():
           200:
             description: Messages since last message
             schema:
-              id: Message
-              properties:
-                id:
-                 type: integer
-                 example: 1
-                 description: the messages's unique ID
-                room:
-                 type: string
-                 example: tutors
-                 description: the room the message was posted in
-                author:
-                 type: string
-                 example: Georgina
-                 description: the author of the message
-                text:
-                 type: string
-                 example: Hello, World!
-                 description: the message's text
+              type: array
+              items:
+                schema:
+                  id: Message
+                  properties:
+                    id:
+                     type: integer
+                     example: 1
+                     description: the messages's unique ID
+                    room:
+                     type: string
+                     example: tutors
+                     description: the room the message was posted in
+                    author:
+                     type: string
+                     example: Georgina
+                     description: the author of the message
+                    text:
+                     type: string
+                     example: Hello, World!
+                     description: the message's text
   """
   since_id = request.args.get('since')
   room = request.args.get('room')
