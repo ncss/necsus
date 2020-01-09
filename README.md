@@ -22,6 +22,9 @@ server.py` must still be run at least once beforehand to init the db.
 ### What is NeCSuS?
 A web app that allows you to create rooms in which you can import and interact with chatbots.
 
+### Is there a simple guide?
+Yes, there is a [simple guide to NeCSuS](https://docs.google.com/document/d/1oc9wd0pRq0u19OOFDLk5njxTkp3etfgGf6mmATac6Qc/edit).
+
 ### How do I post (images|links|formatted text)?
 
 The client renders HTML in messages. All the usual HTML elements for images,
