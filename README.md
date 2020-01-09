@@ -24,10 +24,17 @@ A web app that allows you to create rooms in which you can import and interact w
 
 ### Is there a simple guide?
 Yes, there is a [simple guide to NeCSuS](https://docs.google.com/document/d/1oc9wd0pRq0u19OOFDLk5njxTkp3etfgGf6mmATac6Qc/edit).
+You can also look at the [NeCSuS API docs](https://chat.ncss.cloud/docs/) and the [bot API docs](https://chat.ncss.cloud/bot/docs/).
 
 ### How do I post (images|links|formatted text)?
 
-The client renders HTML in messages. All the usual HTML elements for images,
+You can render a single image by putting an `image` key in your response.
+
+```
+{"text": "A cute dog!", "image": "https://images.dog.ceo/breeds/terrier-norfolk/n02094114_1505.jpg"}
+```
+
+The client also renders HTML in messages. All the usual HTML elements for images,
 links, and text formatting will work. For example, the bot can respond with:
 
 ```
@@ -37,6 +44,14 @@ links, and text formatting will work. For example, the bot can respond with:
 Note that some characters should be escaped using [character
 references](https://en.wikipedia.org/wiki/Character_encodings_in_HTML#HTML_character_references)
 if you do not wish them to be interpreted as HTML. For example: `{"text": "1 &lt; 2"}` would produce `1 < 2`.
+
+### How do I post (music|sound|video|movies)?
+
+You can embed a sound or video using the `media` key.
+
+```
+{"text": "Ring!", "image": "https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3"}
+```
 
 ### How do I create a room?
 The simplest way to create a room is to add your name onto the end of your group's room such that it has the form:
