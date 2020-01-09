@@ -156,6 +156,10 @@ header {
   word-break: break-all;
 }
 
+.message .image img {
+  max-width: 800px;
+}
+
 #new-message #message-input {
   width: 100%;
 }
