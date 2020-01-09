@@ -32,6 +32,10 @@ paths:
 
             If the bot does not want to reply with a message, just respond with
             an empty 200 response (or at least without the `"text"` key).
+
+            You may also include an `"image"` and `"media"` key which should have a
+            URL as a value. These will be appropraitely displayed as an image or
+            inside of a media player that can play movies/videos/music/sound.
           content:
             application/json:
               schema:
@@ -46,6 +50,12 @@ paths:
                   author:
                     type: string
                     example: 'Cool Bot'
+                  image:
+                    type: string
+                    example: 'https://images.dog.ceo/breeds/terrier-norfolk/n02094114_1505.jpg'
+                  media:
+                    type: string
+                    example: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3'
 
       requestBody:
         description: |
