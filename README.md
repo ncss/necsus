@@ -50,7 +50,7 @@ if you do not wish them to be interpreted as HTML. For example: `{"text": "1 &lt
 You can embed a sound or video using the `media` key.
 
 ```
-{"text": "Ring!", "image": "https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3"}
+{"text": "Ring!", "media": "https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3"}
 ```
 
 ### How do I create a room?
