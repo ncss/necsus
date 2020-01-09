@@ -1,5 +1,4 @@
 import requests
-import json
 
 from necsus import db
 
@@ -16,7 +15,7 @@ def run(room, bot, text, params, user=None, state=None):
     }
 
     if state != None:
-      data['state'] = json.loads(state)
+      data['state'] = state
 
     reply = requests.post(endpoint_url, json=data)
 
@@ -40,8 +39,14 @@ def run(room, bot, text, params, user=None, state=None):
         safe_message['room'] = room
 
       if 'state' in message and message['state'] != None:
-        safe_message['state'] = json.dumps(message['state'])
+        safe_message['state'] = message['state']
         safe_message['reply_to'] = bot.get('id')
+      
+      if 'image' in message and isinstance(message['image'], str):
+        safe_message['image'] = message['image']
+
+      if 'media' in message and isinstance(message['media'], str):
+        safe_message['media'] = message['media']
 
       return safe_message
 

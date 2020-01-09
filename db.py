@@ -1,4 +1,5 @@
 import datetime
+import json
 import pytz
 import sqlite3
 
@@ -104,30 +105,34 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
-  allowed_keys = ['id', 'room', 'author', 'text', 'when', 'image', 'reply_to', 'state']
+  allowed_keys = ['id', 'room', 'author', 'text', 'when', 'image', 'media', 'reply_to', 'state']
 
   def new(self, since_id, **kwargs):
     "Return a generator of messages since a given id (which may be None to return all messages)"
 
     messages = self.find_all(**kwargs)
-
-    after_old_message = True if since_id == None else False
-    for message in messages:
-      if after_old_message:
-        yield message
-      if str(message['id']) == str(since_id):
-        after_old_message = True
+    
+    take_from = 0 if since_id == None else int(since_id)
+    newer_messages = (message for message in messages if int(message['id']) >= take_from)
+    
+    for message in newer_messages:
+      if message['state'] is not None:
+        message['state'] = json.loads(message['state'])
+      
+      yield message
+  
 
   def add(self, **message):
     now = UTC.localize(datetime.datetime.utcnow())
     local = now.astimezone(SYDNEY)
     message['when'] = local.strftime('%-I:%M%p').lower()
+    if message.get('state', None) != None:
+      message['state'] = json.dumps(message['state'])
 
     c = self.connection.cursor()
     keys = [key for key in message.keys() if key in self.allowed_keys]
     values = [value for key,value in message.items() if key in self.allowed_keys]
     q = Query.into(self.table).columns(*keys).insert(*values)
-    print('Executing:', q.get_sql())
     c.execute(q.get_sql())
     self.connection.commit()
     return message
@@ -142,7 +147,8 @@ class Messages(DBList):
     
     last_message = room_messages[-1]
     if last_message['reply_to'] != None:
-      return last_message['reply_to'], last_message['state']
+      state = json.loads(last_message.get('state', None))
+      return last_message['reply_to'], state
     
     return None
 

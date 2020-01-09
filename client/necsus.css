@@ -89,7 +89,6 @@ header {
 }
 
 #settings section {
-  margin-left: 20px;
   display: grid;
 
   grid-template-columns: min-content max-content;
@@ -109,6 +108,19 @@ header {
 #settings section > h3 {
   margin-top: 0px;
   margin-bottom: 10px;
+}
+
+#settings section section {
+  margin-left: 20px;
+}
+
+#settings input {
+  width: calc(100vw - 1000px);
+  min-width: 200px;
+}
+
+#bot-responds-to {
+  font-family: monospace;
 }
 
 #messages {
@@ -154,6 +166,10 @@ header {
   clear: both;
   /* Wrap long lines. */
   word-break: break-all;
+}
+
+.message .image img {
+  max-width: 800px;
 }
 
 #new-message #message-input {

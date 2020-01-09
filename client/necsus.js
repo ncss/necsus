@@ -14,7 +14,8 @@ let app = new Vue({
     messages: [],
     newMessage: '',
     sendingMessage: false,
-    statePresent: false
+    statePresent: false,
+    replyToBotName: undefined,
   },
   created: function() {
     let vm = this;
@@ -85,6 +86,14 @@ let app = new Vue({
       let response = await fetch(url);
       let bots = await response.json();
       this.settings.bots = bots;
+    },
+    botWithId: function(id) {
+      for (let i = 0; i < this.settings.bots.length; i++) {
+        if (this.settings.bots[i].id == id) {
+          return this.settings.bots[i]
+        }
+      }
+      return null
     },
     addBot: function() {
       this.settings.bots.push({
@@ -161,6 +170,10 @@ let app = new Vue({
       if (newMessages.length > 0) {
         let lastMessage = newMessages[newMessages.length - 1];
         this.statePresent = (lastMessage.state) ? true : false;
+        if (this.statePresent) {
+          let bot = this.botWithId(lastMessage.reply_to);
+          this.replyToBotName = bot.name || '???';
+        }
       }
 
       if (!options.silent) {

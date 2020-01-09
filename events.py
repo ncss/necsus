@@ -8,13 +8,13 @@ def trigger_message_post(db, message):
   message_result = db.messages.add(**message)
 
   if special_state:
+    print('leftover state found')
     bot_id, state = special_state
     bots = db.bots.find_all(id=bot_id)
     if len(bots) != 1:
       return message_result
     
     bot = bots[0]
-    message['state'] = state
     trigger_bot(db, message, bot, {}, state=state)
   else:
     trigger_bots(db, message)

@@ -14,7 +14,7 @@ def client(room=''):
 @app.route('/form', methods=['GET'])
 def form_page():
   author = db.members.find('kenni')
-  messages = db.messages.list()
+  messages = db.messages.new()
   return render_template('home.html', author=author, messages=messages)
 
 @app.route('/form', methods=['POST'])
