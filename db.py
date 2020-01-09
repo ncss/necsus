@@ -121,8 +121,8 @@ class Messages(DBList):
     message['when'] = local.strftime('%-I:%M%p').lower()
 
     c = self.connection.cursor()
-    keys = [key for key in message.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
-    values = [value for key,value in message.items() if key in ['id', 'room', 'author', 'text', 'when', 'image']]
+    keys = [key for key in message.keys() if key in ['id', 'room', 'author', 'text', 'when', 'image', 'media']]
+    values = [value for key,value in message.items() if key in ['id', 'room', 'author', 'text', 'when', 'image', 'media']]
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()

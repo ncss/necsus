@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS messages (
   author TEXT,
   text TEXT,
   "when" TEXT,
-  image TEXT
+  image TEXT,
+  media TEXT
 );
 
 CREATE TABLE IF NOT EXISTS bots (

@@ -36,8 +36,9 @@ def run(room, bot, text, params, user=None):
 
       if 'image' in message and isinstance(message['image'], str):
         safe_message['image'] = message['image']
-      else:
-        safe_message['image'] = image
+
+      if 'media' in message and isinstance(message['media'], str):
+        safe_message['media'] = message['media']
 
       return safe_message
 

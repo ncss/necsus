@@ -82,7 +82,8 @@
             <h4 class="author">{{ message.author }}</h4>
             <div class="when">{{ message.when }}</div>
             <div class="content" v-html="message.text"></div>
-            <div class="image"><img v-bind:src="message.image"></img></div>
+            <div v-if="message.image" class="image"><img v-bind:src="message.image"></img></div>
+            <div v-if="message.media" class="media"><video controls="" autoplay="" name="media"><source v-bind:src="message.media" type="audio/mpeg"></video></div>
           </article>
         </div>
 
