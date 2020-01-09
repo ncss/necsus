@@ -111,6 +111,14 @@ header {
   margin-bottom: 10px;
 }
 
+#settings input {
+  width: calc(100vw - 1000px);
+}
+
+#bot-responds-to {
+  font-family: monospace;
+}
+
 #messages {
   display: flex;
   flex-direction: column;
