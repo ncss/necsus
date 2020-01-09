@@ -14,12 +14,6 @@ class DBList(dict):
     self.connection = connection
     self.connection.row_factory = lambda x,y: dict(sqlite3.Row(x,y))
 
-  def list(self):
-    c = self.connection.cursor()
-    q = Query._from(self.table)
-    c.execute(q.get_sql())
-    return c.fetchall()
-
   def _find(self, **kwargs):
     c = self.connection.cursor()
 
@@ -53,6 +47,7 @@ class DBList(dict):
       .columns(*kwargs.keys())\
       .insert(*kwargs.values())
       c.execute(q.get_sql())
+      # TODO: get id of created item
     except sqlite3.IntegrityError:
       # If the key is a duplicate
       # then update
@@ -63,6 +58,7 @@ class DBList(dict):
       c.execute(q.get_sql())
 
     self.connection.commit()
+    # TODO: return legit data instead of kwargs
     return kwargs
 
   def add_if_new(self, **kwargs):
@@ -104,7 +100,7 @@ class DBList(dict):
     c.execute(q.get_sql())
     self.connection.commit()
     return c.fetchone()
-    
+
 
 class Messages(DBList):
   table = Table('messages')
@@ -115,9 +111,12 @@ class Messages(DBList):
 
     messages = self.find_all(**kwargs)
 
-    since_id = 0 if since_id == None else int(since_id)
-    yield from (message for message in messages if message['id'] >= since_id)
-
+    after_old_message = True if since_id == None else False
+    for message in messages:
+      if after_old_message:
+        yield message
+      if str(message['id']) == str(since_id):
+        after_old_message = True
 
   def add(self, **message):
     now = UTC.localize(datetime.datetime.utcnow())

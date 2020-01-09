@@ -66,9 +66,13 @@ let app = new Vue({
   },
   methods: {
     resetRoom: async function() {
-      let url = '/api/actions/reset-room?room='+this.room;
+      let url = '/api/actions/reset-room';
       let response = await fetch(url, {
         method: 'POST',
+        body: JSON.stringify({room: this.room}),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       this.messages = [];
@@ -91,31 +95,36 @@ let app = new Vue({
     },
     removeBot: async function(bot) {
       if (bot.id) {
-        let data = new FormData();
-        data.append('id', bot.id);
 
-        let url = '/api/actions/bot'
+        let url = '/api/actions/bot?id='+bot.id;
         let response = await fetch(url, {
           method: 'DELETE',
-          body: data,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
         let botResult = await response.json();
       }
       await this.fetchBots();
     },
     submitBot: async function(bot) {
-      let data = new FormData();
-      data.append('room', this.room);
-      if (bot.id)
-        data.append('id', bot.id);
-      data.append('name', bot.name);
-      data.append('url', bot.url);
-      data.append('responds_to', bot.responds_to);
+      let data = {
+        room: this.room,
+        name: bot.name,
+        url: bot.url,
+        responds_to: bot.responds_to,
+      };
+      if (bot.id) {
+        data.id = bot.id;
+      }
 
       let url = '/api/actions/bot'
       let response = await fetch(url, {
         method: 'POST',
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       let botResult = await response.json();
 
@@ -165,17 +174,21 @@ let app = new Vue({
       if (this.newMessage.length <= 0) {
         return;
       }
-      let data = new FormData();
-      data.append('room', this.room);
-      data.append('author', this.settings.name);
-      data.append('text', this.newMessage);
+      let data = {
+        room: this.room,
+        author: this.settings.name,
+        text: this.newMessage,
+      };
 
       this.sendingMessage = true;
 
-      let url = '/api/actions/message'
+      let url = '/api/actions/message';
       let response = await fetch(url, {
         method: 'POST',
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       let messageResult = await response.json();
 
@@ -223,6 +236,8 @@ let app = new Vue({
       let spacer = this.$el.querySelector('#messages-spacer');
       let messagesContainer = this.$el.querySelector('#messages');
       let messagesList = this.$el.querySelector('#messages-list');
+      let newMessage = this.$el.querySelector('#new-message');
+      let header = this.$el.querySelector('header');
       let messages = [...this.$el.querySelectorAll('.message')];
 
       let messagesTop, messagesBottom;
@@ -233,17 +248,15 @@ let app = new Vue({
         messagesTop = 0;
         messagesBottom = 0;
       }
+      let messagesHeight = window.innerHeight - header.getBoundingClientRect().height - newMessage.getBoundingClientRect().height;
       let visibleMessagesHeight = messagesBottom - messagesTop;
       let allMessagesHeight = messagesList.scrollHeight;
 
-      spacer.style.height = Math.max(allMessagesHeight - visibleMessagesHeight - 30, 0) + 'px';
+      spacer.style.height = Math.max(messagesHeight - visibleMessagesHeight, 0) + 'px';
       messagesList.scrollTo(0, allMessagesHeight);
     },
     markdownToText(text) {
       return marked(text, {renderer: plainTextRenderer, smartypants: true});
-    },
-    markdownToHTML(text) {
-      return marked(text);
     },
     lines: function(text) {
       text = text || '';
