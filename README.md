@@ -125,3 +125,46 @@ app.run(host='0.0.0.0')
 ```
 
 So, every time this bot is activated - it will send the same message back: `Yay! I'm here to tell you that you did a great job!"`
+
+### Advanced conversation mode
+
+You may have noticed that it is easy with necsus to facilitate an interaction like
+
+```
+> I saw a cat behind the college
+Catbot: I've recorded the sighting of the cat behind the college
+```
+
+and quite difficult to facilitate one like
+
+```
+> I saw a cat!
+Catbot: Where did you see the cat?
+> Behind the college
+Catbot: I've recorded the sighting of the cat behind the college
+```
+
+because you will somehow need a regular expression to dispatch on `Behind the college`. Furthermore, in a longer conversation you may have to query the user multiple times to learn a lot of information before performing an action, and so your conversation needs to have some `state` associated with it.
+
+By returning some extra state from your bot, you will switch necsus into a mode where it only talks to that one bot, and forwards all messages to that one bot. So by returning
+
+```JSON
+{
+  'text': 'Where did you see the cat?',
+  'state': ['any', 'non', 'null', {'json': 'object'}]
+}
+```
+
+all further messages will be forwarded to the bot which returned that state, and no other bot. The state will also be returned: the next message that bot might see will be
+
+```JSON
+{
+    "room": "catspot",
+    "author": "Joel",
+    "text": "Behind the college",
+    "params": {},
+    "state": ["any", "non", "null", {"json": "object"}]
+}
+```
+
+in other words, the same state it previously sent gets handed back. At this point the bot can choose to not return `state` (or return a `null` json object for state), in which case necsus switches back to normal mode. Otherwise, the stateful conversation continues.
