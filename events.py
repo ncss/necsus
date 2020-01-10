@@ -14,7 +14,7 @@ def trigger_message_post(db, message):
       return message_result
     
     bot = bots[0]
-    trigger_bot(db, message, bot, {}, state=state)
+    trigger_bot(db, message, bot, {}, state=state, user=message.get('author', ''))
   else:
     trigger_bots(db, message)
   
