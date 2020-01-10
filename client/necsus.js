@@ -232,7 +232,7 @@ let app = new Vue({
       }, 1500);
     },
     speak: function(text) {
-      if (window.SpeechSynthesisUtterance) {
+      if (this.settings.speech) {
         let utterance = new SpeechSynthesisUtterance(text);
         speechSynthesis.speak(utterance);
       }
