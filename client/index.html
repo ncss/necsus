@@ -84,6 +84,13 @@
             <div class="content" v-html="message.text"></div>
             <div v-if="message.image" class="image"><img v-bind:src="message.image"></img></div>
             <div v-if="message.media" class="media"><video controls="" autoplay="" name="media"><source v-bind:src="message.media" type="audio/mpeg"></video></div>
+            <div v-if="message.state && message.showState" class="state-show-toggle"><a @click="toggleState(message)" href="#">hide state</a></div>
+            <div v-if="message.state && !message.showState" class="state-show-toggle"><a @click="toggleState(message)" href="#">show state</a></div>
+            <div v-if="message.state && message.showState" class="state">
+              <code>
+              {{ message.state }}
+              </code>
+            </div>
           </article>
           <div v-if="statePresent">
             In a conversation with {{ replyToBotName }}.

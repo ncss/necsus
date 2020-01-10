@@ -279,6 +279,10 @@ let app = new Vue({
       let message = this.newMessage || '';
       return this.lines(message).length;
     },
+    toggleState: function(message) {
+      message.showState = !message.showState;
+      return message.showState;
+    },
   },
   computed: {
     lastMessage: function() {

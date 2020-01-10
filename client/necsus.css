@@ -154,6 +154,17 @@ header {
   width: 80%;
 }
 
+.state-show-toggle {
+  margin-top: 10px;
+  font-size: 0.7em;
+  text-align: right;
+}
+
+.state-show-toggle a,
+.state-show-toggle a:visited {
+  color: #aaa;
+}
+
 .when {
   float: right;
   text-align: right;
@@ -170,6 +181,14 @@ header {
 
 .message .image img {
   max-width: 800px;
+}
+
+.message .state {
+  margin: 5px;
+  padding: 5px;
+
+  background: #333;
+  color: #ddd;
 }
 
 #new-message #message-input {
