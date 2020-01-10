@@ -23,30 +23,30 @@ def run(room, bot, text, params, user=None, state=None):
       safe_message = {}
 
       message = reply.json()
-      if isinstance(message, dict) and 'text' in message and isinstance(message['text'], str):
-        safe_message['text'] = message['text']
+      if isinstance(message, dict) and message.get('text'):
+        safe_message['text'] = str(message['text'])
       else:
         return None
 
-      if 'author' in message and isinstance(message['author'], str):
-        safe_message['author'] = message['author']
+      if message.get('author'):
+        safe_message['author'] = str(message['author'])
       else:
         safe_message['author'] = name
 
-      if 'room' in message and isinstance(message['room'], str):
-        safe_message['room'] = message['room']
+      if message.get('room'):
+        safe_message['room'] = str(message['room'])
       else:
         safe_message['room'] = room
 
-      if 'state' in message and message['state'] != None:
+      if message.get('state') is not None:
         safe_message['state'] = message['state']
         safe_message['reply_to'] = bot.get('id')
-      
-      if 'image' in message and isinstance(message['image'], str):
-        safe_message['image'] = message['image']
 
-      if 'media' in message and isinstance(message['media'], str):
-        safe_message['media'] = message['media']
+      if message.get('image'):
+        safe_message['image'] = str(message['image'])
+
+      if message.get('media'):
+        safe_message['media'] = str(message['media'])
 
       return safe_message
 
