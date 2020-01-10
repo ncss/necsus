@@ -48,7 +48,7 @@ class DBList(dict):
       .columns(*kwargs.keys())\
       .insert(*kwargs.values())
       c.execute(q.get_sql())
-      # TODO: get id of created item
+      kwargs['id'] = c.lastrowid
     except sqlite3.IntegrityError:
       # If the key is a duplicate
       # then update
