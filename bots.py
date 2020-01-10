@@ -26,11 +26,14 @@ def run(room, bot, text, params, user=None, state=None):
         message = reply.json()
       except ValueError:
         raw = reply.text
-        return {
-          'room': room,
-          'author': 'necsus',
-          'text': f'The bot returned invalid json. The response was:<br><pre>{raw}</pre>',
-        }
+        # still allow the bot to return an empty response to signify no message
+        # was intended to be sent.
+        if raw:
+          return {
+            'room': room,
+            'author': 'necsus',
+            'text': f'The bot returned invalid json. The response was:<br><pre>{raw}</pre>',
+          }
 
       if isinstance(message, dict) and message.get('text'):
         safe_message['text'] = str(message['text'])
