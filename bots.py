@@ -22,7 +22,16 @@ def run(room, bot, text, params, user=None, state=None):
     if reply.status_code == requests.codes.ok:
       safe_message = {}
 
-      message = reply.json()
+      try:
+        message = reply.json()
+      except ValueError:
+        raw = reply.text
+        return {
+          'room': room,
+          'author': 'necsus',
+          'text': f'The bot returned invalid json. The response was:<br><pre>{raw}</pre>',
+        }
+
       if isinstance(message, dict) and message.get('text'):
         safe_message['text'] = str(message['text'])
       else:
