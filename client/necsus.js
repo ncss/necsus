@@ -176,7 +176,7 @@ let app = new Vue({
         }
       }
 
-      if (!options.silent) {
+      if (!options.silent && this.settings.speech) {
         newMessages.forEach(function(message) {
           if (message.author != vm.settings.name)
             vm.speak(vm.markdownToText(message.text));
