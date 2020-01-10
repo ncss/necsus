@@ -228,7 +228,7 @@ def delete_bot():
             description: ID of the bot to delete
         responses:
           200:
-            description: bot was successfully removed, or bot never existed
+            description: bot was successfully removed
             schema:
               properties:
                 id:
@@ -242,10 +242,12 @@ def delete_bot():
     return jsonify({'message': 'id of a bot to remove is required'}), 400
 
   db = get_db()
-  bot = db.bots.remove(id)
+  found = db.bots.remove(id)
 
-  print(bot)
-  return jsonify({id: id})
+  if not found:
+    return jsonify({'message': 'bot with this id not found'}), 404
+
+  return jsonify({'id': id})
 
 @app.route('/api/actions/message', methods=['POST'])
 @crossdomain(origin='*')

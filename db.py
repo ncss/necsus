@@ -100,7 +100,7 @@ class DBList(dict):
     q = Query.from_(self.table).delete().where(self.table.id == id)
     c.execute(q.get_sql())
     self.connection.commit()
-    return c.fetchone()
+    return c.rowcount > 0
 
 
 class Messages(DBList):
