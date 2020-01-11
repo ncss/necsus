@@ -226,10 +226,10 @@ let app = new Vue({
     },
     autoUpdate: function() {
       let vm = this;
-      if (vm.autoUpdater) window.clearInterval();
-      vm.autoUpdater = window.setInterval(function() {
-        vm.fetchMessages();
-      }, 1500);
+
+      vm.fetchMessages().finally(function() {
+        window.setTimeout(() => vm.autoUpdate(), 2000)
+      });
     },
     speak: function(text) {
       if (this.settings.speech) {
