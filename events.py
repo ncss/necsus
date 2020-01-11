@@ -46,11 +46,13 @@ def trigger_bots(db, message):
     search =  bot.get('responds_to') or bot.get('name')
     try:
       match = re.search(search, text, flags=re.IGNORECASE)
-    except re.error:
+    except:
+      name = bot.get('name')
+      t = 'responds_to' if bot.get('responds_to') else 'name'
       db.messages.add(
         room=room,
         author='necsus',
-        text=f'One of the bots in this room has this invalid responds_to or name regex: <pre>{search}</pre>'
+        text=f'A bot with name {name!r} in this room has this invalid {t} regex: <pre>{search}</pre>'
       )
       continue
 
