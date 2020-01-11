@@ -169,7 +169,7 @@ let app = new Vue({
       // Check if the last message contains a state which we might have to clear
       if (newMessages.length > 0) {
         let lastMessage = newMessages[newMessages.length - 1];
-        this.statePresent = (lastMessage.state) ? true : false;
+        this.statePresent = lastMessage.state != null;
         if (this.statePresent) {
           let bot = this.botWithId(lastMessage.reply_to);
           this.replyToBotName = bot.name || '???';
