@@ -283,6 +283,10 @@ let app = new Vue({
       message.showState = !message.showState;
       return message.showState;
     },
+    focusMessageInput: function() {
+      let vm = this;
+      setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
+    }
   },
   computed: {
     lastMessage: function() {
@@ -293,4 +297,12 @@ let app = new Vue({
       };
     },
   },
+  watch: {
+    sendingMessage: function(sending, wasSending) {
+      // Focus on the message input after sending a message input
+      // But only if we aren't typing in another input
+      if (wasSending && !sending && document.activeElement == document.body)
+        this.focusMessageInput();
+    }
+  }
 });
