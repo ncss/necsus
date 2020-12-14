@@ -13,12 +13,20 @@ main {
 }
 
 /*
-* Element Layout
+* Element Style
 */
 
 #bot-responds-to {
   font-family: monospace;
 }
+
+#bot-url {
+  font-family: monospace;
+}
+
+/*
+* Message Window
+*/
 
 #messages {
   display: flex;
@@ -109,40 +117,6 @@ main {
   width: 100%;
 }
 
-/*
-* Element Style
-*/
-
-#settings.open {
-  display: block;
-}
-#settings.closed {
-  display: none;
-}
-
-#settings::-webkit-scrollbar,
-#messages-list::-webkit-scrollbar {
-  -webkit-appearance: none;
-}
-#settings::-webkit-scrollbar-track,
-#messages-list::-webkit-scrollbar-track {
-    background-color: rgb(255, 255, 255);
-    border-radius: 8px;
-}
-#settings::-webkit-scrollbar-thumb,
-#messages-list::-webkit-scrollbar-thumb {
-    border-radius: 8px;
-    background-color: rgba(156, 156, 156, .6);
-}
-#settings::-webkit-scrollbar:vertical,
-#messages-list::-webkit-scrollbar:vertical {
-    width: 11px;
-}
-#settings::-webkit-scrollbar:horizontal,
-#messages-list::-webkit-scrollbar:horizontal {
-    height: 11px;
-}
-
 .message-card {
   padding-x: 1vw;
   padding-y: 1vh;
@@ -151,3 +125,4 @@ main {
 .inline-icon {
   font-size: 1.5em;
 }
+
