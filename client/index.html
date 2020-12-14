@@ -1,113 +1,213 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>NeCSuS</title>
     <script src="client/js/marked.min.js"></script>
     <script src="client/js/marked-plaintext.js"></script>
     <script src="client/js/vue.js"></script>
-    <link rel="stylesheet" type="text/css" href="client/necsus.css">
+    <link rel="stylesheet" type="text/css" href="client/necsus.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   </head>
 
   <body>
     <div id="necsus">
-      <div id="header-space">
-      </div>
-
-      <header>
-        <div id="title">
-          <h1 id="main-title">NeCSuS</h1>
-          <h2 id="room">{{ room }}</h2>
+      <nav class="z-depth-0">
+        <div class="nav-wrapper">
+          <a href="#" class="brand-logo">NeCSuS</a>
+          <ul id="nav-mobile" class="right">
+            <li><button @click="settings.open = !settings.open" class="btn-flat white-text">Settings</button></li>
+          </ul>
         </div>
-      </header>
-
-      <div id="controls">
-        <button v-on:click="settings.open = !settings.open" v-text="settings.open ? 'close settings' : 'open settings'"></button>
-      </div>
-
-      <div id="settings" v-bind:class="{open: settings.open, closed: !settings.open}">
-        <section>
-          <h3>Main</h3>
-
-          <label for="name">Name</label>
-          <input id="name" name="name" v-model="settings.name">
-
-          <label for="speech">Speech synthesis</label>
-          <input id="speech" name="speech" type="checkbox" v-model="settings.speech" @click="autoUpdate">
-
-          <button id="reset-room" class="danger" v-if="!settings.resetRoom" @click="settings.resetRoom = true">Reset room</button>
-
-          <button id="confirm-reset-room" class="danger"
-            v-if="settings.resetRoom" :disabled="settings.resetRoomConfirm != room"
-            @click="resetRoom()">Remove all messages in {{ room }} room</button>
-
-          <label for="confirm-reset-room-input" v-if="settings.resetRoom">Enter room name</label>
-          <input id="confirm-reset-room-input" name="confirm-reset-room" v-if="settings.resetRoom" v-model="settings.resetRoomConfirm">
-        </section>
-
-        <section class="docs">
-          <h3>Documentation</h3>
-          <p>
-            <a href="/docs">NeCSuS API docs</a>
-          </p>
-          <p>
-            <a href="/bot/docs">Bot API docs</a>
-          </p>
-        </section>
-
-        <section>
-          <h3>Bots</h3>
-
-          <section v-for="bot in settings.bots">
-            <label for="bot-name">Name</label>
-            <input id="bot-name" name="bot-name" v-model="bot.name" @change="submitBot(bot)">
-
-            <label for="bot-responds-to">Responds to</label>
-            <input id="bot-responds-to" name="bot-responds-to" v-model="bot.responds_to" @change="submitBot(bot)">
-
-            <label for="bot-url">Endpoint URL</label>
-            <input id="bot-url" name="bot-url" v-model="bot.url" @change="submitBot(bot)">
-
-            <button @click="removeBot(bot)">remove bot</button>
-          </section>
-
-          <button @click="addBot()">add bot</button>
-        </section>
-      </div>
-
-      <section id="messages">
-        <div id="messages-list">
-          <div id="messages-spacer"></div>
-          <article class="message" v-for="message in messages">
-            <h4 class="author">{{ message.author }}</h4>
-            <div class="when">{{ message.when }}</div>
-            <div class="content" v-html="message.text"></div>
-            <div v-if="message.image" class="image"><img v-bind:src="message.image"></img></div>
-            <div v-if="message.media" class="media"><video controls="" autoplay="" name="media"><source v-bind:src="message.media" type="audio/mpeg"></video></div>
-            <div v-if="message.state != null && message.showState" class="state-show-toggle"><a @click="toggleState(message)" href="#">hide state</a></div>
-            <div v-if="message.state != null && !message.showState" class="state-show-toggle"><a @click="toggleState(message)" href="#">show state</a></div>
-            <div v-if="message.state != null && message.showState" class="state">
-              <code>
-              {{ message.state }}
-              </code>
+      </nav>
+      
+      <main class="row">
+        <section :class="settings.open?'col hide-on-small-only m6':'col s12'">
+          <div id="messages-list">
+            <div class="card message-card" v-for="message in messages_ordered">
+              <b>{{ message.author }}</b>
+              <div class="when">{{ message.when }}</div>
+              <div class="content" v-html="message.text"></div>
+              <div v-if="message.image" class="image">
+                <img v-bind:src="message.image" />
+              </div>
+              <div v-if="message.media" class="media">
+                <video controls="" autoplay="" name="media">
+                  <source v-bind:src="message.media" type="audio/mpeg" />
+                </video>
+              </div>
+              <div
+                v-if="message.state != null && message.showState"
+                class="state-show-toggle"
+              >
+                <a @click="toggleState(message)" href="#">hide state</a>
+              </div>
+              <div
+                v-if="message.state != null && !message.showState"
+                class="state-show-toggle"
+              >
+                <a @click="toggleState(message)" href="#">show state</a>
+              </div>
+              <div
+                v-if="message.state != null && message.showState"
+                class="state"
+              >
+                <code> {{ message.state }} </code>
+              </div>
             </div>
-          </article>
-          <div v-if="statePresent">
-            In a conversation with {{ replyToBotName }}.
-            <button @click="clearState()">exit conversation</button>
+            <div v-if="statePresent">
+              In a conversation with {{ replyToBotName }}.
+              <button @click="clearState()">exit conversation</button>
+            </div>
+            <div id="spacer"></div>
           </div>
-        </div>
 
-        <div id="new-message">
-          <textarea id="message-input" v-model="newMessage" v-bind="{placeholder: 'Message '+ room}"
-            autofocus
-            v-bind:rows="rows()" v-bind:disabled="sendingMessage"
-            @keydown.enter.exact.prevent v-on:keyup.enter.exact="submitMessage(newMessage)"></textarea>
-          <button @click="listen()" v-bind:disabled="sendingMessage">listen</button>
-          <button @click="submitMessage(newMessage)" v-bind:disabled="sendingMessage">submit</button>
-        </div>
-      </section>
+          <div id="new-message">
+            <button
+              class="btn-flat waves-effect btn-small message-btn"
+              @click="listen()"
+              v-bind:disabled="sendingMessage" >
+              <i class="inline-icon material-icons">mic</i>
+            </button>
+            <textarea
+              id="message-input"
+              class="materialize-textarea"
+              v-model="newMessage"
+              v-bind="{placeholder: 'Message '+ room}"
+              autofocus
+              v-bind:rows="rows()"
+              v-bind:disabled="sendingMessage"
+              @keydown.enter.exact.prevent
+              v-on:keyup.enter.exact="submitMessage(newMessage)"
+            ></textarea>
+            <button
+              class="btn-flat waves-effect btn-small message-btn"
+              @click="submitMessage(newMessage)"
+              v-bind:disabled="sendingMessage"
+            >
+              <i class="inline-icon material-icons">send</i>
+            </button>
+          </div>
+        </section>
+
+        <section
+          id="settings"
+          v-if="settings.open"
+          class="col m6 s12"
+        >
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">General Settings</span>
+
+              <label>
+                <span>Name</span>
+                <input id="name" name="name" v-model="settings.name" />
+              </label>
+
+              <label>
+                <input
+                  class="filled-in"
+                  id="speech"
+                  name="speech"
+                  type="checkbox"
+                  v-model="settings.speech"
+                  @click="autoUpdate"
+                />
+                <span>Speech Synthesis Enabled?</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">Reset Room</span>
+              <button
+                id="reset-room"
+                class="btn"
+                v-if="!settings.resetRoom"
+                @click="settings.resetRoom = true"
+              >
+                Reset room
+              </button>
+              <label for="confirm-reset-room-input" v-if="settings.resetRoom"
+                >Enter room name ({{ room }}) to confirm deletion:</label
+              >
+              <input
+                id="confirm-reset-room-input"
+                name="confirm-reset-room"
+                v-if="settings.resetRoom"
+                v-model="settings.resetRoomConfirm"
+              />
+
+              <button
+                id="confirm-reset-room"
+                class="btn"
+                v-if="settings.resetRoom"
+                :disabled="settings.resetRoomConfirm.toUpperCase() != room.toUpperCase()"
+                @click="resetRoom()"
+              >
+                Remove all messages in {{ room }} room
+              </button>
+            </div>
+          </div>
+
+
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">Documentation</span>
+              <div class="collection">
+                <a class="collection-item" href="/docs">NeCSuS API docs</a>
+                <a class="collection-item" href="/bot/docs">Bot API docs</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">Bots</span>
+              <div class="collection">
+                <div class="collection-item" v-for="bot in settings.bots">
+                  <a @click="removeBot(bot)" href="#" class="secondary-content"><i class="material-icons">delete</i></a>
+                  <label for="bot-name">Name</label>
+                  <input
+                    id="bot-name"
+                    name="bot-name"
+                    v-model="bot.name"
+                    @change="submitBot(bot)"
+                  />
+
+                  <label for="bot-responds-to">Responds to</label>
+                  <input
+                    id="bot-responds-to"
+                    name="bot-responds-to"
+                    v-model="bot.responds_to"
+                    @change="submitBot(bot)"
+                  />
+
+                  <label for="bot-url">Endpoint URL</label>
+                  <input
+                    id="bot-url"
+                    name="bot-url"
+                    v-model="bot.url"
+                    @change="submitBot(bot)"
+                  />
+
+                </div>
+                <a href="#" class="collection-item" @click="addBot()">Add A Bot...</a>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </main>
     </div>
+
 
     <script src="client/necsus.js"></script>
   </body>

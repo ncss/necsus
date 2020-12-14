@@ -1,5 +1,5 @@
 let plainTextRenderer = new PlainTextRenderer;
-
+M.AutoInit()
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -30,10 +30,6 @@ let app = new Vue({
     */
     vm.fetchBots();
     vm.fetchMessages({silent: true});
-    // Initially scroll to the bottom of the message list
-    this.$nextTick(function() {
-      this.scrollToBottomOfMessages();
-    });
 
     /*
       Auto update message every few seconds
@@ -159,13 +155,6 @@ let app = new Vue({
 
       vm.messages = vm.messages.concat(newMessages);
 
-      // Move to new messages if there are any
-      if (newMessages.length > 0) {
-        this.$nextTick(function() {
-          this.scrollToBottomOfMessages();
-        });
-      }
-
       // Check if the last message contains a state which we might have to clear
       if (newMessages.length > 0) {
         let lastMessage = newMessages[newMessages.length - 1];
@@ -245,29 +234,6 @@ let app = new Vue({
       if (speech.isFinal)
         this.submitMessage();
     },
-    scrollToBottomOfMessages: function() {
-      let spacer = this.$el.querySelector('#messages-spacer');
-      let messagesContainer = this.$el.querySelector('#messages');
-      let messagesList = this.$el.querySelector('#messages-list');
-      let newMessage = this.$el.querySelector('#new-message');
-      let header = this.$el.querySelector('header');
-      let messages = [...this.$el.querySelectorAll('.message')];
-
-      let messagesTop, messagesBottom;
-      if (messages[0]) {
-        messagesTop = messages[0].getBoundingClientRect().top;
-        messagesBottom = messages[messages.length-1].getBoundingClientRect().bottom;
-      } else {
-        messagesTop = 0;
-        messagesBottom = 0;
-      }
-      let messagesHeight = window.innerHeight - header.getBoundingClientRect().height - newMessage.getBoundingClientRect().height;
-      let visibleMessagesHeight = messagesBottom - messagesTop;
-      let allMessagesHeight = messagesList.scrollHeight;
-
-      spacer.style.height = Math.max(messagesHeight - visibleMessagesHeight, 0) + 'px';
-      messagesList.scrollTo(0, allMessagesHeight);
-    },
     markdownToText(text) {
       return marked(text, {renderer: plainTextRenderer, smartypants: true});
     },
@@ -296,6 +262,9 @@ let app = new Vue({
         return undefined;
       };
     },
+    messages_ordered: function () {
+      return this.messages.slice().reverse();
+    }
   },
   watch: {
     sendingMessage: function(sending, wasSending) {
