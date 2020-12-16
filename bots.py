@@ -41,7 +41,7 @@ def run(room, bot, text, params, user=None, state=None):
       if 'state' in message and message['state'] != None:
         safe_message['state'] = message['state']
         safe_message['reply_to'] = bot.get('id')
-      
+
       if 'image' in message and isinstance(message['image'], str):
         safe_message['image'] = message['image']
 

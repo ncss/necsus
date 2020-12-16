@@ -99,7 +99,7 @@
         </div>
 
         <div id="new-message">
-          <textarea id="message-input" v-model="newMessage" v-bind="{placeholder: 'Message '+ room}" 
+          <textarea id="message-input" v-model="newMessage" v-bind="{placeholder: 'Message '+ room}"
             autofocus
             v-bind:rows="rows()" v-bind:disabled="sendingMessage"
             @keydown.enter.exact.prevent v-on:keyup.enter.exact="submitMessage(newMessage)"></textarea>
