@@ -72,5 +72,5 @@ def run(room, bot, text, params, user=None, state=None):
       return {
         'room': room,
         'author': 'necsus',
-        'text': f'Something went wrong. There was a {reply.status_code} error',
+        'text': f'Something went wrong. Bot {name!r} responded with a {reply.status_code} error',
       }
