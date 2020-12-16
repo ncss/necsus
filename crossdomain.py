@@ -1,8 +1,8 @@
-from datetime import timedelta  
-from flask import Flask, make_response, request, current_app  
+from datetime import timedelta
+from flask import Flask, make_response, request, current_app
 from functools import update_wrapper
 
-def crossdomain(origin=None, methods=None, headers=None, max_age=21600, attach_to_all=True, automatic_options=True):  
+def crossdomain(origin=None, methods=None, headers=None, max_age=21600, attach_to_all=True, automatic_options=True):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
     if headers is not None and not isinstance(headers, str):

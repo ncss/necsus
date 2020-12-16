@@ -111,16 +111,16 @@ class Messages(DBList):
     "Return a generator of messages since a given id (which may be None to return all messages)"
 
     messages = self.find_all(**kwargs)
-    
+
     take_from = 0 if since_id == None else int(since_id)
     newer_messages = (message for message in messages if int(message['id']) >= take_from)
-    
+
     for message in newer_messages:
       if message['state'] is not None:
         message['state'] = json.loads(message['state'])
-      
+
       yield message
-  
+
 
   def add(self, **message):
     now = UTC.localize(datetime.datetime.utcnow())
@@ -140,16 +140,16 @@ class Messages(DBList):
 
   def room_state(self, room_name):
     "Return None if the room has no special state, otherwise (bot_id, state)"
-    
+
     room_messages = self.find_all(room=room_name)
     if room_messages == []:
       return None
-    
+
     last_message = room_messages[-1]
     if last_message['reply_to'] != None:
       state = json.loads(last_message.get('state', None))
       return last_message['reply_to'], state
-    
+
     return None
 
 

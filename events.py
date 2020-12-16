@@ -12,12 +12,12 @@ def trigger_message_post(db, message):
     bots = db.bots.find_all(id=bot_id)
     if len(bots) != 1:
       return message_result
-    
+
     bot = bots[0]
     trigger_bot(db, message, bot, {}, state=state, user=message.get('author', ''))
   else:
     trigger_bots(db, message)
-  
+
   return message_result
 
 
@@ -60,7 +60,7 @@ def trigger_bots(db, message):
       reply = trigger_bot(db, message, bot, match.groupdict(), user)
       replies.append(reply)
 
-  return replies 
+  return replies
 
 def trigger_bot(db, message, bot, params, user=None, state=None):
   text = message.get('text')
@@ -74,7 +74,7 @@ def trigger_bot(db, message, bot, params, user=None, state=None):
 def trigger_interaction(db, interaction):
   reply_message = interactivity.interact(interaction)
   reply_message_result = db.messages.add(**reply_message)
-  return reply_message 
+  return reply_message
 
 def trigger_room_reset(db, room):
   db.messages.delete(room=room)

@@ -26,7 +26,7 @@ let app = new Vue({
     vm.room = window.location.pathname.slice(1);
 
     /*
-      Fetch the room's messages and settings 
+      Fetch the room's messages and settings
     */
     vm.fetchBots();
     vm.fetchMessages({silent: true});
@@ -212,9 +212,9 @@ let app = new Vue({
     clearState: async function() {
       let data = new FormData();
       data.append('room', this.room);
-      
+
       this.sendingMessage = true;
-      
+
       let url = '/api/actions/clear-room-state'
       let response = await fetch(url, {
         method: 'POST',

@@ -7,7 +7,7 @@ def interact(params):
   reply = requests.post(endpoint_url, params=params)
 
   if reply.status_code == requests.codes.ok:
-    return reply.json() 
+    return reply.json()
   else:
     return {
       'author': 'necsus',
