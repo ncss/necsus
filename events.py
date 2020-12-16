@@ -52,7 +52,7 @@ def trigger_bots(db, message):
       db.messages.add(
         room=room,
         author='necsus',
-        text=f'A bot with name {name!r} in this room has this invalid {t} regex: <pre>{search}</pre>'
+        text=f'Something went wrong. Bot {name!r} has an invalid {t} regex: <pre>{search}</pre>'
       )
       continue
 
