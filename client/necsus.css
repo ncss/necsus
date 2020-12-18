@@ -161,9 +161,14 @@ main {
   font-size: 1.5em;
 }
 
+.btn-wide {
+  display: flex !important;
+  width: 100%;
+}
+
 #settings {
   border-left: 1px solid lightgrey;
-  overflow: hidden;
+  overflow: scroll;
   height: 90vh;
 }
 

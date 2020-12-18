@@ -35,7 +35,8 @@
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
                 <i class="material-icons">exit_to_app</i>
-                <span>Leave Conversation with {{ replyToBotName }}</span></button>
+                <span>Leave Conversation with {{ replyToBotName }}</span>
+              </button>
             </div>
             <div :class="{'card message z-depth-0': true, 'message-left': message.author != settings.name, 'message-right': message.author == settings.name}" v-for="message in messages_ordered">
               <div class="flex">
@@ -109,7 +110,7 @@
           v-if="settings.open"
           class="col m6 s12"
         >
-          <div class="card" v-if="false">
+          <div class="card">
             <div class="card-content">
               <span class="card-title">General Settings</span>
 
@@ -137,7 +138,7 @@
               <span class="card-title">Reset Room</span>
               <button
                 id="reset-room"
-                class="btn"
+                class="btn btn-wide"
                 v-if="!settings.resetRoom"
                 @click="settings.resetRoom = true"
               >
@@ -155,7 +156,7 @@
 
               <button
                 id="confirm-reset-room"
-                class="btn"
+                class="btn btn-wide"
                 v-if="settings.resetRoom"
                 :disabled="settings.resetRoomConfirm.toUpperCase() != room.toUpperCase()"
                 @click="resetRoom()"
@@ -181,7 +182,9 @@
               <span class="card-title">Bots</span>
               <div class="collection">
                 <div class="collection-item" v-for="bot in settings.bots">
-                  <a @click="removeBot(bot)" href="#" class="secondary-content"><i class="material-icons">delete</i></a>
+                  <a @click="removeBot(bot)" href="#" class="secondary-content">
+                    <i class="material-icons">delete</i>
+                  </a>
                   <label for="bot-name">Name</label>
                   <input
                     id="bot-name"
@@ -207,7 +210,10 @@
                   />
 
                 </div>
-                <a href="#" class="collection-item" @click="addBot()">Add A Bot...</a>
+                <button class="btn btn-wide" @click="addBot()">
+                  <i class="material-icons">add</i>
+                  <span>Add A Bot...</span>
+                </button>
               </div>
             </div>
           </div>
