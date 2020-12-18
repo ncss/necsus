@@ -8,8 +8,72 @@ main {
 }
 
 /*
+* Theme Fixes
+*/
+
+/* LIGHT */t
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --accent-1-background: #4EBCC3;
+  --accent-1-foreground: #ffffff;
+  --accent-2: #203448;
+}
+/*
+/* DARK
+:root {
+  --background: #0f0f0f;
+  --foreground: #ffffff;
+  --accent-1-background: #4EBCC3;
+  --accent-1-foreground: #ffffff;
+}
+*/
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+div {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.card {
+  background-color: var(--background) !important;
+}
+
+.collection .collection-item {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+
+}
+
+input, textarea {
+  color: var(--foreground) !important;
+}
+
+button:not(.btn-flat), input[type=checkbox] {
+  background-color: var(--accent-1-background) !important;
+  color: var(--accent-1-foreground) !important;
+}
+
+.btn-flat {
+  color: var(--accent-1-foreground) !important;
+}
+
+/*
 * Header
 */
+.nav-wrapper {
+  background-color: var(--accent-1-background);
+  color: var(--accent-1-foreground);
+}
+.nav-wrapper button{
+  background-color: var(--accent-1-background);
+  color: var(--accent-1-foreground) !important;
+}
+
 .nav-name {
   padding-left: 5px !important;
   padding-top: 0px;
