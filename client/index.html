@@ -18,21 +18,30 @@
 
   <body>
     <div id="necsus">
-      <nav class="z-depth-0">
-        <div class="nav-wrapper">
-          <a href="#" class="brand-logo">NeCSuS</a>
-          <ul id="nav-mobile" class="right">
-            <li><button @click="settings.open = !settings.open" class="btn-flat white-text">Settings</button></li>
-          </ul>
-        </div>
-      </nav>
+      <div class="navbar-fixed">
+        <nav class="z-depth-0">
+          <div class="nav-wrapper">
+            <span class="nav-name">NeCSuS | {{ room }}</span>
+            <ul id="nav-mobile" class="right">
+              <li><button @click="settings.open = !settings.open" class="btn-flat white-text">Settings</button></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
       
-      <main class="row">
-        <section :class="settings.open?'col hide-on-small-only m6':'col s12'">
+      <main class="row main">
+        <section :class="(settings.open?'col hide-on-small-only m6':'col s12')">
           <div id="messages-list">
-            <div class="card message-card" v-for="message in messages_ordered">
-              <b>{{ message.author }}</b>
-              <div class="when">{{ message.when }}</div>
+            <div v-if="statePresent" id="replying">
+              <button class="btn" @click="clearState()">
+                <i class="material-icons">exit_to_app</i>
+                <span>Leave Conversation with {{ replyToBotName }}</span></button>
+            </div>
+            <div :class="{'card message z-depth-0': true, 'message-left': message.author != settings.name, 'message-right': message.author == settings.name}" v-for="message in messages_ordered">
+              <div class="flex">
+                <b class="author flex-grow">{{ message.author }}</b>
+                <span class="when">{{ message.when }}</span>
+              </div>
               <div class="content" v-html="message.text"></div>
               <div v-if="message.image" class="image">
                 <img v-bind:src="message.image" />
@@ -61,38 +70,37 @@
                 <code> {{ message.state }} </code>
               </div>
             </div>
-            <div v-if="statePresent">
-              In a conversation with {{ replyToBotName }}.
-              <button @click="clearState()">exit conversation</button>
-            </div>
-            <div id="spacer"></div>
           </div>
 
-          <div id="new-message">
-            <button
-              class="btn-flat waves-effect btn-small message-btn"
-              @click="listen()"
-              v-bind:disabled="sendingMessage" >
-              <i class="inline-icon material-icons">mic</i>
-            </button>
-            <textarea
-              id="message-input"
-              class="materialize-textarea"
-              v-model="newMessage"
-              v-bind="{placeholder: 'Message '+ room}"
-              autofocus
-              v-bind:rows="rows()"
-              v-bind:disabled="sendingMessage"
-              @keydown.enter.exact.prevent
-              v-on:keyup.enter.exact="submitMessage(newMessage)"
-            ></textarea>
-            <button
-              class="btn-flat waves-effect btn-small message-btn"
-              @click="submitMessage(newMessage)"
-              v-bind:disabled="sendingMessage"
-            >
-              <i class="inline-icon material-icons">send</i>
-            </button>
+          <div id="new-message" class="card">
+            <div class="card-content z-depth-2">
+              <div class="flex">
+                <button
+                  class="btn-flat waves-effect btn-small message-btn"
+                  @click="listen()"
+                  v-bind:disabled="sendingMessage" >
+                  <i class="inline-icon material-icons">mic</i>
+                </button>
+                <textarea
+                  id="message-input"
+                  class="materialize-textarea flex-grow"
+                  v-model="newMessage"
+                  v-bind="{placeholder: 'Message '+ room}"
+                  autofocus
+                  v-bind:rows="rows()"
+                  v-bind:disabled="sendingMessage"
+                  @keydown.enter.exact.prevent
+                  v-on:keyup.enter.exact="submitMessage(newMessage)"
+                ></textarea>
+                <button
+                  class="btn-flat waves-effect btn-small message-btn"
+                  @click="submitMessage(newMessage)"
+                  v-bind:disabled="sendingMessage"
+                >
+                  <i class="inline-icon material-icons">send</i>
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -101,7 +109,7 @@
           v-if="settings.open"
           class="col m6 s12"
         >
-          <div class="card">
+          <div class="card" v-if="false">
             <div class="card-content">
               <span class="card-title">General Settings</span>
 

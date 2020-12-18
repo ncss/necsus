@@ -9,6 +9,7 @@ let app = new Vue({
       name: 'Anonymous',
       speech: true,
       resetRoom: false,
+      resetRoomConfirm: "",
       bots: [],
     },
     messages: [],

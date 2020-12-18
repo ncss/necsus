@@ -3,14 +3,19 @@ body {
   margin: 0px;
 }
 
+main {
+  margin-bottom: 0 !important;
+}
+
 /*
 * Header
 */
-
-main {
-  padding-left: 2vw;
-  padding-right: 2vw;
+.nav-name {
+  padding-left: 5px !important;
+  padding-top: 0px;
+  font-size: 1.5em;
 }
+
 
 /*
 * Element Style
@@ -34,19 +39,37 @@ main {
 }
 
 #new-message {
-  display: flex;
-  background: white;
-  position: sticky;
+  display: sticky;
   bottom: 0;
+  margin-left: 2vw;
+  margin-right: 2vw;
+  margin-bottom: 0;
+  z-index: 100;
+}
+
+#replying button{
+  margin-top: 2vh;
+  width: 100%;
+  display: flex;
+}
+#replying button i {
+  align-self: center;
+  padding-right: 10px;
 }
 
 #messages-list {
-  padding-top: 2vh;
-  padding-bottom: 2vh;
-  height: 80vh;
   display: flex;
+  padding: 4px;
+  margin-left: 2vw;
+  margin-right: 2vw;
   overflow-y: scroll;
   flex-direction: column-reverse;
+  height: calc(95vh - 180px); /* This is a hack, the magic number ensures the perfect v-space */
+}
+
+#messages-list {
+  margin-top: 2vh;
+  margin-bottom: 2vh;
 }
 
  /* Hide scrollbar for Chrome, Safari and Opera */
@@ -69,11 +92,20 @@ main {
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 1ex;
+  max-width: 80vw;
+}
+
+.message-left {
+  align-self: start;
+}
+
+.message-right {
+  align-self: end;
 }
 
 .author {
   float: left;
-  width: 80%;
+  padding-right: 10px;
 }
 
 .state-show-toggle {
@@ -90,9 +122,15 @@ main {
 .when {
   float: right;
   text-align: right;
-  width: 20%;
   color: #999;
   font-size: 12px;
+  display: inline;
+  vertical-align: text-top;
+}
+
+.message {
+  padding-x: 1vw;
+  padding-y: 1vh;
 }
 
 .message .content {
@@ -102,7 +140,13 @@ main {
 }
 
 .message .image img {
-  max-width: 800px;
+  max-width: 95%;
+  padding: 2.5%;
+}
+
+.message .media video {
+  max-width: 95%;
+  padding: 2.5%;
 }
 
 .message .state {
@@ -113,16 +157,22 @@ main {
   color: #ddd;
 }
 
-#new-message #message-input {
-  width: 100%;
-}
-
-.message-card {
-  padding-x: 1vw;
-  padding-y: 1vh;
-}
-
 .inline-icon {
   font-size: 1.5em;
 }
 
+#settings {
+  border-left: 1px solid lightgrey;
+  overflow: hidden;
+  height: 90vh;
+}
+
+.flex {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
