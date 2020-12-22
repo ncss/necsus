@@ -98,8 +98,11 @@
                   @click="submitMessage(newMessage)"
                   v-bind:disabled="sendingMessage"
                 >
-                  <i class="inline-icon material-icons">send</i>
+                  <i class="inline-icon material-icons" :disabled="sendingMessage">send</i>
                 </button>
+              </div>
+              <div class="progress" v-if="sendingMessage">
+                  <div class="indeterminate"></div>
               </div>
             </div>
           </div>

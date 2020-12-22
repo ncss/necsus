@@ -185,19 +185,21 @@ let app = new Vue({
 
       this.sendingMessage = true;
 
-      let url = '/api/actions/message';
-      let response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      let messageResult = await response.json();
-
+      try {
+        let url = '/api/actions/message';
+        let response = await fetch(url, {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        let messageResult = await response.json();
+      } catch {}
       this.sendingMessage = false;
 
       this.newMessage = '';
+
     },
     clearState: async function() {
       let data = new FormData();

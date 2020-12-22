@@ -109,6 +109,13 @@ button:not(.btn-flat), input[type=checkbox] {
   z-index: 100;
 }
 
+#new-message .progress {
+  padding-top: 0;
+  margin-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
 #replying button{
   margin-top: 2vh;
   width: 100%;
