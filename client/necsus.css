@@ -11,7 +11,7 @@ main {
 * Theme Fixes
 */
 
-/* LIGHT */t
+/* LIGHT */
 :root {
   --background: #ffffff;
   --foreground: #000000;
@@ -19,7 +19,6 @@ main {
   --accent-1-foreground: #ffffff;
   --accent-2: #203448;
 }
-/*
 /* DARK
 :root {
   --background: #0f0f0f;
@@ -27,8 +26,7 @@ main {
   --accent-1-background: #4EBCC3;
   --accent-1-foreground: #ffffff;
 }
-*/
-
+ */
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -222,7 +220,8 @@ button:not(.btn-flat), input[type=checkbox] {
 }
 
 .inline-icon {
-  font-size: 1.5em;
+  font-size: 1.5em !important;
+  color: var(--foreground) !important;
 }
 
 .btn-wide {
