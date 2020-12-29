@@ -97,6 +97,19 @@ button:not(:disabled)#confirm-reset-room {
   font-family: monospace;
 }
 
+#import-text {
+  font-family: monospace;
+}
+
+/*
+* Checkbox Settings
+*/
+
+[type="checkbox"].filled-in:checked + span:not(.lever)::after {
+  background-color: var(--accent-1-background) !important;
+  border: 2px solid var(--accent-1-background) !important;
+}
+
 /*
 * Message Window
 */
@@ -158,7 +171,7 @@ button:not(:disabled)#confirm-reset-room {
   scrollbar-width: none;  /* Firefox */
 }
 
-#spacer {
+.spacer {
   padding-top: 1vh;
 }
 
