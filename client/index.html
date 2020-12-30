@@ -28,9 +28,9 @@
           </div>
         </nav>
       </div>
-      
+
       <main class="row main">
-        <section :class="(settings.open?'col hide-on-small-only m6':'col s12')">
+        <section class="col" :class="settings.open ? 'hide-on-small-only m6' : 's12'">
           <div id="messages-list">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
@@ -38,7 +38,11 @@
                 <span>Leave Conversation with {{ replyToBotName }}</span>
               </button>
             </div>
-            <div :class="{'card message z-depth-0': true, 'message-left': message.author != settings.name, 'message-right': message.author == settings.name}" v-for="message in messages_ordered">
+            <div
+              class="card message z-depth-0"
+              :class="messageAlignClass(message)"
+              v-for="message in messages_ordered"
+            >
               <div class="flex">
                 <b class="author flex-grow">{{ message.author }}</b>
                 <span class="when">{{ message.when }}</span>

@@ -60,8 +60,6 @@ let app = new Vue({
       };
     }
   },
-  updated: function() {
-  },
   methods: {
     resetRoom: async function() {
       let url = '/api/actions/reset-room';
@@ -255,7 +253,12 @@ let app = new Vue({
     focusMessageInput: function() {
       let vm = this;
       setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
-    }
+    },
+    messageAlignClass: function(message) {
+      // TODO: Handle messages which weren't sent by the current session.
+      //       Though that might be overkill for a somewhat minor UX feature.
+      return message.author == this.settings.name ? "message-right" : "message-left";
+    },
   },
   computed: {
     lastMessage: function() {
