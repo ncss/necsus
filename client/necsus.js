@@ -75,6 +75,7 @@ let app = new Vue({
       this.fetchMessages();
 
       this.settings.resetRoom = false;
+      this.settings.resetRoomConfirm = "";
     },
     fetchBots: async function() {
       let url = '/api/bots?room='+this.room;
