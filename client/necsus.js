@@ -4,14 +4,10 @@ let app = new Vue({
   el: '#necsus',
   data: {
     room: '',
-    settings: {
-      open: false,
-      name: 'Anonymous',
-      speech: true,
-      resetRoom: false,
-      resetRoomConfirm: "",
-      bots: [],
-    },
+    settings: {},
+    resetRoomShow: false,
+    resetRoomConfirm: "",
+    bots: [],
     messages: [],
     newMessage: '',
     sendingMessage: false,
@@ -20,6 +16,23 @@ let app = new Vue({
   },
   created: function() {
     let vm = this;
+
+    try {
+      // Try to load previous settings.
+      let oldsettings = JSON.parse(window.localStorage.getItem("settings"));
+      if (oldsettings.open === undefined ||
+          oldsettings.name === undefined ||
+          oldsettings.speech === undefined)
+        throw null;
+      vm.settings = oldsettings;
+    } catch {
+      // Default settings.
+      vm.settings = {
+        open: false,
+        name: 'Anonymous',
+        speech: true,
+      };
+    }
 
     /*
       Determine the room
@@ -36,6 +49,7 @@ let app = new Vue({
       Auto update message every few seconds
     */
     vm.autoUpdate();
+
 
     /*
       Speech recognition
@@ -74,25 +88,25 @@ let app = new Vue({
       this.messages = [];
       this.fetchMessages();
 
-      this.settings.resetRoom = false;
-      this.settings.resetRoomConfirm = "";
+      this.resetRoomShow = false;
+      this.resetRoomConfirm = "";
     },
     fetchBots: async function() {
       let url = '/api/bots?room='+this.room;
       let response = await fetch(url);
       let bots = await response.json();
-      this.settings.bots = bots;
+      this.bots = bots;
     },
     botWithId: function(id) {
-      for (let i = 0; i < this.settings.bots.length; i++) {
-        if (this.settings.bots[i].id == id) {
-          return this.settings.bots[i]
+      for (let i = 0; i < this.bots.length; i++) {
+        if (this.bots[i].id == id) {
+          return this.bots[i]
         }
       }
       return null
     },
     addBot: function() {
-      this.settings.bots.push({
+      this.bots.push({
         name: '',
         url: '',
         responds_to: '',
@@ -274,6 +288,12 @@ let app = new Vue({
     }
   },
   watch: {
+    settings: {
+      handler: function(newSettings, _) {
+        window.localStorage.setItem("settings", JSON.stringify(newSettings));
+      },
+      deep: true,
+    },
     sendingMessage: function(sending, wasSending) {
       // Focus on the message input after sending a message input
       // But only if we aren't typing in another input
