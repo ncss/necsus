@@ -25,7 +25,7 @@ def handle_error(e):
         message = e.description
     else:
       code = 500
-      message = f'There was an internal server error'
+      message = 'There was an internal server error.'
       app.logger.error(e)
 
     return jsonify({'error': code, 'message': message}), code
@@ -35,22 +35,6 @@ def spec():
     swag = swagger(app)
     swag['info']['version'] = '1.0'
     swag['info']['title'] = 'NeCSuS API'
-    return jsonify(swag)
-
-BOT_SWAGGER_URL = '/bot/docs'
-BOT_API_URL = '/bot/spec'
-bot_swaggerui_blueprint = get_swaggerui_blueprint(
-    BOT_SWAGGER_URL,
-    BOT_API_URL,
-    config={'app_name': 'Bot'},
-    blueprint_name='bot_swagger_ui',
-)
-app.register_blueprint(bot_swaggerui_blueprint, url_prefix=BOT_SWAGGER_URL)
-
-@app.route("/bot/spec")
-def bot_spec():
-    with app.open_resource('bot-spec.yml', mode='r') as f:
-      swag = yaml.load(f)
     return jsonify(swag)
 
 @app.route('/api/messages', methods=['GET'])
