@@ -28,9 +28,9 @@
           </div>
         </nav>
       </div>
-      
+
       <main class="row main">
-        <section :class="(settings.open?'col hide-on-small-only m6':'col s12')">
+        <section class="col" :class="settings.open ? 'hide-on-small-only m6' : 's12'">
           <div id="messages-list">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
@@ -38,7 +38,11 @@
                 <span>Leave Conversation with {{ replyToBotName }}</span>
               </button>
             </div>
-            <div :class="{'card message z-depth-0': true, 'message-left': message.author != settings.name, 'message-right': message.author == settings.name}" v-for="message in messages_ordered">
+            <div
+              class="card message z-depth-0"
+              :class="messageAlignClass(message)"
+              v-for="message in messages_ordered"
+            >
               <div class="flex">
                 <b class="author flex-grow">{{ message.author }}</b>
                 <span class="when">{{ message.when }}</span>
@@ -142,29 +146,29 @@
               <button
                 id="reset-room"
                 class="btn btn-wide"
-                v-if="!settings.resetRoom"
-                @click="settings.resetRoom = true"
+                v-if="!resetRoomShow"
+                @click="resetRoomShow = true"
               >
                 Reset room
               </button>
-              <label for="confirm-reset-room-input" v-if="settings.resetRoom"
+              <label for="confirm-reset-room-input" v-if="resetRoomShow"
                 >Enter room name ({{ room }}) to confirm deletion:</label
               >
               <input
                 id="confirm-reset-room-input"
                 name="confirm-reset-room"
-                v-if="settings.resetRoom"
-                v-model="settings.resetRoomConfirm"
+                v-if="resetRoomShow"
+                v-model="resetRoomConfirm"
               />
 
               <button
                 id="confirm-reset-room"
                 class="btn btn-wide"
-                v-if="settings.resetRoom"
-                :disabled="settings.resetRoomConfirm.toUpperCase() != room.toUpperCase()"
+                v-if="resetRoomShow"
+                :disabled="resetRoomConfirm.toUpperCase() != room.toUpperCase()"
                 @click="resetRoom()"
               >
-                Remove all messages in {{ room }} room
+                Remove all messages in room
               </button>
             </div>
           </div>
@@ -184,7 +188,7 @@
             <div class="card-content">
               <span class="card-title">Bots</span>
               <div class="collection">
-                <div class="collection-item" v-for="bot in settings.bots">
+                <div class="collection-item" v-for="bot in bots">
                   <a @click="removeBot(bot)" href="#" class="secondary-content">
                     <i class="material-icons">delete</i>
                   </a>

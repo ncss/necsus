@@ -15,15 +15,16 @@ main {
 :root {
   --background: #ffffff;
   --foreground: #000000;
-  --accent-1-background: #4EBCC3;
+  --accent-1-background: #4ebcc3;
   --accent-1-foreground: #ffffff;
   --accent-2: #203448;
+  --accent-3: #ee6e73;
 }
 /* DARK
 :root {
   --background: #0f0f0f;
   --foreground: #ffffff;
-  --accent-1-background: #4EBCC3;
+  --accent-1-background: #4ebcc3;
   --accent-1-foreground: #ffffff;
 }
  */
@@ -56,6 +57,10 @@ button:not(.btn-flat), input[type=checkbox] {
   color: var(--accent-1-foreground) !important;
 }
 
+button:not(:disabled)#confirm-reset-room {
+  background-color: var(--accent-3) !important;
+}
+
 .btn-flat {
   color: var(--accent-1-foreground) !important;
 }
@@ -64,17 +69,18 @@ button:not(.btn-flat), input[type=checkbox] {
 * Header
 */
 .nav-wrapper {
+  padding: 0 0.5vw;
   background-color: var(--accent-1-background);
   color: var(--accent-1-foreground);
 }
+
 .nav-wrapper button{
   background-color: var(--accent-1-background);
   color: var(--accent-1-foreground) !important;
 }
 
 .nav-name {
-  padding-left: 5px !important;
-  padding-top: 0px;
+  padding: 0 16px;
   font-size: 1.5em;
 }
 
@@ -150,7 +156,7 @@ button:not(.btn-flat), input[type=checkbox] {
 #messages-list {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-} 
+}
 
 #spacer {
   padding-top: 1vh;
