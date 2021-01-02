@@ -174,7 +174,7 @@
 
               <button
                 id="confirm-reset-room"
-                class="btn btn-wide"
+                class="btn btn-wide danger"
                 v-if="resetRoomShow"
                 :disabled="resetRoomConfirm.toUpperCase() != room.toUpperCase()"
                 @click="resetRoom()"
@@ -360,13 +360,9 @@
             </table>
             <div class="row">
               <div class="col s6">
-                <button
-                  class="btn btn-wide danger"
-                  style="background-color: #f88 !important; color: white !important;"
-                  @click="closeBotImportModal()"
-                >
+                <button class="btn btn-wide danger modal-close">
                   <i class="material-icons">cancel</i>
-                  <span>Cancel Install</span>
+                  <span>Cancel</span>
                 </button>
               </div>
               <div class="col s6">

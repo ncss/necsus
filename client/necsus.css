@@ -57,7 +57,7 @@ button:not(.btn-flat), input[type=checkbox] {
   color: var(--accent-1-foreground) !important;
 }
 
-button:not(:disabled)#confirm-reset-room {
+button:not(:disabled).danger {
   background-color: var(--accent-3) !important;
 }
 

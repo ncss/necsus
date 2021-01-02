@@ -81,8 +81,13 @@ let app = new Vue({
   },
   mounted: function() {
     this.modals = {
-      'paste_conf_modal': M.Modal.init(this.$refs.paste_conf_modal),
-      'copy_conf_modal': M.Modal.init(this.$refs.copy_conf_modal)
+      'paste_conf_modal': M.Modal.init(this.$refs.paste_conf_modal, {
+        onCloseEnd: function() {
+          // Clear importing state.
+          this.importing = {text: '', importBots: null, installedBots: []};
+        }.bind(this),
+      }),
+      'copy_conf_modal': M.Modal.init(this.$refs.copy_conf_modal),
     };
 
     this.$refs.import_selector.addEventListener('change', function (event) {
@@ -106,7 +111,6 @@ let app = new Vue({
         b.isIdentical = bots.some(function (oldb) {
           return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
         });
-
         return b;
       });
 
@@ -191,7 +195,8 @@ let app = new Vue({
       });
       let botResult = await response.json();
 
-      if (!noupdate) await this.fetchBots();
+      if (!noupdate)
+        await this.fetchBots();
     },
     fetchMessages: async function(options) {
       let vm = this;
@@ -322,11 +327,6 @@ let app = new Vue({
       return message.author == this.settings.name ? "message-right" : "message-left";
     },
 
-    closeBotImportModal: function() {
-      this.importing = {text: '', importBots: null, installedBots: []};
-      this.modals.paste_conf_modal.close();
-    },
-
     /* Room Downloading */
     downloadBlob: function(blob, filename) {
       const url = URL.createObjectURL(blob);
@@ -406,19 +406,21 @@ let app = new Vue({
     },
     installBots: function() {
       this.importing.importBots.forEach(function(b) {
-        if (!b['doImport']) return;
+        if (!b['doImport'])
+          return;
         // so we need to import them.
         this.submitBot(b, true);
       }.bind(this));
 
       this.importing.installedBots.forEach(function(b) {
-        if (b['doImport']) return;
+        if (b['doImport'])
+          return;
         // so we need to remove them.
         this.removeBot(b);
       }.bind(this));
 
       this.fetchBots().then(function() {
-        this.closeBotImportModal();
+        this.modals.paste_conf_modal.close();
       }.bind(this))
     }
   },
