@@ -153,16 +153,17 @@ let app = new Vue({
       return null
     },
     addBot: function() {
-      let name = `Bot ${this.bots.length}`
-      this.bots.push({
-        name: name,
+      let newBot = {
+        // TODO: Give these more fun GH-style names.
+        name: `Bot ${this.bots.length}`,
         url: '',
         responds_to: '',
-      });
+      };
+      this.bots.push(newBot);
+      this.submitBot(newBot);
     },
     removeBot: async function(bot) {
       if (bot.id) {
-
         let url = '/api/actions/bot?id='+bot.id;
         let response = await fetch(url, {
           method: 'DELETE',
@@ -181,9 +182,8 @@ let app = new Vue({
         url: bot.url,
         responds_to: bot.responds_to,
       };
-      if (bot.id) {
+      if (bot.id)
         data.id = bot.id;
-      }
 
       let url = '/api/actions/bot'
       let response = await fetch(url, {
