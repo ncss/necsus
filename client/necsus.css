@@ -19,6 +19,7 @@ main {
   --accent-1-foreground: #ffffff;
   --accent-2: #203448;
   --accent-3: #ee6e73;
+  --accent-4-background: #f0f0f0;
 }
 /* DARK
 :root {
@@ -108,6 +109,11 @@ button:not(:disabled).danger {
 [type="checkbox"].filled-in:checked + span:not(.lever)::after {
   background-color: var(--accent-1-background) !important;
   border: 2px solid var(--accent-1-background) !important;
+}
+
+/* Bot import window. */
+tr.identical-bot {
+  background-color: var(--accent-4-background) !important;
 }
 
 /*

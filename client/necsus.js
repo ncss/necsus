@@ -103,22 +103,6 @@ let app = new Vue({
         }.bind(this));
         reader.readAsText(fileList[0]);
       }
-      this.importing.installedBots = this.bots.map(function(bot_copy) {
-        let b = Object.assign({}, bot_copy);
-        b.doImport = ! bots.some(function (oldb) {
-          return b.url == oldb.url || b.responds_to == oldb.responds_to || b.name == oldb.name;
-        });
-        b.isIdentical = bots.some(function (oldb) {
-          return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
-        });
-        return b;
-      });
-
-      this.importing.importBots = bots.map(function(bot_copy) {
-        let b = Object.assign({}, bot_copy);
-        b['doImport'] = true;
-        return b;
-      });
     }.bind(this));
   },
   methods: {
@@ -388,32 +372,34 @@ let app = new Vue({
       }
       this.importing.installedBots = this.bots.map(function(bot_copy) {
         let b = Object.assign({}, bot_copy);
-        b.doImport = ! bots.some(function (oldb) {
-          return b.url == oldb.url || b.responds_to == oldb.responds_to || b.name == oldb.name;
-        });
         b.isIdentical = bots.some(function (oldb) {
           return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
         });
-
+        b.doImport = b.isIdentical || !bots.some(function (oldb) {
+          return b.url == oldb.url || b.responds_to == oldb.responds_to || b.name == oldb.name;
+        });
         return b;
       });
 
       this.importing.importBots = bots.map(function(bot_copy) {
         let b = Object.assign({}, bot_copy);
-        b['doImport'] = true;
+        b.isIdentical = this.importing.installedBots.some(function (oldb) {
+          return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
+        });
+        b.doImport = !b.isIdentical;
         return b;
-      });
+      }.bind(this));
     },
     installBots: function() {
       this.importing.importBots.forEach(function(b) {
-        if (!b['doImport'])
+        if (!b.doImport)
           return;
         // so we need to import them.
         this.submitBot(b, true);
       }.bind(this));
 
       this.importing.installedBots.forEach(function(b) {
-        if (b['doImport'])
+        if (b.doImport)
           return;
         // so we need to remove them.
         this.removeBot(b);

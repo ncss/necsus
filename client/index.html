@@ -225,7 +225,6 @@
                   </a>
                   <label for="bot-name">Name</label>
                   <input
-                    id="bot-name"
                     name="bot-name"
                     v-model="bot.name"
                     @change="submitBot(bot)"
@@ -233,7 +232,6 @@
 
                   <label for="bot-responds-to">Responds to</label>
                   <input
-                    id="bot-responds-to"
                     name="bot-responds-to"
                     v-model="bot.responds_to"
                     @change="submitBot(bot)"
@@ -241,7 +239,6 @@
 
                   <label for="bot-url">Endpoint URL</label>
                   <input
-                    id="bot-url"
                     name="bot-url"
                     v-model="bot.url"
                     @change="submitBot(bot)"
@@ -331,13 +328,10 @@
               <tbody>
                 <tr v-for="bot in importing.installedBots">
                   <td>
-                    <label v-if="!bot.isIdentical">
+                    <label>
                       <input v-model="bot.doImport" class="filled-in" type="checkbox" />
                       <span></span>
                     </label>
-                    <span class="red white-text" v-else>
-                      (exists in import)
-                    </span>
                   </td>
                   <td>{{ bot.name }}</td>
                   <td><code>{{ bot.responds_to }}</code></td>
@@ -357,9 +351,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="bot in importing.importBots">
+                <tr v-for="bot in importing.importBots" :class="{'identical-bot': bot.isIdentical}">
                   <td>
-                    <label>
+                    <label v-if="!bot.isIdentical">
                       <input v-model="bot.doImport" class="filled-in" type="checkbox" />
                       <span></span>
                     </label>
@@ -370,6 +364,11 @@
                 </tr>
               </tbody>
             </table>
+            <p v-if="importing.importBots.some((b) => b.isIdentical)">
+              Note that any greyed-out bots are already present in the room and
+              will not be imported twice. To remove the bot completely, uncheck
+              it from the "existing bots" table.
+            </p>
             <div class="row">
               <div class="col s6">
                 <button class="btn btn-wide danger modal-close">
