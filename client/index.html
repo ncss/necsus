@@ -44,7 +44,7 @@
           <div id="messages-list">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
-                <i class="material-icons">exit_to_app</i>
+                <i class="material-icons">exit_to_app</i>&nbsp;
                 <span>Leave Conversation with {{ replyToBotName }}</span>
               </button>
             </div>
@@ -160,7 +160,8 @@
                 v-if="!resetRoomShow"
                 @click="resetRoomShow = true"
               >
-                Reset room
+                <i class="material-icons">clear_all</i>&nbsp;
+                <span>Reset Room</span>
               </button>
               <label for="confirm-reset-room-input" v-if="resetRoomShow"
                 >Enter room name ({{ room }}) to confirm deletion:</label
@@ -179,7 +180,8 @@
                 :disabled="resetRoomConfirm.toUpperCase() != room.toUpperCase()"
                 @click="resetRoom()"
               >
-                Remove all messages in room
+                <i class="material-icons">clear_all</i>&nbsp;
+                <span>Remove all messages in room</span>
               </button>
             </div>
           </div>
@@ -203,7 +205,7 @@
                       class="btn btn-wide modal-trigger"
                       @click="modals.copy_conf_modal.open()"
                     >
-                      <i class="material-icons">content_copy</i>
+                      <i class="material-icons">content_copy</i>&nbsp;
                       <span>Download Room</span>
                     </button>
                   </div>
@@ -212,7 +214,7 @@
                       class="btn btn-wide"
                       @click="modals.paste_conf_modal.open()"
                     >
-                      <i class="material-icons">content_paste</i>
+                      <i class="material-icons">content_paste</i>&nbsp;
                       <span>Upload Room</span>
                     </button>
                   </div>
@@ -247,7 +249,7 @@
                 </div>
                 <div class="collection-item">
                   <button class="btn btn-wide" @click="addBot()">
-                    <i class="material-icons">add</i>
+                    <i class="material-icons">add</i>&nbsp;
                     <span>Add A Bot...</span>
                   </button>
                 </div>
@@ -259,7 +261,7 @@
 
       <div ref="copy_conf_modal" id="copy_conf_modal" class="modal">
         <div class="modal-content">
-          <h4>Copy Bot Configuration</h4>
+          <h4>Download Bot Configuration</h4>
           <p>
             Press the buttons below to download the bots in this room, or copy
             the text.
@@ -267,13 +269,13 @@
           <div class="row">
             <div class="col s6">
               <button class="btn btn-wide" @click="download(bots)">
-                <i class="material-icons">download</i>
+                <i class="material-icons">download</i>&nbsp;
                 <span>Download File</span>
               </button>
             </div>
             <div class="col s6">
               <button class="btn btn-wide" @click="copy_to_clipboard(bots)">
-                <i class="material-icons">content_copy</i>
+                <i class="material-icons">content_copy</i>&nbsp;
                 <span>Copy to Clipboard</span>
               </button>
             </div>
@@ -284,29 +286,39 @@
           <pre>
 {{ get_exportable_text(bots) }}
           </pre>
+          <div class="row">
+            <div class="col s12">
+              <button class="btn btn-wide modal-close">
+                <span>Done</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div ref="paste_conf_modal" id="paste_conf_modal" class="modal">
         <div class="modal-content">
-          <h4>Paste Bot Configuration</h4>
-          <p>Either upload a JSON file containing your configuration, or paste the text in.</p>
-          <input type="file" id="import_selector" ref="import_selector">
-          <div class="spacer"></div>
-          <ul class="collection" v-if="importing.errors">
-            <li v-for="e in importing.errors" class="collection-item red lighten-2">
-              {{ e }}
-            </li>
-          </ul>
-
-          <label for="import-text">Paste Bot Configuration Here</label>
-          <textarea :disabled="importing.importBots" v-model="importing.text" id="import-text" ref="import_text" class="materialize-textarea"></textarea>
-          <button class="btn btn-wide" @click="validateBots">
-            Import Configuration
-          </button>
-          <div :style="{'display': importing.importBots == null?'none':'block'}">
+          <h4>Upload Bot Configuration</h4>
+          <div v-if="!importing.importBots">
+            <p>Either upload a JSON file containing your configuration, or paste the text in.</p>
+            <input type="file" id="import_selector" ref="import_selector">
+            <div class="spacer"></div>
+            <ul class="collection" v-if="importing.errors">
+              <li v-for="e in importing.errors" class="collection-item red lighten-2">
+                <i class="material-icons">error_outline</i>&nbsp;
+                <span>{{ e }}</span>
+              </li>
+            </ul>
+            <label for="import-text">Paste Bot Configuration Here</label>
+            <textarea :disabled="importing.importBots" v-model="importing.text" id="import-text" ref="import_text" class="materialize-textarea"></textarea>
+            <button class="btn btn-wide" @click="validateBots">
+              <i class="material-icons">import_export</i>&nbsp;
+              <span>Import Configuration</span>
+            </button>
+          </div>
+          <div v-else>
             <hr/>
-            <h5>Already Installed Bots</h5>
+            <h5>Existing Bots</h5>
             <table>
               <thead>
                 <tr>
@@ -317,24 +329,24 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="b in importing.installedBots">
+                <tr v-for="bot in importing.installedBots">
                   <td>
-                    <label v-if="!b.isIdentical">
-                      <input v-model="b.doImport" class="filled-in" id="enable1" name="enable1" type="checkbox" />
+                    <label v-if="!bot.isIdentical">
+                      <input v-model="bot.doImport" class="filled-in" type="checkbox" />
                       <span></span>
                     </label>
                     <span class="red white-text" v-else>
                       (exists in import)
                     </span>
                   </td>
-                  <td>{{ b.name }}</td>
-                  <td><code>{{ b.responds_to }}</code></td>
-                  <td><a :href="b.url"><code>{{ b.url }}</code></a></td>
+                  <td>{{ bot.name }}</td>
+                  <td><code>{{ bot.responds_to }}</code></td>
+                  <td><a :href="bot.url"><code>{{ bot.url }}</code></a></td>
                 </tr>
               </tbody>
             </table>
 
-            <h5>Importing Bots</h5>
+            <h5>New Bots</h5>
             <table>
               <thead>
                 <tr>
@@ -345,29 +357,30 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="b in importing.importBots">
+                <tr v-for="bot in importing.importBots">
                   <td>
                     <label>
-                      <input v-model="b.doImport" class="filled-in" id="enable1" name="enable1" type="checkbox" />
+                      <input v-model="bot.doImport" class="filled-in" type="checkbox" />
                       <span></span>
                     </label>
                   </td>
-                  <td>{{ b.name }}</td>
-                  <td><code>{{ b.responds_to }}</code></td>
-                  <td><a :href="b.url"><code>{{ b.url }}</code></a></td>
+                  <td>{{ bot.name }}</td>
+                  <td><code>{{ bot.responds_to }}</code></td>
+                  <td><a :href="bot.url"><code>{{ bot.url }}</code></a></td>
                 </tr>
               </tbody>
             </table>
             <div class="row">
               <div class="col s6">
                 <button class="btn btn-wide danger modal-close">
-                  <i class="material-icons">cancel</i>
+                  <i class="material-icons">cancel</i>&nbsp;
                   <span>Cancel</span>
                 </button>
               </div>
               <div class="col s6">
                 <button class="btn btn-wide" @click="installBots">
-                  Install Bots
+                  <i class="material-icons">done</i>&nbsp;
+                  <span>Install Bots</span>
                 </button>
               </div>
             </div>
