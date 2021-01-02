@@ -1,5 +1,4 @@
 let plainTextRenderer = new PlainTextRenderer;
-M.AutoInit()
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -8,7 +7,13 @@ let app = new Vue({
     resetRoomShow: false,
     resetRoomConfirm: "",
     bots: [],
+    importing: {
+      text: '',
+      importBots: null,
+      installedBots: [],
+    },
     messages: [],
+    modals: {},
     newMessage: '',
     sendingMessage: false,
     statePresent: false,
@@ -74,6 +79,32 @@ let app = new Vue({
       };
     }
   },
+  mounted: function() {
+    this.modals = {
+      'paste_conf_modal': M.Modal.init(this.$refs.paste_conf_modal, {
+        onCloseEnd: function() {
+          // Clear importing state.
+          this.importing = {text: '', importBots: null, installedBots: []};
+        }.bind(this),
+      }),
+      'copy_conf_modal': M.Modal.init(this.$refs.copy_conf_modal),
+    };
+
+    this.$refs.import_selector.addEventListener('change', function (event) {
+      const fileList = event.target.files;
+      if (fileList.length > 0) {
+        const reader = new FileReader();
+        reader.addEventListener('load', function (event) {
+          this.importing.text = event.target.result;
+          this.$refs.import_selector.value = null;
+          this.$nextTick(function() {
+            M.textareaAutoResize(this.$refs.import_text);
+          }.bind(this));
+        }.bind(this));
+        reader.readAsText(fileList[0]);
+      }
+    }.bind(this));
+  },
   methods: {
     resetRoom: async function() {
       let url = '/api/actions/reset-room';
@@ -106,15 +137,17 @@ let app = new Vue({
       return null
     },
     addBot: function() {
-      this.bots.push({
-        name: '',
+      let newBot = {
+        // TODO: Give these more fun GH-style names.
+        name: `Bot ${this.bots.length}`,
         url: '',
         responds_to: '',
-      });
+      };
+      this.bots.push(newBot);
+      this.submitBot(newBot);
     },
     removeBot: async function(bot) {
       if (bot.id) {
-
         let url = '/api/actions/bot?id='+bot.id;
         let response = await fetch(url, {
           method: 'DELETE',
@@ -126,16 +159,15 @@ let app = new Vue({
       }
       await this.fetchBots();
     },
-    submitBot: async function(bot) {
+    submitBot: async function(bot, noupdate) {
       let data = {
         room: this.room,
         name: bot.name,
         url: bot.url,
         responds_to: bot.responds_to,
       };
-      if (bot.id) {
+      if (bot.id)
         data.id = bot.id;
-      }
 
       let url = '/api/actions/bot'
       let response = await fetch(url, {
@@ -147,7 +179,8 @@ let app = new Vue({
       });
       let botResult = await response.json();
 
-      await this.fetchBots();
+      if (!noupdate)
+        await this.fetchBots();
     },
     fetchMessages: async function(options) {
       let vm = this;
@@ -200,6 +233,7 @@ let app = new Vue({
 
       try {
         let url = '/api/actions/message';
+        console.log("test");
         let response = await fetch(url, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -207,6 +241,7 @@ let app = new Vue({
             'Content-Type': 'application/json',
           },
         });
+
         let messageResult = await response.json();
       } catch {}
       this.sendingMessage = false;
@@ -269,11 +304,111 @@ let app = new Vue({
       let vm = this;
       setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
     },
+
     messageAlignClass: function(message) {
       // TODO: Handle messages which weren't sent by the current session.
       //       Though that might be overkill for a somewhat minor UX feature.
       return message.author == this.settings.name ? "message-right" : "message-left";
     },
+
+    /* Room Downloading */
+    downloadBlob: function(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+
+      a.href = url;
+      a.download = filename || 'download';
+
+      const clickHandler = () => {
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          a.removeEventListener('click', clickHandler);
+        }, 150);
+      };
+
+      a.addEventListener('click', clickHandler, false);
+      a.click();
+
+      return a;
+    },
+    get_exportable_text: function(obj) {
+      return JSON.stringify(
+        obj.map((o) => ({
+          name: o.name,
+          responds_to: o.responds_to,
+          url: o.url
+        })), null, 2);
+    },
+    download: function(obj) {
+      const blob = new Blob([this.get_exportable_text(obj)], {type: 'application/json'});
+      this.downloadBlob(blob, `necsus_export_${this.room || 'base'}.json`);
+    },
+    copy_to_clipboard: function(obj) {
+      navigator.clipboard.writeText(this.get_exportable_text(obj));
+    },
+
+    /* Room Uploading */
+    validateBots: function() {
+      this.importing.errors = [];
+
+      let bots = null;
+      try {
+        bots = JSON.parse(this.importing.text);
+      } catch {
+        this.importing.errors.push("Could not parse JSON import text.");
+        return;
+      }
+
+      const bad_bots = bots.filter(
+        function (bot) {
+          return !('name' in bot && 'responds_to' in bot && 'url' in bot);
+        }
+      );
+      if (bad_bots.length) {
+        bots.forEach(function (bot) {
+          this.importing.errors.push(`The bot ${bot.name || 'without a name'} does not have the required properties.`);
+        }.bind(this));
+        return;
+      }
+      this.importing.installedBots = this.bots.map(function(bot_copy) {
+        let b = Object.assign({}, bot_copy);
+        b.isIdentical = bots.some(function (oldb) {
+          return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
+        });
+        b.doImport = b.isIdentical || !bots.some(function (oldb) {
+          return b.url == oldb.url || b.responds_to == oldb.responds_to || b.name == oldb.name;
+        });
+        return b;
+      });
+
+      this.importing.importBots = bots.map(function(bot_copy) {
+        let b = Object.assign({}, bot_copy);
+        b.isIdentical = this.importing.installedBots.some(function (oldb) {
+          return b.url == oldb.url && b.responds_to == oldb.responds_to && b.name == oldb.name;
+        });
+        b.doImport = !b.isIdentical;
+        return b;
+      }.bind(this));
+    },
+    installBots: function() {
+      this.importing.importBots.forEach(function(b) {
+        if (!b.doImport)
+          return;
+        // so we need to import them.
+        this.submitBot(b, true);
+      }.bind(this));
+
+      this.importing.installedBots.forEach(function(b) {
+        if (b.doImport)
+          return;
+        // so we need to remove them.
+        this.removeBot(b);
+      }.bind(this));
+
+      this.fetchBots().then(function() {
+        this.modals.paste_conf_modal.close();
+      }.bind(this))
+    }
   },
   computed: {
     lastMessage: function() {

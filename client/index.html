@@ -7,7 +7,10 @@
     <script src="client/js/marked-plaintext.js"></script>
     <script src="client/js/vue.js"></script>
     <link rel="stylesheet" type="text/css" href="client/necsus.css" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
@@ -23,7 +26,14 @@
           <div class="nav-wrapper">
             <span class="nav-name">NeCSuS | {{ room }}</span>
             <ul id="nav-mobile" class="right">
-              <li><button @click="settings.open = !settings.open" class="btn-flat white-text">Settings</button></li>
+              <li>
+                <button
+                  @click="settings.open = !settings.open"
+                  class="btn-flat white-text"
+                >
+                  Settings
+                </button>
+              </li>
             </ul>
           </div>
         </nav>
@@ -34,7 +44,7 @@
           <div id="messages-list">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
-                <i class="material-icons">exit_to_app</i>
+                <i class="material-icons">exit_to_app</i>&nbsp;
                 <span>Leave Conversation with {{ replyToBotName }}</span>
               </button>
             </div>
@@ -83,7 +93,8 @@
                 <button
                   class="btn-flat waves-effect btn-small message-btn"
                   @click="listen()"
-                  v-bind:disabled="sendingMessage" >
+                  v-bind:disabled="sendingMessage"
+                >
                   <i class="inline-icon material-icons">mic</i>
                 </button>
                 <textarea
@@ -102,21 +113,21 @@
                   @click="submitMessage(newMessage)"
                   v-bind:disabled="sendingMessage"
                 >
-                  <i class="inline-icon material-icons" :disabled="sendingMessage">send</i>
+                  <i
+                    class="inline-icon material-icons"
+                    :disabled="sendingMessage"
+                    >send</i
+                  >
                 </button>
               </div>
               <div class="progress" v-if="sendingMessage">
-                  <div class="indeterminate"></div>
+                <div class="indeterminate"></div>
               </div>
             </div>
           </div>
         </section>
 
-        <section
-          id="settings"
-          v-if="settings.open"
-          class="col m6 s12"
-        >
+        <section id="settings" v-if="settings.open" class="col m6 s12">
           <div class="card">
             <div class="card-content">
               <span class="card-title">General Settings</span>
@@ -149,7 +160,8 @@
                 v-if="!resetRoomShow"
                 @click="resetRoomShow = true"
               >
-                Reset room
+                <i class="material-icons">clear_all</i>&nbsp;
+                <span>Reset Room</span>
               </button>
               <label for="confirm-reset-room-input" v-if="resetRoomShow"
                 >Enter room name ({{ room }}) to confirm deletion:</label
@@ -163,16 +175,16 @@
 
               <button
                 id="confirm-reset-room"
-                class="btn btn-wide"
+                class="btn btn-wide danger"
                 v-if="resetRoomShow"
                 :disabled="resetRoomConfirm.toUpperCase() != room.toUpperCase()"
                 @click="resetRoom()"
               >
-                Remove all messages in room
+                <i class="material-icons">clear_all</i>&nbsp;
+                <span>Remove all messages in room</span>
               </button>
             </div>
           </div>
-
 
           <div class="card">
             <div class="card-content">
@@ -187,13 +199,32 @@
             <div class="card-content">
               <span class="card-title">Bots</span>
               <div class="collection">
+                <div class="collection-item row">
+                  <div class="col s6">
+                    <button
+                      class="btn btn-wide modal-trigger"
+                      @click="modals.copy_conf_modal.open()"
+                    >
+                      <i class="material-icons">content_copy</i>&nbsp;
+                      <span>Download Room</span>
+                    </button>
+                  </div>
+                  <div class="col s6">
+                    <button
+                      class="btn btn-wide"
+                      @click="modals.paste_conf_modal.open()"
+                    >
+                      <i class="material-icons">content_paste</i>&nbsp;
+                      <span>Upload Room</span>
+                    </button>
+                  </div>
+                </div>
                 <div class="collection-item" v-for="bot in bots">
                   <a @click="removeBot(bot)" href="#" class="secondary-content">
                     <i class="material-icons">delete</i>
                   </a>
                   <label for="bot-name">Name</label>
                   <input
-                    id="bot-name"
                     name="bot-name"
                     v-model="bot.name"
                     @change="submitBot(bot)"
@@ -201,7 +232,6 @@
 
                   <label for="bot-responds-to">Responds to</label>
                   <input
-                    id="bot-responds-to"
                     name="bot-responds-to"
                     v-model="bot.responds_to"
                     @change="submitBot(bot)"
@@ -209,25 +239,154 @@
 
                   <label for="bot-url">Endpoint URL</label>
                   <input
-                    id="bot-url"
                     name="bot-url"
                     v-model="bot.url"
                     @change="submitBot(bot)"
                   />
-
                 </div>
-                <button class="btn btn-wide" @click="addBot()">
-                  <i class="material-icons">add</i>
-                  <span>Add A Bot...</span>
+                <div class="collection-item">
+                  <button class="btn btn-wide" @click="addBot()">
+                    <i class="material-icons">add</i>&nbsp;
+                    <span>Add A Bot...</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div ref="copy_conf_modal" id="copy_conf_modal" class="modal">
+        <div class="modal-content">
+          <h4>Download Bot Configuration</h4>
+          <p>
+            Press the buttons below to download the bots in this room, or copy
+            the text.
+          </p>
+          <div class="row">
+            <div class="col s6">
+              <button class="btn btn-wide" @click="download(bots)">
+                <i class="material-icons">download</i>&nbsp;
+                <span>Download File</span>
+              </button>
+            </div>
+            <div class="col s6">
+              <button class="btn btn-wide" @click="copy_to_clipboard(bots)">
+                <i class="material-icons">content_copy</i>&nbsp;
+                <span>Copy to Clipboard</span>
+              </button>
+            </div>
+          </div>
+          <p>
+            Or, copy the text below and paste it into another room to import it there.
+          </p>
+          <pre>
+{{ get_exportable_text(bots) }}
+          </pre>
+          <div class="row">
+            <div class="col s12">
+              <button class="btn btn-wide modal-close">
+                <span>Done</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div ref="paste_conf_modal" id="paste_conf_modal" class="modal">
+        <div class="modal-content">
+          <h4>Upload Bot Configuration</h4>
+          <div v-if="!importing.importBots">
+            <p>Either upload a JSON file containing your configuration, or paste the text in.</p>
+            <input type="file" id="import_selector" ref="import_selector">
+            <div class="spacer"></div>
+            <ul class="collection" v-if="importing.errors">
+              <li v-for="e in importing.errors" class="collection-item red lighten-2">
+                <i class="material-icons">error_outline</i>&nbsp;
+                <span>{{ e }}</span>
+              </li>
+            </ul>
+            <label for="import-text">Paste Bot Configuration Here</label>
+            <textarea :disabled="importing.importBots" v-model="importing.text" id="import-text" ref="import_text" class="materialize-textarea"></textarea>
+            <button class="btn btn-wide" @click="validateBots">
+              <i class="material-icons">import_export</i>&nbsp;
+              <span>Import Configuration</span>
+            </button>
+          </div>
+          <div v-else>
+            <hr/>
+            <h5>Existing Bots</h5>
+            <table>
+              <thead>
+                <tr>
+                    <th>Keep Bot</th>
+                    <th>Name</th>
+                    <th>Responds To</th>
+                    <th>URL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="bot in importing.installedBots">
+                  <td>
+                    <label>
+                      <input v-model="bot.doImport" class="filled-in" type="checkbox" />
+                      <span></span>
+                    </label>
+                  </td>
+                  <td>{{ bot.name }}</td>
+                  <td><code>{{ bot.responds_to }}</code></td>
+                  <td><a :href="bot.url"><code>{{ bot.url }}</code></a></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h5>New Bots</h5>
+            <table>
+              <thead>
+                <tr>
+                    <th>Add Bot</th>
+                    <th>Name</th>
+                    <th>Responds To</th>
+                    <th>URL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="bot in importing.importBots" :class="{'identical-bot': bot.isIdentical}">
+                  <td>
+                    <label v-if="!bot.isIdentical">
+                      <input v-model="bot.doImport" class="filled-in" type="checkbox" />
+                      <span></span>
+                    </label>
+                  </td>
+                  <td>{{ bot.name }}</td>
+                  <td><code>{{ bot.responds_to }}</code></td>
+                  <td><a :href="bot.url"><code>{{ bot.url }}</code></a></td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-if="importing.importBots.some((b) => b.isIdentical)">
+              Note that any greyed-out bots are already present in the room and
+              will not be imported twice. To remove the bot completely, uncheck
+              it from the "existing bots" table.
+            </p>
+            <div class="row">
+              <div class="col s6">
+                <button class="btn btn-wide danger modal-close">
+                  <i class="material-icons">cancel</i>&nbsp;
+                  <span>Cancel</span>
+                </button>
+              </div>
+              <div class="col s6">
+                <button class="btn btn-wide" @click="installBots">
+                  <i class="material-icons">done</i>&nbsp;
+                  <span>Install Bots</span>
                 </button>
               </div>
             </div>
           </div>
-
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
-
 
     <script src="client/necsus.js"></script>
   </body>
