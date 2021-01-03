@@ -190,11 +190,11 @@ tr.identical-bot {
 }
 
 .message-left {
-  align-self: start;
+  align-self: flex-start;
 }
 
 .message-right {
-  align-self: end;
+  align-self: flex-end;
 }
 
 .author {
