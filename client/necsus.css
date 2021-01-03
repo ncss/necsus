@@ -165,11 +165,11 @@ button:not(.btn-flat), input[type=checkbox] {
 }
 
 .message-left {
-  align-self: start;
+  align-self: flex-start;
 }
 
 .message-right {
-  align-self: end;
+  align-self: flex-end;
 }
 
 .author {
