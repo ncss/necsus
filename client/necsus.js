@@ -233,7 +233,6 @@ let app = new Vue({
 
       try {
         let url = '/api/actions/message';
-        console.log("test");
         let response = await fetch(url, {
           method: 'POST',
           body: JSON.stringify(data),
@@ -436,7 +435,7 @@ let app = new Vue({
         return m;
       })
 
-      
+
     }
   },
   watch: {
