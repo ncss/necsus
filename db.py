@@ -1,4 +1,4 @@
-import datetime
+import time
 import json
 import pytz
 import sqlite3
@@ -123,9 +123,8 @@ class Messages(DBList):
 
 
   def add(self, **message):
-    now = UTC.localize(datetime.datetime.utcnow())
-    local = now.astimezone(SYDNEY)
-    message['when'] = local.strftime('%-I:%M%p').lower()
+    now = time.time()
+    message['when'] = now
     if message.get('state', None) != None:
       message['state'] = json.dumps(message['state'])
 

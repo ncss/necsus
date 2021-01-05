@@ -6,6 +6,7 @@
     <script src="client/js/marked.min.js"></script>
     <script src="client/js/marked-plaintext.js"></script>
     <script src="client/js/vue.js"></script>
+    <script src="client/js/timeago.min.js"></script>
     <link rel="stylesheet" type="text/css" href="client/necsus.css" />
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -17,6 +18,7 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
   </head>
 
   <body>
@@ -51,11 +53,11 @@
             <div
               class="card message z-depth-0"
               :class="messageAlignClass(message)"
-              v-for="message in messages_ordered"
+              v-for="message in displayMessages"
             >
               <div class="flex">
                 <b class="author flex-grow">{{ message.author }}</b>
-                <span class="when">{{ message.when }}</span>
+                <span class="when">{{ message.displayTime }}</span>
               </div>
               <div class="content" v-html="message.text"></div>
               <div v-if="message.image" class="image">
