@@ -418,8 +418,25 @@ let app = new Vue({
         return undefined;
       };
     },
-    messages_ordered: function () {
-      return this.messages.slice().reverse();
+    displayMessages: function () {
+      let messages = this.messages.slice().reverse();
+      // in previous versions of the server, time was saved as X:XX am/pm
+      // for backwards compatibility, if you can't turn the `when` into
+      // a Number, then just display it.
+      return messages.map(function(m) {
+        if (/^[0-9]+\.?[0-9]*$/.test(m.when)) {
+          let date = parseFloat(m.when) * 1000;
+          m['displayTime'] = timeago.format(date, 'en_US', {minInterval: 60});
+          if (/seconds/.test(m['displayTime'])) {
+            m['displayTime'] = 'just now';
+          }
+        } else {
+          m['displayTime'] = m.when
+        }
+        return m;
+      })
+
+      
     }
   },
   watch: {
