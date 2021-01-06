@@ -35,7 +35,9 @@ let app = new Vue({
       vm.settings = {
         open: false,
         name: 'Anonymous',
-        speech: true,
+        // TODO: Make this a tertiary state where we have an "auto" and the
+        //       default state is with TTS only happening if the user used STT.
+        speech: false,
       };
     }
 
