@@ -271,7 +271,9 @@ def post_message():
   """
 
   data = request.get_json()
-  if not data or not data.get('text') or data.get('room') or not data.get('author'):
+  if not data:
+    return jsonify({'message': 'message must be valid JSON object'}), 400
+  if not all([data.get('text'), data.get('room'), data.get('author')]):
     return jsonify({'message': 'text, room, and author keys must be present and non-empty'}), 400
 
   db = get_db()
