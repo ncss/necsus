@@ -11,19 +11,6 @@ def client_path(path):
 def client(room=''):
   return send_from_directory('client', 'index.html')
 
-@app.route('/form', methods=['GET'])
-def form_page():
-  author = db.members.find('kenni')
-  messages = db.messages.new()
-  return render_template('home.html', author=author, messages=messages)
-
-@app.route('/form', methods=['POST'])
-def form_accept():
-  message = dict(request.values)
-  events.trigger_message_post(message)
-
-  return redirect('/', code=302)
-
 @app.route('/api', methods=['GET'])
 def api():
   endpoints = db.endpoints.find()
