@@ -48,6 +48,8 @@
               id="room-name"
               name="room-name"
               v-model="room_name"
+              @keydown.enter.exact.prevent
+              v-on:keyup.enter.exact="joinRoom()"
             />
 
             <button

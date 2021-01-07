@@ -10,6 +10,7 @@ let app = new Vue({
       "Добродошли",
       "Добро пожаловать",
       "Bienvenue",
+      "Bienvenido",
       "Willkommen",
       "ようこそ",
       "欢迎",
