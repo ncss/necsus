@@ -7,8 +7,11 @@ def client_path(path):
   return send_from_directory('client', path)
 
 @app.route('/')
+def lobby():
+  return send_from_directory('client', 'lobby.html')
+
 @app.route('/<room>')
-def client(room=''):
+def client(room):
   return send_from_directory('client', 'index.html')
 
 @app.route('/api', methods=['GET'])

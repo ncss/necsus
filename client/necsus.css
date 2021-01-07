@@ -276,3 +276,11 @@ tr.identical-bot {
 .flex-grow {
   flex-grow: 1;
 }
+
+#lobby {
+  /* Looks like centering doesn't wanna work, I guess it's not centered now. */
+  padding-top: 10vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>NeCSuS</title>
+    <script src="client/js/marked.min.js"></script>
+    <script src="client/js/marked-plaintext.js"></script>
+    <script src="client/js/vue.js"></script>
+    <link rel="stylesheet" type="text/css" href="client/necsus.css" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  </head>
+
+  <body>
+    <div id="necsus">
+      <div class="navbar-fixed">
+        <nav class="z-depth-0">
+          <div class="nav-wrapper">
+            <span class="nav-name">NeCSuS</span>
+          </div>
+        </nav>
+      </div>
+
+      <div id="lobby">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{{ welcome }}!</span>
+
+            <p>
+              Welcome to the NeCSuS lobby! Please enter the room you'd like to
+              join.
+            </p>
+
+            <label for="room-name">
+              <span>Room name</span>
+            </label>
+
+            <input
+              id="room-name"
+              name="room-name"
+              v-model="room_name"
+            />
+
+            <button
+              id="join-room"
+              class="btn btn-wide"
+              :disabled="room_name == ''"
+              @click="joinRoom()"
+            >
+              <i class="material-icons">flight_takeoff</i>&nbsp;
+              <span>Join room {{ room_name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="client/lobby.js"></script>
+  </body>
+</html>
+

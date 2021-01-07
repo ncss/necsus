@@ -436,8 +436,6 @@ let app = new Vue({
         }
         return m;
       })
-
-
     }
   },
   watch: {

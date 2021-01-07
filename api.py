@@ -271,9 +271,8 @@ def post_message():
   """
 
   data = request.get_json()
-  # room is allowed to be blank because "" is a room
-  if not data or not data.get('text') or data.get('room') is None or not data.get('author'):
-    return jsonify({'message': 'text, room, and author keys are required'}), 400
+  if not data or not data.get('text') or data.get('room') or not data.get('author'):
+    return jsonify({'message': 'text, room, and author keys must be present and non-empty'}), 400
 
   db = get_db()
 
