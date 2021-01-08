@@ -13,6 +13,7 @@ let app = new Vue({
       installedBots: [],
     },
     messages: [],
+    toEvalMessages: [],
     modals: {},
     newMessage: '',
     sendingMessage: false,
@@ -106,6 +107,52 @@ let app = new Vue({
         reader.readAsText(fileList[0]);
       }
     }.bind(this));
+  },
+  updated: function() {
+    let vm = this;
+
+    // Welcome, and congratulations for looking into this. The following code
+    // makes <script> tags in messages act as though it was XSS in 2005
+    // (namely, it works and the browser can't detect it). Modern browsers have
+    // really annoying^Wsophisticated system for detecting XSS and blocking it.
+    // Unfortunately for us, XSS is a key feature of NeCSuS so we have to run
+    // eval() on the <script> tags ourselves.
+
+    // What is the mapping from (message-id) --> [<script>]?
+    let scriptMap = {};
+    Array.from(document.getElementsByClassName("message"))
+         .forEach(function(elem) {
+           let id = elem.attributes["necsus-message-id"].value;
+           scriptMap[id] = Array.from(elem.getElementsByTagName("script"));
+         });
+
+    // For each not-yet-eval()ed script, run it in the order received (noting
+    // that several script tags can exist in a message).
+    for (message of vm.toEvalMessages) {
+      let scripts = scriptMap[`${message.id}`];
+      if (scripts === undefined) {
+        continue;
+      }
+      scripts.forEach(function(elem, idx) {
+        // This is a fairly dodgy way of marking the script as "executed" so
+        // we don't run it twice. There is no disabled attribute (we could add
+        // a fake one but this makes sure the DOM doesn't render it by
+        // accident as well).
+        if (elem.type === "text/gzip") {
+          console.log(`Re-exec of existing <script>-${idx} in message ${message.id} skipped...`);
+          return;
+        }
+        elem.type = "text/gzip";
+
+        // TODO: Handle src=.
+        console.log(`Manually eval()ing message ${message.id} <script>-${idx} to get around Chrome XSS blocking...`);
+        eval(elem.innerHTML);
+      });
+    }
+
+    // Clear to-eval messages. If there are any duplicates we won't double-exec
+    // them thanks to "text/gzip". It's more important we don't drop messages.
+    vm.toEvalMessages = [];
   },
   methods: {
     resetRoom: async function() {
@@ -202,6 +249,7 @@ let app = new Vue({
         });
       });
 
+      vm.toEvalMessages = newMessages;
       vm.messages = vm.messages.concat(newMessages);
 
       // Check if the last message contains a state which we might have to clear
