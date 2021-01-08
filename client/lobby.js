@@ -13,7 +13,7 @@ let app = new Vue({
       "Bienvenido",
       "Willkommen",
       "ようこそ",
-      "欢迎",
+      "欢迎光临",
       "Selamat datang",
       "Yarrr",
       "Ahoy",
