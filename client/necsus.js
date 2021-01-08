@@ -146,7 +146,7 @@ let app = new Vue({
 
         // TODO: Handle src=.
         console.log(`Manually eval()ing message ${message.id} <script>-${idx} to get around Chrome XSS blocking...`);
-        eval(elem.innerHTML);
+        window.eval(elem.innerHTML);
       });
     }
 
