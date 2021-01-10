@@ -160,11 +160,3 @@ class DB():
   def __init__(self, connection):
     self.messages = Messages(connection)
     self.bots = Bots(connection)
-
-  def load_dummy_data(self):
-    self.messages.add_if_new(room='', author='kenni', text='Welcome!')
-
-    self.bots.add_if_new(room='', name='Echo', url='https://flask-endpoint-echo.kennib.repl.co')
-    self.bots.add_if_new(room='', name='Repeat', responds_to='repeat (?P<word>\w+) (?P<count>\d+) times', url='https://repeat-bot.kennib.repl.co')
-    self.bots.add_if_new(room='baking', name='I want to make', url='https://baking-assistant.kennib.repl.co/recipe')
-    self.bots.add_if_new(room='games', name='roll', url='https://roll-bot.kennib.repl.co')

@@ -24,8 +24,6 @@ def init_db():
       connection.cursor().executescript(f.read())
     connection.commit()
 
-    get_db().load_dummy_data()
-
 @app.teardown_appcontext
 def close_connection(exception):
   connection = getattr(g, '_connection', None)
