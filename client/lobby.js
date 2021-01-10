@@ -34,7 +34,8 @@ let app = new Vue({
     },
     joinRoom: function() {
       if (this.room_name !== "") {
-        window.location = window.location.origin + `/${this.room_name}`;
+        let safe_room = encodeURIComponent(this.room_name);
+        window.location = window.location.origin + `/${safe_room}`;
       }
     },
   },

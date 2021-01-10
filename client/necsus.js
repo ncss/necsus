@@ -45,7 +45,7 @@ let app = new Vue({
     /*
       Determine the room
     */
-    vm.room = window.location.pathname.slice(1);
+    vm.room = decodeURIComponent(window.location.pathname.slice(1));
 
     /*
       Fetch the room's messages and settings
