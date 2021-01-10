@@ -76,6 +76,6 @@ def trigger_interaction(db, interaction):
   reply_message_result = db.messages.add(**reply_message)
   return reply_message
 
-def trigger_room_reset(db, room):
+def trigger_clear_room_messages(db, room):
   db.messages.delete(room=room)
   return room

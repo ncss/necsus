@@ -317,9 +317,9 @@ def clear_room_state():
   events.trigger_clear_room_state(db, room)
   return jsonify({'room': room})
 
-@app.route('/api/actions/reset-room', methods=['POST'])
+@app.route('/api/actions/clear-room-messages', methods=['POST'])
 @crossdomain(origin='*')
-def reset_room():
+def clear_room_messages():
   """
         Remove a room's messages
         ---
@@ -327,7 +327,7 @@ def reset_room():
           - room
         parameters:
           - in: body
-            description: the room to reset
+            description: the room to clear
             name: content
             required: true
             schema:
@@ -341,13 +341,13 @@ def reset_room():
 
         responses:
           200:
-            description: room successfully reset
+            description: room messages successfully cleared
             schema:
               properties:
                 room:
                   type: string
                   example: tutors
-                  description: the room that was reset
+                  description: the room that was cleared
   """
 
   data = request.get_json()
@@ -356,6 +356,6 @@ def reset_room():
     return jsonify({'message': 'room name is required'}), 400
 
   db = get_db()
-  room = events.trigger_room_reset(db, str(data.get('room')))
+  room = events.trigger_clear_room_messages(db, str(data.get('room')))
 
   return jsonify({'room': room})

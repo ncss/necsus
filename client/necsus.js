@@ -4,8 +4,8 @@ let app = new Vue({
   data: {
     room: '',
     settings: {},
-    resetRoomShow: false,
-    resetRoomConfirm: "",
+    clearRoomShow: false,
+    clearRoomConfirm: "",
     bots: [],
     importing: {
       text: '',
@@ -155,8 +155,8 @@ let app = new Vue({
     vm.toEvalMessages = [];
   },
   methods: {
-    resetRoom: async function() {
-      let url = '/api/actions/reset-room';
+    clearRoom: async function() {
+      let url = '/api/actions/clear-room-messages';
       let response = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({room: this.room}),
@@ -168,8 +168,8 @@ let app = new Vue({
       this.messages = [];
       this.fetchMessages();
 
-      this.resetRoomShow = false;
-      this.resetRoomConfirm = "";
+      this.clearRoomShow = false;
+      this.clearRoomConfirm = "";
     },
     fetchBots: async function() {
       let url = '/api/bots?room='+this.room;

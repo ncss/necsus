@@ -163,32 +163,32 @@
 
           <div class="card">
             <div class="card-content">
-              <span class="card-title">Reset Room</span>
+              <span class="card-title">Clear Room</span>
               <button
-                id="reset-room"
+                id="clear-room"
                 class="btn btn-wide"
-                v-if="!resetRoomShow"
-                @click="resetRoomShow = true"
+                v-if="!clearRoomShow"
+                @click="clearRoomShow = true"
               >
                 <i class="material-icons">clear_all</i>&nbsp;
-                <span>Reset Room</span>
+                <span>Remove all messages in room</span>
               </button>
-              <label for="confirm-reset-room-input" v-if="resetRoomShow">
-                Enter room name ({{ room }}) to confirm deletion:
+              <label for="confirm-clear-room-input" v-if="clearRoomShow">
+                Enter room name ({{ room }}) to confirm deletion of chat history:
               </label>
               <input
-                id="confirm-reset-room-input"
-                name="confirm-reset-room"
-                v-if="resetRoomShow"
-                v-model="resetRoomConfirm"
+                id="confirm-clear-room-input"
+                name="confirm-clear-room"
+                v-if="clearRoomShow"
+                v-model="clearRoomConfirm"
               />
 
               <button
-                id="confirm-reset-room"
+                id="confirm-clear-room"
                 class="btn btn-wide danger"
-                v-if="resetRoomShow"
-                :disabled="resetRoomConfirm.toUpperCase() != room.toUpperCase()"
-                @click="resetRoom()"
+                v-if="clearRoomShow"
+                :disabled="clearRoomConfirm.toUpperCase() != room.toUpperCase()"
+                @click="clearRoom()"
               >
                 <i class="material-icons">clear_all</i>&nbsp;
                 <span>Remove all messages in room</span>
