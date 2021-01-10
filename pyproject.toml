@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "NeCSuS"
+version = "0.0.0"
+description = "Slack, but for NCSS students."
+authors = [
+	"Kenni Bawden <kenni.bawden@gmail.com>",
+	"Aleksa Sarai <cyphar@cyphar.com>",
+	"Samuel Walladge <samuel@swalladge.net>",
+	"Tom Kunc <tomkunc0@gmail.com>",
+	"Joel Gibson <joel@jgibson.id.au>",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.25"
+flask = "^1.1"
+flask-swagger = "^0.2"
+flask-swagger-ui = "^3.36"
+pytz = "*"
+pypika = "^0.47"
+pyyaml = "^5.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

@@ -1,8 +1,0 @@
-flask
-gunicorn
-requests
-flask-swagger
-flask-swagger-ui
-pypika
-pytz
-pyyaml
