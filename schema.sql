@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  room TEXT,
+  room TEXT CHECK (room != ""), -- There is no "default" empty-name room.
   author TEXT,
   text TEXT,
   "when" TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE TABLE IF NOT EXISTS bots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  room TEXT,
+  room TEXT CHECK (room != ""), -- There is no "default" empty-name room.
   name TEXT,
   responds_to TEXT,
   url TEXT
