@@ -1,23 +1,26 @@
-from flask import request, jsonify
+from __future__ import annotations
+
+from quart import request, jsonify, send_from_directory
 from flask_swagger import swagger
-from flask_swagger_ui import get_swaggerui_blueprint
 from werkzeug.exceptions import HTTPException
 
 import events
-from crossdomain import crossdomain
+#from crossdomain import crossdomain
 from necsus import app, get_db
 
-SWAGGER_URL = '/docs'
-API_URL = '/api/spec'
-swaggerui_blueprint = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={'app_name': 'NeCSuS'},
-)
-app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+
+@app.route('/docs/')
+@app.route('/docs/<path:path>')
+async def swagger_ui(path: str | None = None):
+  """
+  The swagger-ui/ directory holds a copy of the dist/ directory from https://github.com/swagger-api/swagger-ui, with the
+  swagger-initializer.js file updated to point at /api/spec. This endpoint just serves that directory.
+  """
+  return await send_from_directory('swagger-ui', path or 'index.html')
 
 @app.errorhandler(Exception)
-def handle_error(e):
+async def handle_error(e):
     if isinstance(e, HTTPException):
         code = e.code
         message = e.description
@@ -29,15 +32,16 @@ def handle_error(e):
     return jsonify({'error': code, 'message': message}), code
 
 @app.route("/api/spec")
-def spec():
-    swag = swagger(app)
-    swag['info']['version'] = '1.0'
-    swag['info']['title'] = 'NeCSuS API'
-    return jsonify(swag)
+async def api_spec():
+  """The swagger() function inspects the app for things that look like OpenAPI endpoints with YAML docstrings."""
+  swag = swagger(app)
+  swag['info']['version'] = '1.0'
+  swag['info']['title'] = 'NeCSuS API'
+  return jsonify(swag)
 
 @app.route('/api/messages', methods=['GET'])
-@crossdomain(origin='*')
-def get_new_messages():
+#@crossdomain(origin='*')
+async def get_new_messages():
   """
         List messages
         ---
@@ -93,14 +97,14 @@ def get_new_messages():
     except ValueError:
       return jsonify({'message': 'since_id must be an integer'}), 400
 
-  db = get_db()
+  db = await get_db()
   new_messages = list(db.messages.new(since_id, room=str(room)))
 
   return jsonify(new_messages)
 
 @app.route('/api/bots', methods=['GET'])
-@crossdomain(origin='*')
-def get_bots():
+#@crossdomain(origin='*')
+async def get_bots():
   """
         List Bots
         ---
@@ -149,7 +153,7 @@ def get_bots():
   """
   room = request.args.get('room')
 
-  db = get_db()
+  db = await get_db()
 
   if room is not None:
     bots = list(db.bots.find_all(room=room))
@@ -159,8 +163,8 @@ def get_bots():
     return jsonify(bots)
 
 @app.route('/api/actions/bot', methods=['POST'])
-@crossdomain(origin='*')
-def post_bot():
+#@crossdomain(origin='*')
+async def post_bot():
   """
         Create or Update a Bot
         ---
@@ -179,7 +183,7 @@ def post_bot():
             schema:
               id: Bot
   """
-  data = request.get_json()
+  data = await request.get_json()
 
   # TODO: verify these; make nicer behaviour if bot with supplied id exists,
   # reject if will create new bot and missing fields.
@@ -195,8 +199,8 @@ def post_bot():
   return jsonify(bot)
 
 @app.route('/api/actions/bot', methods=['DELETE'])
-@crossdomain(origin='*')
-def delete_bot():
+#@crossdomain(origin='*')
+async def delete_bot():
   """
         Remove a Bot
         ---
@@ -223,7 +227,7 @@ def delete_bot():
   if id is None:
     return jsonify({'message': 'id of a bot to remove is required'}), 400
 
-  db = get_db()
+  db = await get_db()
   found = db.bots.remove(id)
 
   if not found:
@@ -232,8 +236,8 @@ def delete_bot():
   return jsonify({'id': id})
 
 @app.route('/api/actions/message', methods=['POST'])
-@crossdomain(origin='*')
-def post_message():
+#@crossdomain(origin='*')
+async def post_message():
   """
         Post a message to a room
         ---
@@ -268,13 +272,13 @@ def post_message():
               id: Message
   """
 
-  data = request.get_json()
+  data = await request.get_json()
   if not data:
     return jsonify({'message': 'message must be valid JSON object'}), 400
   if not all([data.get('text'), data.get('room'), data.get('author')]):
     return jsonify({'message': 'text, room, and author keys must be present and non-empty'}), 400
 
-  db = get_db()
+  db = await get_db()
 
   message = {
     'text': str(data['text']),
@@ -286,8 +290,8 @@ def post_message():
   return jsonify(message_result)
 
 @app.route('/api/actions/clear-room-state', methods=['POST'])
-@crossdomain(origin='*')
-def clear_room_state():
+#@crossdomain(origin='*')
+async def clear_room_state():
   """
         Clear any pending conversation state on a room
         ---
@@ -311,13 +315,13 @@ def clear_room_state():
   """
 
   room = request.values['room']
-  db = get_db()
+  db = await get_db()
   events.trigger_clear_room_state(db, room)
   return jsonify({'room': room})
 
 @app.route('/api/actions/clear-room-messages', methods=['POST'])
-@crossdomain(origin='*')
-def clear_room_messages():
+#@crossdomain(origin='*')
+async def clear_room_messages():
   """
         Remove a room's messages
         ---
@@ -348,12 +352,12 @@ def clear_room_messages():
                   description: the room that was cleared
   """
 
-  data = request.get_json()
+  data = await request.get_json()
 
   if not data or data.get('room') is None:
     return jsonify({'message': 'room name is required'}), 400
 
-  db = get_db()
+  db = await get_db()
   room = events.trigger_clear_room_messages(db, str(data.get('room')))
 
   return jsonify({'room': room})

@@ -3,6 +3,7 @@ import sqlite3
 import time
 
 import pytz
+import pypika
 from pypika import Query, Table
 
 UTC = pytz.utc
@@ -122,6 +123,23 @@ class Messages(DBList):
       yield message
 
 
+  def last(self, room: str):
+    """Return the most recent message in the room."""
+    query = (
+      Query
+      .from_(self.table)
+      .select(self.table.star)
+      .where(self.table.room == room)
+      .orderby('id', order=pypika.Order.desc)
+      .limit(1)
+    )
+    c = self.connection.cursor()
+    c.execute(query.get_sql())
+    message = c.fetchone()
+    print(message)
+    return message
+
+
   def add(self, **message):
     now = time.time()
     message['when'] = now
@@ -134,7 +152,7 @@ class Messages(DBList):
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()
-    return message
+    return self.last(room=message['room'])
 
 
   def room_state(self, room_name):

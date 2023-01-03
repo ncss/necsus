@@ -1,28 +1,29 @@
 import sqlite3
 
-from flask import Flask, g
+from quart import Quart, g
 
 import db
 
 DATABASE = 'necsus.db'
 
-app = Flask('NeCSuS')
+app = Quart('NeCSuS')
 
-def get_connection():
+async def get_connection():
   connection = getattr(g, '_connection', None)
   if connection is None:
     connection = g._database = sqlite3.connect(DATABASE)
   return connection
 
-def get_db():
-  connection = get_connection()
+async def get_db():
+  connection = await get_connection()
   return db.DB(connection)
 
-def init_db():
-  with app.app_context():
-    connection = get_connection()
-    with app.open_resource('schema.sql', mode='r') as f:
-      connection.cursor().executescript(f.read())
+@app.before_first_request
+async def init_db():
+  async with app.app_context():
+    connection = await get_connection()
+    async with await app.open_resource('schema.sql', mode='r') as f:
+      connection.cursor().executescript(await f.read())
     connection.commit()
 
 @app.teardown_appcontext

@@ -56,7 +56,8 @@ let app = new Vue({
     /*
       Auto update message every few seconds
     */
-    vm.autoUpdate();
+    // vm.autoUpdate();
+    vm.createWebsocket();
 
 
     /*
@@ -268,6 +269,28 @@ let app = new Vue({
             vm.speak(vm.markdownToText(message.text));
         });
       }
+    },
+    /** Inserts a message object (recieved from the server) into the chat room. */
+    insertMessage: function(message) {
+      this.statePresent = message.state != null;
+      if (this.statePresent) {
+        let bot = this.botWithId(message.reply_to)
+        this.replyToBotName = bot.name || '???';
+      }
+
+      this.toEvalMessages.push(message)
+      this.messages.push(message)
+    },
+    createWebsocket: function() {
+      console.log('Creating websocket...')
+      let ws = new WebSocket(`ws://localhost:6277/ws/${this.room}`)
+      ws.onopen = (e) => console.log('Websocket connected')
+      ws.onmessage = (e) => {
+        console.log('Message:', e.data)
+        this.insertMessage(JSON.parse(e.data))
+      }
+      ws.onerror = (e) => console.log('Websocket error:', e)
+      ws.onclose = (e) => console.log('Websocket closed')
     },
     submitMessage: async function() {
       if (this.newMessage.length <= 0) {

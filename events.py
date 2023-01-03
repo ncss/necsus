@@ -2,11 +2,13 @@ import re
 
 import bots
 import interactivity
+from ws import broker
 
 
 def trigger_message_post(db, message):
   special_state = db.messages.room_state(room_name=message['room'])
   message_result = db.messages.add(**message)
+  broker.publish(message_result['room'], message_result)
 
   if special_state:
     bot_id, state = special_state
@@ -27,12 +29,12 @@ def trigger_clear_room_state(db, room):
   message. This is meant to be used for debugging and development purposes."""
 
   if db.messages.room_state(room_name=room):
-    clearing_message = {
-      'room': room,
-      'author': 'NeCSuS',
-      'text': 'The room state has been cleared',
-    }
-    db.messages.add(**clearing_message)
+    message = db.messages.add(
+      room=room,
+      author='NeCSuS',
+      text='The room state has been cleared',
+    )
+    broker.publish(message['room'], message)
 
 
 def trigger_bots(db, message):
@@ -50,11 +52,13 @@ def trigger_bots(db, message):
     except:
       name = bot.get('name')
       t = 'responds_to' if bot.get('responds_to') else 'name'
-      db.messages.add(
+      message = db.messages.add(
         room=room,
         author='necsus',
         text=f'Something went wrong. Bot {name!r} has an invalid {t} regex: <pre>{search}</pre>'
       )
+      broker.publish(message['room'], message)
+
       continue
 
     if search and match:
@@ -69,12 +73,14 @@ def trigger_bot(db, message, bot, params, user=None, state=None):
   reply_message = bots.run(room, bot, text, params, user=user, state=state)
   if reply_message:
     reply_message_result = db.messages.add(**reply_message)
+    broker.publish(reply_message_result['room'], reply_message_result)
 
   return reply_message
 
 def trigger_interaction(db, interaction):
   reply_message = interactivity.interact(interaction)
   reply_message_result = db.messages.add(**reply_message)
+  broker.publish(reply_message_result['room'], reply_message_result)
   return reply_message
 
 def trigger_clear_room_messages(db, room):
