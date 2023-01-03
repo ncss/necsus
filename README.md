@@ -10,12 +10,40 @@ Documentation on the API can be found on [the main NeCSuS server](https://chat.n
 
 ## Development
 
-Run `python server.py` for the development server. This also inits the db if it
+Run `python3 server.py` for the development server. This also inits the db if it
 isn't already.
 
-Gunicorn is used for the production server (see the `Procfile`). `python
-server.py` must still be run at least once beforehand to init the db.
+## Deployment
 
+This server has been most recently deployed on a Digital Ocean droplet. Theoretically, this should be easily ported
+onto another VPS service on a different cloud provider such as AWS or Azure.
+
+Once you've SSH'd into the server, open a `tmux` session. This makes it easier to run multiple servers at once (i.e. gunicorn and caddy).
+
+Hint: If you need help with using tmux, use `Ctrl+b ?`.
+
+Run the following to install the necessary dependencies and start the server on localhost.
+
+```
+./install.sh && ./run.sh
+```
+
+Add the following to `/etc/caddy/Caddyfile` (remove/comment out the default config)
+
+```
+chat.ncss.cloud {
+	reverse_proxy localhost:6277
+	encode gzip
+}
+```
+
+Reload the caddy server to read the new config file.
+
+```
+systemctl reload caddy
+```
+
+The URL https://chat.ncss.cloud/ should now display a simple chat server!
 
 ## FAQ
 
