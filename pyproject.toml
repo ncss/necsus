@@ -13,12 +13,13 @@ authors = [
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = "^2.25"
-flask = "^1.1"
+flask = "^2.2"
 flask-swagger = "^0.2"
-flask-swagger-ui = "^3.36"
+flask-swagger-ui = "^4.11"
 pytz = "*"
-pypika = "^0.47"
-pyyaml = "^5.3"
+pypika = "^0.48"
+pyyaml = "^6.0"
+quart = "^0.18.3"
 
 [tool.poetry.dev-dependencies]
 
