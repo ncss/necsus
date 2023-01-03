@@ -1,6 +1,8 @@
 from flask import request, redirect, render_template, send_from_directory
-from necsus import app, db
+
 import events
+from necsus import app, db
+
 
 @app.route('/client/<path:path>')
 def client_path(path):
@@ -25,5 +27,3 @@ def interaction():
   events.trigger_interaction(params)
 
   return redirect('/', code=302)
-
-

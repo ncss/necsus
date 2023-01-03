@@ -1,7 +1,8 @@
+import re
+
 import bots
 import interactivity
 
-import re
 
 def trigger_message_post(db, message):
   special_state = db.messages.room_state(room_name=message['room'])

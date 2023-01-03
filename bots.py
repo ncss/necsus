@@ -1,7 +1,5 @@
 import requests
 
-from necsus import db
-
 BOT_TIMEOUT = (3.05, 42) # seconds
 
 def run(room, bot, text, params, user=None, state=None):

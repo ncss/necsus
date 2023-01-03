@@ -111,3 +111,6 @@ dmypy.json
 
 # database files
 *.db
+
+# PyCharm
+.idea

@@ -1,7 +1,8 @@
-from flask import Flask, g
-import db
-
 import sqlite3
+
+from flask import Flask, g
+
+import db
 
 DATABASE = 'necsus.db'
 

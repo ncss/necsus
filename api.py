@@ -1,13 +1,11 @@
-from flask import request, jsonify, send_from_directory
-from werkzeug.exceptions import HTTPException
-from crossdomain import crossdomain
-import yaml
-
+from flask import request, jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
+from werkzeug.exceptions import HTTPException
 
-from necsus import app, get_db
 import events
+from crossdomain import crossdomain
+from necsus import app, get_db
 
 SWAGGER_URL = '/docs'
 API_URL = '/api/spec'

@@ -1,9 +1,9 @@
-import time
 import json
-import pytz
 import sqlite3
+import time
 
-from pypika import Query, Table, Field
+import pytz
+from pypika import Query, Table
 
 UTC = pytz.utc
 SYDNEY = pytz.timezone('Australia/Sydney')

@@ -2,6 +2,7 @@ import requests
 
 from necsus import db
 
+
 def interact(params):
   endpoint_url = db.bots.find(endpoint='interactivity')
   reply = requests.post(endpoint_url, params=params)
