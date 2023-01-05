@@ -284,9 +284,10 @@ let app = new Vue({
       this.messages.push(message)
     },
     createWebsocket: function() {
-      console.log('Creating websocket...')
       let last_id = (this.lastMessage) ? this.lastMessage.id : -1
-      let ws = new WebSocket(`ws://localhost:6277/ws/${this.room}?since=${last_id}`)
+      let ws_uri = `${location.protocol == 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/${this.room}?since=${last_id}`
+      console.log(`Connecting to websocket ... (${ws_uri})`)
+      let ws = new WebSocket(ws_uri)
 
       ws.onopen = (e) => {
         this.websocketConnected = true

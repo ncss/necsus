@@ -10,11 +10,13 @@ Documentation on the API can be found on [the main NeCSuS server](https://chat.n
 
 ## Development
 
-Run `python server.py` for the development server. This also inits the db if it
-isn't already.
+For development in debug mode, run
 
-Gunicorn is used for the production server (see the `Procfile`). `python
-server.py` must still be run at least once beforehand to init the db.
+    python server.py
+
+For deployment, run
+
+    hypercorn --bind localhost:6277 --workers 1 server:app
 
 
 ## FAQ
