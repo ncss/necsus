@@ -194,7 +194,7 @@ async def post_bot():
   responds_to = data.get('responds_to')
   url = data.get('url')
 
-  db = get_db()
+  db = await get_db()
   bot = db.bots.update_or_add(id=id, room=room, name=name, responds_to=responds_to, url=url)
 
   return jsonify(bot)
@@ -315,7 +315,8 @@ async def clear_room_state():
                  description: the room that had its state cleared
   """
 
-  room = await request.values['room']
+  data = await request.values
+  room = data['room']
   db = await get_db()
   events.trigger_clear_room_state(db, room)
   return jsonify({'room': room})
