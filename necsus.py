@@ -5,6 +5,11 @@ from quart import Quart, g
 import db
 
 DATABASE = 'necsus.db'
+PRAGMAS = [
+  'PRAGMA journal_mode = WAL',    # Use write-ahead log to allow concurrent readers during a write.
+  'PRAGMA synchronous = normal',  # Default is 'full', which requires a full fsync after each commit.
+]
+
 
 app = Quart('NeCSuS')
 
@@ -12,6 +17,8 @@ async def get_connection():
   connection = getattr(g, '_connection', None)
   if connection is None:
     connection = g._database = sqlite3.connect(DATABASE)
+    for sql in PRAGMAS:
+      connection.execute(sql)
   return connection
 
 async def get_db():

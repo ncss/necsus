@@ -6,6 +6,7 @@ from werkzeug.exceptions import HTTPException
 
 import events
 from necsus import app, get_db
+from ws import broker
 
 # from crossdomain import crossdomain
 
@@ -196,6 +197,7 @@ async def post_bot():
 
   db = await get_db()
   bot = db.bots.update_or_add(id=id, room=room, name=name, responds_to=responds_to, url=url)
+  broker.put_bot(room, bot)
 
   return jsonify(bot)
 
@@ -229,12 +231,14 @@ async def delete_bot():
     return jsonify({'message': 'id of a bot to remove is required'}), 400
 
   db = await get_db()
-  found = db.bots.remove(id)
+  found = db.bots.find(id=id)
 
   if not found:
     return jsonify({'message': 'bot with this id not found'}), 404
 
-  return jsonify({'id': id})
+  db.bots.remove(id=id)
+  broker.delete_bot(found['room'], found)
+  return jsonify(found)
 
 @app.route('/api/actions/message', methods=['POST'])
 #@crossdomain(origin='*')

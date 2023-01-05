@@ -36,7 +36,7 @@
               |
               {{ room }}
               |
-              <span :title="websocketConnected ? 'Connected' : 'Disconnected'">
+              <span :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
               </span>
 

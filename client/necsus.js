@@ -49,16 +49,7 @@ let app = new Vue({
     */
     vm.room = decodeURIComponent(window.location.pathname.slice(1));
 
-    /*
-      Fetch the room's messages and settings
-    */
-    vm.fetchBots();
-    // vm.fetchMessages({silent: true});
-
-    /*
-      Auto update message every few seconds
-    */
-    // vm.autoUpdate();
+    // Updates (new messages, put/delete bots, clearing room, etc) all come over a websocket.
     vm.createWebsocket();
 
 
@@ -169,7 +160,6 @@ let app = new Vue({
       });
 
       this.messages = [];
-      this.fetchMessages();
 
       this.clearRoomShow = false;
       this.clearRoomConfirm = "";
@@ -179,6 +169,16 @@ let app = new Vue({
       let response = await fetch(url);
       let bots = await response.json();
       this.bots = bots;
+    },
+    // putBot installs a new or updated bot into the bot list.
+    putBot: function(bot) {
+      let idx = this.bots.findIndex((x) => bot.id == x.id)
+      Vue.set(this.bots, (idx >= 0) ? idx : this.bots.length, bot)
+    },
+    deleteBot: function(bot) {
+      let idx = this.bots.findIndex((x) => bot.id == x.id)
+      if (idx >= 0)
+        this.bots.splice(idx, 1)
     },
     botWithId: function(id) {
       for (let i = 0; i < this.bots.length; i++) {
@@ -195,7 +195,6 @@ let app = new Vue({
         url: '',
         responds_to: '',
       };
-      this.bots.push(newBot);
       this.submitBot(newBot);
     },
     removeBot: async function(bot) {
@@ -209,7 +208,6 @@ let app = new Vue({
         });
         let botResult = await response.json();
       }
-      await this.fetchBots();
     },
     submitBot: async function(bot, noupdate) {
       let data = {
@@ -230,10 +228,8 @@ let app = new Vue({
         },
       });
       let botResult = await response.json();
-
-      if (!noupdate)
-        await this.fetchBots();
     },
+    // Now unused.
     fetchMessages: async function(options) {
       let vm = this;
       options = options || {};
@@ -288,6 +284,7 @@ let app = new Vue({
       let ws_uri = `${location.protocol == 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/${this.room}?since=${last_id}`
       console.log(`Connecting to websocket ... (${ws_uri})`)
       let ws = new WebSocket(ws_uri)
+      this.ws = ws
 
       ws.onopen = (e) => {
         this.websocketConnected = true
@@ -300,6 +297,12 @@ let app = new Vue({
         let response = JSON.parse(e.data)
         if (response.kind == 'message')
           this.insertMessage(response.data)
+        else if (response.kind == 'put_bot')
+          this.putBot(response.data)
+        else if (response.kind == 'delete_bot')
+          this.deleteBot(response.data)
+        else if (response.kind == 'clear_messages')
+          this.messages = []
       }
 
       ws.onerror = (e) => {
@@ -313,6 +316,15 @@ let app = new Vue({
         let retryTime = 500 * Math.pow(2, this.websocketRetries) * (1 + Math.random())
         console.log(`Websocket closed, will retry after ${retryTime} ms`)
         setTimeout(() => this.createWebsocket(), retryTime)
+      }
+    },
+    // Kick the websocket off for a few seconds to simulate a disconnect (for testing purposes).
+    // This can be done by double-clicking the connected/disconnected status indicator in the UI.
+    kickWebSocket: function() {
+      if (this.ws && this.ws.readyState == WebSocket.OPEN) {
+        console.log('Kicking off the websocket for a while')
+        this.websocketRetries = 3
+        this.ws.close()
       }
     },
     submitMessage: async function() {
@@ -359,6 +371,7 @@ let app = new Vue({
 
       this.sendingMessage = false;
     },
+    // Now unused.
     autoUpdate: function() {
       let vm = this;
 
@@ -392,7 +405,7 @@ let app = new Vue({
       return this.lines(message).length;
     },
     toggleState: function(message) {
-      message.showState = !message.showState;
+      Vue.set(message, 'showState', !message.showState)
       return message.showState;
     },
     focusMessageInput: function() {

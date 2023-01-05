@@ -17,3 +17,10 @@ CREATE TABLE IF NOT EXISTS bots (
   responds_to TEXT,
   url TEXT
 );
+
+-- Contains the last-cleared-message id of each room, so that we can replay clears onto clients that
+-- disconnected and then reconnected.
+CREATE TABLE IF NOT EXISTS clears (
+  room TEXT PRIMARY KEY,
+  last_cleared_id INTEGER
+);

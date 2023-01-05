@@ -60,8 +60,7 @@ class DBList(dict):
       c.execute(q.get_sql())
 
     self.connection.commit()
-    # TODO: return legit data instead of kwargs
-    return kwargs
+    return self.find(id=kwargs['id'])
 
   def add_if_new(self, **kwargs):
     c = self.connection.cursor()
@@ -136,7 +135,6 @@ class Messages(DBList):
     c = self.connection.cursor()
     c.execute(query.get_sql())
     message = c.fetchone()
-    print(message)
     return message
 
 
@@ -174,7 +172,21 @@ class Bots(DBList):
   table = Table('bots')
 
 
+class Clears(DBList):
+  table = Table('clears')
+
+  def set_last_cleared_id(self, room: str, last_cleared_id: int):
+    if self.find(room=room) is None:
+      self.add(room=room, last_cleared_id=last_cleared_id)
+    else:
+      c = self.connection.cursor()
+      q = Query.update(self.table).where(self.table.room == room).set('last_cleared_id', last_cleared_id)
+      c.execute(q.get_sql())
+      self.connection.commit()
+
+
 class DB():
   def __init__(self, connection):
     self.messages = Messages(connection)
     self.bots = Bots(connection)
+    self.clears = Clears(connection)

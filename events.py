@@ -77,5 +77,9 @@ def trigger_bot(db, room: str, author: str, text: str, bot, params, state=None):
   return reply_message
 
 def trigger_clear_room_messages(db, room):
-  db.messages.delete(room=room)
+  if (msg := db.messages.last(room=room)) is not None:
+    db.clears.set_last_cleared_id(room=room, last_cleared_id=msg['id'])
+    db.messages.delete(room=room)
+    broker.clear_room(room)
+
   return room
