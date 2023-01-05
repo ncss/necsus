@@ -5,8 +5,9 @@ from flask_swagger import swagger
 from werkzeug.exceptions import HTTPException
 
 import events
-#from crossdomain import crossdomain
 from necsus import app, get_db
+
+# from crossdomain import crossdomain
 
 
 
@@ -314,7 +315,7 @@ async def clear_room_state():
                  description: the room that had its state cleared
   """
 
-  room = request.values['room']
+  room = await request.values['room']
   db = await get_db()
   events.trigger_clear_room_state(db, room)
   return jsonify({'room': room})
