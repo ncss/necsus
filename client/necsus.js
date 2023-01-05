@@ -19,6 +19,8 @@ let app = new Vue({
     sendingMessage: false,
     statePresent: false,
     replyToBotName: undefined,
+    websocketConnected: false,  // UI indicator.
+    websocketRetries: 0,        // Used for exponential backoff on reconnects.
   },
   created: function() {
     let vm = this;
@@ -51,7 +53,7 @@ let app = new Vue({
       Fetch the room's messages and settings
     */
     vm.fetchBots();
-    vm.fetchMessages({silent: true});
+    // vm.fetchMessages({silent: true});
 
     /*
       Auto update message every few seconds
@@ -283,14 +285,34 @@ let app = new Vue({
     },
     createWebsocket: function() {
       console.log('Creating websocket...')
-      let ws = new WebSocket(`ws://localhost:6277/ws/${this.room}`)
-      ws.onopen = (e) => console.log('Websocket connected')
-      ws.onmessage = (e) => {
-        console.log('Message:', e.data)
-        this.insertMessage(JSON.parse(e.data))
+      let last_id = (this.lastMessage) ? this.lastMessage.id : -1
+      let ws = new WebSocket(`ws://localhost:6277/ws/${this.room}?since=${last_id}`)
+
+      ws.onopen = (e) => {
+        this.websocketConnected = true
+        this.websocketRetries = 0
+        console.log('Websocket connected')
       }
-      ws.onerror = (e) => console.log('Websocket error:', e)
-      ws.onclose = (e) => console.log('Websocket closed')
+
+      ws.onmessage = (e) => {
+        console.log('Websocket message:', e.data)
+        let response = JSON.parse(e.data)
+        if (response.kind == 'message')
+          this.insertMessage(response.data)
+      }
+
+      ws.onerror = (e) => {
+        console.log('Websocket error:', e)
+      }
+
+      // When the websocket closes (which also happens on error), retry with exponential backoff and some randomness.
+      ws.onclose = (e) => {
+        this.websocketConnected = false
+        this.websocketRetries += 1
+        let retryTime = 500 * Math.pow(2, this.websocketRetries) * (1 + Math.random())
+        console.log(`Websocket closed, will retry after ${retryTime} ms`)
+        setTimeout(() => this.createWebsocket(), retryTime)
+      }
     },
     submitMessage: async function() {
       if (this.newMessage.length <= 0) {

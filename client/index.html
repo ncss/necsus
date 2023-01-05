@@ -32,7 +32,14 @@
         <nav class="z-depth-0">
           <div class="nav-wrapper">
             <span class="nav-name">
-              <a href="/">NeCSuS</a> | {{ room }}
+              <a href="/">NeCSuS</a>
+              |
+              {{ room }}
+              |
+              <span :title="websocketConnected ? 'Connected' : 'Disconnected'">
+                {{ websocketConnected ? '🟢' : '🔴'}}
+              </span>
+
             </span>
             <ul id="nav-mobile" class="right">
               <li>

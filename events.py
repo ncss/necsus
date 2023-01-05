@@ -1,30 +1,33 @@
+"""
+Events contains the business logic for receiving messages and dispatching them to bots.
+"""
+
 import re
 
 import bots
-import interactivity
 from ws import broker
 
 
-def trigger_message_post(db, message):
-  special_state = db.messages.room_state(room_name=message['room'])
-  message_result = db.messages.add(**message)
-  broker.publish(message_result['room'], message_result)
+def trigger_message_post(db, room: str, author: str, text: str):
+  special_state = db.messages.room_state(room_name=room)
+  message = db.messages.add(room=room, author=author, text=text)
+  broker.publish_message(room, message)
 
   if special_state:
     bot_id, state = special_state
     bots = db.bots.find_all(id=bot_id)
     if len(bots) != 1:
-      return message_result
+      return message
 
     bot = bots[0]
-    trigger_bot(db, message, bot, {}, state=state, user=message.get('author', ''))
+    trigger_bot(db, room, author, text, bot, {}, state=state)
   else:
-    trigger_bots(db, message)
+    trigger_bots(db, room, author, text)
 
-  return message_result
+  return message
 
 
-def trigger_clear_room_state(db, room):
+def trigger_clear_room_state(db, room: str):
   """Post an emptyish message to a room to clear any state left over from the last
   message. This is meant to be used for debugging and development purposes."""
 
@@ -34,13 +37,10 @@ def trigger_clear_room_state(db, room):
       author='NeCSuS',
       text='The room state has been cleared',
     )
-    broker.publish(message['room'], message)
+    broker.publish_message(room, message)
 
 
-def trigger_bots(db, message):
-  text = message.get('text')
-  user = message.get('author')
-  room = message.get('room', '')
+def trigger_bots(db, room: str, author: str, text: str):
   room_bots = db.bots.find_all(room=room)
 
   replies = []
@@ -57,30 +57,23 @@ def trigger_bots(db, message):
         author='necsus',
         text=f'Something went wrong. Bot {name!r} has an invalid {t} regex: <pre>{search}</pre>'
       )
-      broker.publish(message['room'], message)
+      broker.publish_message(room, message)
 
       continue
 
     if search and match:
-      reply = trigger_bot(db, message, bot, match.groupdict(), user)
+      reply = trigger_bot(db, room, author, text, bot, match.groupdict())
       replies.append(reply)
 
   return replies
 
-def trigger_bot(db, message, bot, params, user=None, state=None):
-  text = message.get('text')
-  room = message.get('room')
-  reply_message = bots.run(room, bot, text, params, user=user, state=state)
-  if reply_message:
-    reply_message_result = db.messages.add(**reply_message)
-    broker.publish(reply_message_result['room'], reply_message_result)
+# def trigger_bot(db, message, bot, params, user=None, state=None):
+def trigger_bot(db, room: str, author: str, text: str, bot, params, state=None):
+  reply = bots.run(room, bot, text, params, user=author, state=state)
+  if reply:
+    reply_message = db.messages.add(**reply)
+    broker.publish_message(room, reply_message)
 
-  return reply_message
-
-def trigger_interaction(db, interaction):
-  reply_message = interactivity.interact(interaction)
-  reply_message_result = db.messages.add(**reply_message)
-  broker.publish(reply_message_result['room'], reply_message_result)
   return reply_message
 
 def trigger_clear_room_messages(db, room):

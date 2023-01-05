@@ -276,19 +276,13 @@ async def post_message():
   data = await request.get_json()
   if not data:
     return jsonify({'message': 'message must be valid JSON object'}), 400
-  if not all([data.get('text'), data.get('room'), data.get('author')]):
+
+  text, room, author = [data.get(key) for key in ['text', 'room', 'author']]
+  if text is None or room is None or author is None:
     return jsonify({'message': 'text, room, and author keys must be present and non-empty'}), 400
 
-  db = await get_db()
-
-  message = {
-    'text': str(data['text']),
-    'room': str(data['room']),
-    'author': str(data['author']),
-  }
-  message_result = events.trigger_message_post(db, message)
-
-  return jsonify(message_result)
+  message = events.trigger_message_post(await get_db(), room, author, text)
+  return jsonify(message)
 
 @app.route('/api/actions/clear-room-state', methods=['POST'])
 #@crossdomain(origin='*')
