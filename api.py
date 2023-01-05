@@ -18,7 +18,7 @@ async def swagger_ui(path: str | None = None):
   The swagger-ui/ directory holds a copy of the dist/ directory from https://github.com/swagger-api/swagger-ui, with the
   swagger-initializer.js file updated to point at /api/spec. This endpoint just serves that directory.
   """
-  return await send_from_directory('swagger-ui', path or 'index.html')
+  return await send_from_directory('swagger-ui', path or 'index.html', cache_timeout=60*10)
 
 @app.errorhandler(Exception)
 async def handle_error(e):
