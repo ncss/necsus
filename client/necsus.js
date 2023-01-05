@@ -257,7 +257,7 @@ let app = new Vue({
         this.statePresent = lastMessage.state != null;
         if (this.statePresent) {
           let bot = this.botWithId(lastMessage.reply_to);
-          this.replyToBotName = bot.name || '???';
+          this.replyToBotName = lastMessage.author || '???';
         }
       }
 
@@ -273,7 +273,7 @@ let app = new Vue({
       this.statePresent = message.state != null;
       if (this.statePresent) {
         let bot = this.botWithId(message.reply_to)
-        this.replyToBotName = bot.name || '???';
+        this.replyToBotName = message.author || '???';
       }
 
       this.toEvalMessages.push(message)
