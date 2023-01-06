@@ -1,4 +1,5 @@
 let plainTextRenderer = new PlainTextRenderer;
+const NEW_MESSAGE_HISTORY_SIZE = 20;
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -16,6 +17,8 @@ let app = new Vue({
     toEvalMessages: [],
     modals: {},
     newMessage: '',
+    newMessageHistory: [],      // For up-arrow back-going.
+    newMessageHistoryPos: 0,    // For up-arrow back-going.
     sendingMessage: false,
     statePresent: false,
     replyToBotName: undefined,
@@ -350,11 +353,24 @@ let app = new Vue({
         });
 
         let messageResult = await response.json();
+        console.log('Response from sending message:', messageResult)
       } catch {}
       this.sendingMessage = false;
 
+      if (this.newMessageHistory.indexOf(this.newMessage) < 0) {
+        this.newMessageHistory = [this.newMessage, ...this.newMessageHistory.slice(0, NEW_MESSAGE_HISTORY_SIZE - 1)];
+      }
+      this.newMessageHistoryPos = 0;
       this.newMessage = '';
-
+    },
+    newMessageHistoryMove: function(direction) {
+      let inBounds = (pos) => (0 <= pos && pos <= this.newMessageHistory.length)
+      if (inBounds(this.newMessageHistoryPos)) {
+        this.newMessage = this.newMessageHistory[this.newMessageHistoryPos]
+        let newPos = this.newMessageHistoryPos + direction
+        if (inBounds(newPos))
+          this.newMessageHistoryPos = newPos
+      }
     },
     clearState: async function() {
       let data = new FormData();

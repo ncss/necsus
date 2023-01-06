@@ -123,6 +123,8 @@
                   v-bind:rows="rows()"
                   v-bind:disabled="sendingMessage"
                   @keydown.enter.exact.prevent
+                  @keyup.up="newMessageHistoryMove(1)"
+                  @keyup.down="newMessageHistoryMove(-1)"
                   v-on:keyup.enter.exact="submitMessage(newMessage)"
                 ></textarea>
                 <button

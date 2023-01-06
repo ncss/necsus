@@ -6,4 +6,4 @@ import frontend
 import ws
 
 if __name__ == '__main__':
-  app.run(host="0.0.0.0", port=6277)
+  app.run(host="0.0.0.0", port=6277, debug=True)
