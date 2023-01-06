@@ -20,6 +20,7 @@ pytz = "*"
 pypika = "^0.48"
 pyyaml = "^6.0"
 quart = "^0.18.3"
+starlette = "^0.23.1"
 
 [tool.poetry.dev-dependencies]
 
