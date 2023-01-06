@@ -81,7 +81,7 @@ async def ws(room: str):
   except:
     pass
 
-  db = await get_db()
+  db = get_db()
   last_cleared_entry = db.clears.find(room=room)
   last_cleared_id = last_cleared_entry['last_cleared_id'] if last_cleared_entry is not None else None
 

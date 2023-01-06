@@ -99,7 +99,7 @@ async def get_new_messages():
     except ValueError:
       return jsonify({'message': 'since_id must be an integer'}), 400
 
-  db = await get_db()
+  db = get_db()
   new_messages = list(db.messages.new(since_id, room=str(room)))
 
   return jsonify(new_messages)
@@ -155,7 +155,7 @@ async def get_bots():
   """
   room = request.args.get('room')
 
-  db = await get_db()
+  db = get_db()
 
   if room is not None:
     bots = list(db.bots.find_all(room=room))
@@ -195,7 +195,7 @@ async def post_bot():
   responds_to = data.get('responds_to')
   url = data.get('url')
 
-  db = await get_db()
+  db = get_db()
   bot = db.bots.update_or_add(id=id, room=room, name=name, responds_to=responds_to, url=url)
   broker.put_bot(room, bot)
 
@@ -230,7 +230,7 @@ async def delete_bot():
   if id is None:
     return jsonify({'message': 'id of a bot to remove is required'}), 400
 
-  db = await get_db()
+  db = get_db()
   found = db.bots.find(id=id)
 
   if not found:
@@ -285,7 +285,7 @@ async def post_message():
   if text is None or room is None or author is None:
     return jsonify({'message': 'text, room, and author keys must be present and non-empty'}), 400
 
-  message = events.trigger_message_post(await get_db(), room, author, text)
+  message = events.trigger_message_post(get_db(), room, author, text)
   return jsonify(message)
 
 @app.route('/api/actions/clear-room-state', methods=['POST'])
@@ -315,7 +315,7 @@ async def clear_room_state():
 
   data = await request.values
   room = data['room']
-  db = await get_db()
+  db = get_db()
   events.trigger_clear_room_state(db, room)
   return jsonify({'room': room})
 
@@ -357,7 +357,7 @@ async def clear_room_messages():
   if not data or data.get('room') is None:
     return jsonify({'message': 'room name is required'}), 400
 
-  db = await get_db()
+  db = get_db()
   room = events.trigger_clear_room_messages(db, str(data.get('room')))
 
   return jsonify({'room': room})
