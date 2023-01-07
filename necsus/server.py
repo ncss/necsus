@@ -60,7 +60,7 @@ class Room(HTTPEndpoint):
 
 class Docs(HTTPEndpoint):
     async def get(self, request):
-        return RedirectResponse('/docs/index.html', status_code=301)
+        return RedirectResponse('/docs/', status_code=301)
 
 
 class ApiSpec(HTTPEndpoint):
@@ -241,7 +241,7 @@ routes = [
 
     # The swagger-ui/ directory holds a copy of the dist/ directory from https://github.com/swagger-api/swagger-ui.
     # The swagger-initializer.js file has been updated to point at /api/spec.
-    Mount('/docs', app=StaticFiles(directory='swagger-ui')),
+    Mount('/docs', app=StaticFiles(directory='swagger-ui', html=True)),
     Route('/docs', Docs),
     Route('/api/spec', ApiSpec),
 
