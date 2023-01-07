@@ -153,13 +153,10 @@ let app = new Vue({
   },
   methods: {
     clearRoom: async function() {
-      let url = '/api/actions/clear-room-messages';
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/clear-room-messages', {
         method: 'POST',
         body: JSON.stringify({room: this.room}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
       });
 
       this.messages = [];
@@ -167,9 +164,9 @@ let app = new Vue({
       this.clearRoomShow = false;
       this.clearRoomConfirm = "";
     },
+    // Now unused
     fetchBots: async function() {
-      let url = '/api/bots?room='+this.room;
-      let response = await fetch(url);
+      let response = await fetch('/api/bots?' + new URLSearchParams({room: this.room}));
       let bots = await response.json();
       this.bots = bots;
     },
@@ -201,35 +198,28 @@ let app = new Vue({
       this.submitBot(newBot);
     },
     removeBot: async function(bot) {
-      if (bot.id) {
-        let url = '/api/actions/bot?id='+bot.id;
-        let response = await fetch(url, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        let botResult = await response.json();
-      }
+      if (!bot.id)
+        return
+
+      let response = await fetch('/api/actions/bot', {
+        method: 'DELETE',
+        body: JSON.stringify({id: bot.id}),
+        headers: {'Content-Type': 'application/json'},
+      })
+      let botResult = await response.json();
     },
     submitBot: async function(bot, noupdate) {
-      let data = {
-        room: this.room,
-        name: bot.name,
-        url: bot.url,
-        responds_to: bot.responds_to,
-      };
-      if (bot.id)
-        data.id = bot.id;
-
-      let url = '/api/actions/bot'
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/bot', {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        body: JSON.stringify({
+          room: this.room,
+          name: bot.name,
+          url: bot.url,
+          responds_to: bot.responds_to,
+          ...((bot.id) ? {id: bot.id} : {}),  // Only added if bot.id is present.
+        }),
+        headers: {'Content-Type': 'application/json'},
+      })
       let botResult = await response.json();
     },
     // Now unused.
@@ -334,22 +324,17 @@ let app = new Vue({
       if (this.newMessage.length <= 0) {
         return;
       }
-      let data = {
-        room: this.room,
-        author: this.settings.name,
-        text: this.newMessage,
-      };
-
       this.sendingMessage = true;
 
       try {
-        let url = '/api/actions/message';
-        let response = await fetch(url, {
+        let response = await fetch('/api/actions/message', {
           method: 'POST',
-          body: JSON.stringify(data),
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          body: JSON.stringify({
+            room: this.room,
+            author: this.settings.name,
+            text: this.newMessage,
+          }),
+          headers: {'Content-Type': 'application/json'},
         });
 
         let messageResult = await response.json();
@@ -373,16 +358,12 @@ let app = new Vue({
       }
     },
     clearState: async function() {
-      let data = new FormData();
-      data.append('room', this.room);
-
       this.sendingMessage = true;
-
-      let url = '/api/actions/clear-room-state'
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/clear-room-state', {
         method: 'POST',
-        body: data,
-      });
+        body: JSON.stringify({room: this.room}),
+        headers: {'Content-Type': 'application/json'},
+      })
       await response.json();
 
       this.sendingMessage = false;

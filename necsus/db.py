@@ -113,7 +113,7 @@ class Messages(DBList):
     messages = self.find_all(**kwargs)
 
     take_from = 0 if since_id == None else int(since_id)
-    newer_messages = (message for message in messages if int(message['id']) >= take_from)
+    newer_messages = (message for message in messages if int(message['id']) > take_from)
 
     for message in newer_messages:
       if message['state'] is not None:
@@ -187,6 +187,7 @@ class Clears(DBList):
 
 class DB():
   def __init__(self, connection):
+    self._connection = connection
     self.messages = Messages(connection)
     self.bots = Bots(connection)
     self.clears = Clears(connection)

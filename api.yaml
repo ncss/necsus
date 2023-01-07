@@ -1,0 +1,127 @@
+# Edit on https://editor.swagger.io/
+
+openapi: 3.0.3
+info:
+  title: Necsus API
+  description: The API for the Necsus chat room
+  version: 0.0.1.lol
+servers:
+  - url: https://chat.ncss.cloud
+    description: The Necsus server
+tags:
+  - name: Information
+  - name: Actions
+paths:
+  /api/messages:
+    get:
+      tags:
+        - Information
+      summary: List messages in a room
+      parameters:
+        - in: query
+          name: room
+          required: true
+          description: The chat room name.
+          schema:
+            type: string
+        - in: query
+          name: since
+          description: List only messages strictly after this ID.
+          schema:
+            type: number
+      responses:
+        200:
+          description: Messages successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfMessage'
+
+  /api/bots:
+    get:
+      tags:
+        - Information
+      summary: List all bots in a room
+      parameters:
+        - in: query
+          name: room
+          required: true
+          description: The chat room name.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Messages successfully fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfBot'
+
+  /api/actions/bot:
+    post:
+      tags:
+        - Actions
+      summary: Add or update a bot
+      requestBody:
+        description: Omit the `id` key to create a new bot.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bot'
+      responses:
+        200:
+          description: Successful
+
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        room:
+          type: string
+          example: 'test-room'
+        author:
+          type: string
+          example: 'James Curran'
+        when:
+          type: number
+          example: 1673053068.15579
+        text:
+          type: string
+          example: 'Good morning NCSS!'
+        image:
+          type: string
+          nullable: true
+        media:
+          type: string
+          nullable: true
+    ArrayOfMessage:
+      type: array
+      items:
+        $ref: '#/components/schemas/Message'
+    Bot:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        room:
+          type: string
+          example: 'test-room'
+        author:
+          type: string
+          example: 'Alarm bot'
+        responds_to:
+          type: string
+          example: 'wake me in [0-9]+ \w+'
+        url:
+          type: string
+          example: 'https://bots.ncss.cloud/alarm-bot'
+    ArrayOfBot:
+      type: array
+      items:
+        $ref: '#/components/schemas/Bot'
