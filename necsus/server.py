@@ -5,6 +5,7 @@ import sqlite3
 from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint, WebSocketEndpoint
 from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import FileResponse, RedirectResponse, JSONResponse
@@ -62,6 +63,11 @@ class Docs(HTTPEndpoint):
         return RedirectResponse('/docs/index.html', status_code=301)
 
 
+class ApiSpec(HTTPEndpoint):
+    async def get(self, request):
+        return FileResponse('api.yaml')
+
+
 class ApiMessages(HTTPEndpoint):
     async def get(self, request):
         """
@@ -90,6 +96,22 @@ class ApiBots(HTTPEndpoint):
             bots = list(request.app.state.db.bots.find_all())
 
         return JSONResponse(bots)
+
+
+class ApiActionsMessage(HTTPEndpoint):
+    async def post(self, request: Request):
+        """Post a message to a room."""
+        try:
+            data = await request.json()
+        except json.JSONDecodeError:
+            return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
+
+        text, room, author = [data.get(key) for key in ['text', 'room', 'author']]
+        if None in (text, room, author):
+            return JSONResponse({'message': f'All of text, room, and author should be non-null, got {text=}, {room=}, {author=}'}, status_code=400)
+
+        message = events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text)
+        return JSONResponse(message)
 
 
 class ApiActionBot(HTTPEndpoint):
@@ -123,20 +145,19 @@ class ApiActionBot(HTTPEndpoint):
         return JSONResponse(bot)
 
 
-class ApiActionsMessage(HTTPEndpoint):
+class ApiActionsClearRoomMessages(HTTPEndpoint):
     async def post(self, request: Request):
-        """Post a message to a room."""
+        """Clear all messages in a room."""
         try:
             data = await request.json()
         except json.JSONDecodeError:
             return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
 
-        text, room, author = [data.get(key) for key in ['text', 'room', 'author']]
-        if None in (text, room, author):
-            return JSONResponse({'message': f'All of text, room, and author should be non-null, got {text=}, {room=}, {author=}'}, status_code=400)
+        if (room := data.get('room')) is None:
+            return JSONResponse({'message': 'Need to provide the room name to clear the messages.'}, status_code=400)
 
-        message = events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text)
-        return JSONResponse(message)
+        events.trigger_clear_room_messages(request.app.state.db, request.app.state.broker, room)
+        return JSONResponse({'room': room})
 
 
 class ApiActionsClearRoomState(HTTPEndpoint):
@@ -151,21 +172,6 @@ class ApiActionsClearRoomState(HTTPEndpoint):
             return JSONResponse({'message': 'Need to provide the room name to clear the state of.'}, status_code=400)
 
         events.trigger_clear_room_state(request.app.state.db, request.app.state.broker, room)
-        return JSONResponse({'room': room})
-
-
-class ApiActionsClearRoomMessages(HTTPEndpoint):
-    async def post(self, request: Request):
-        """Clear all messages in a room."""
-        try:
-            data = await request.json()
-        except json.JSONDecodeError:
-            return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
-
-        if (room := data.get('room')) is None:
-            return JSONResponse({'message': 'Need to provide the room name to clear the messages.'}, status_code=400)
-
-        events.trigger_clear_room_messages(request.app.state.db, request.app.state.broker, room)
         return JSONResponse({'room': room})
 
 
@@ -215,8 +221,17 @@ class WebSocketRoom(WebSocketEndpoint):
             await ws.send_json(message)
 
 
-# TODO: The StaticFiles apps need a Cache-Control: no-cache header applied.
-# TODO: The Lobby and Room endpoints should be served through some StaticFiles thing.
+class NoCacheHeader(BaseHTTPMiddleware):
+    """
+    Adds a 'Cache-Control: no-cache' header to every HTTP response from the server. The behaviour of no-cache is that
+    the browser may still choose to cache files, but must re-validate them with the server (via their etag, for example)
+    upon each request.
+    """
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers['Cache-Control'] = 'no-cache'
+        return response
+
 
 routes = [
     Route('/', Lobby),
@@ -228,16 +243,18 @@ routes = [
     # The swagger-initializer.js file has been updated to point at /api/spec.
     Mount('/docs', app=StaticFiles(directory='swagger-ui')),
     Route('/docs', Docs),
+    Route('/api/spec', ApiSpec),
 
     # API endpoints which are GET routes accepting query parameters.
     Route('/api/messages', ApiMessages),
     Route('/api/bots', ApiBots),
 
     # API endpoints which are non-GET routes accepting JSON payloads.
-    Route('/api/actions/bot', ApiActionBot),
-    Route('/api/actions/clear-room-state', ApiActionsClearRoomState),
-    Route('/api/actions/clear-room-messages', ApiActionsClearRoomMessages),
     Route('/api/actions/message', ApiActionsMessage),
+    Route('/api/actions/bot', ApiActionBot),
+    Route('/api/actions/clear-room-messages', ApiActionsClearRoomMessages),
+    Route('/api/actions/clear-room-state', ApiActionsClearRoomState),
+
 
     WebSocketRoute('/ws/{room:path}', WebSocketRoom),
 
@@ -250,6 +267,9 @@ middleware = [
     # Here we heavy-handedly apply it across the whole application, an alternative would be wrapping
     # the API endpoints into their own app, and mounting that app perhaps?
     Middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*']),
+
+    # Ensure that clients are always getting the freshest Necsus version.
+    Middleware(NoCacheHeader),
 ]
 
 app = Starlette(

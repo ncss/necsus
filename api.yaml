@@ -1,12 +1,10 @@
-# Edit on https://editor.swagger.io/
-
 openapi: 3.0.3
 info:
   title: Necsus API
   description: The API for the Necsus chat room
   version: 0.0.1.lol
 servers:
-  - url: https://chat.ncss.cloud
+  - url: /
     description: The Necsus server
 tags:
   - name: Information
@@ -57,6 +55,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/ArrayOfBot'
 
+  /api/actions/message:
+    post:
+      tags:
+        - Actions
+      summary: Post a message to a room
+      description: 'Only the room, author, and text fields are required.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                room:
+                  type: string
+                  example: 'test-room'
+                author:
+                  type: string
+                  example: 'AlarmBot'
+                text:
+                  type: string
+                  example: 'Hello there!'
+                image:
+                  type: string
+                media:
+                  type: string
+                state:
+                  type: object
+      responses:
+        200:
+          description: 'The message that was posted, including its new ID.'
+
   /api/actions/bot:
     post:
       tags:
@@ -72,6 +102,66 @@ paths:
       responses:
         200:
           description: Successful
+    delete:
+      tags:
+        - Actions
+      summary: Delete a bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 2
+      responses:
+        200:
+          description: The bot that was deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bot'
+
+  /api/actions/clear-room-messages:
+    post:
+      tags:
+        - Actions
+      summary: Clear all messages in a room
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                room:
+                  type: string
+                  example: 'test-room'
+
+      responses:
+        200:
+          description: The room was successfully cleared
+
+  /api/actions/clear-room-state:
+    post:
+      tags:
+        - Actions
+      summary: Clear the sticky bot state in a room.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                room:
+                  type: string
+                  example: 'test-room'
+
+      responses:
+        200:
+          description: The room state was successfully cleared
+
 
 components:
   schemas:
@@ -99,6 +189,15 @@ components:
         media:
           type: string
           nullable: true
+        state:
+          type: object
+          nullable: true
+          example: null
+        reply_to:
+          type: integer
+          example: 2
+          nullable: true
+
     ArrayOfMessage:
       type: array
       items:
@@ -112,7 +211,7 @@ components:
         room:
           type: string
           example: 'test-room'
-        author:
+        name:
           type: string
           example: 'Alarm bot'
         responds_to:
