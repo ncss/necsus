@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import sqlite3
 
 from starlette.applications import Starlette
@@ -25,6 +26,8 @@ PRAGMAS = [
   'PRAGMA synchronous = normal',  # Default is 'full', which requires a full fsync after each commit.
 ]
 DB_SCHEMA = 'schema.sql'
+
+logger = logging.getLogger('necsus')
 
 
 def startup():
@@ -208,7 +211,7 @@ class WebSocketRoom(WebSocketEndpoint):
         asyncio.create_task(self.message_pump(ws, recv))
 
     async def on_disconnect(self, ws: WebSocket, close_code: int):
-        print(f"Websocket for room {self.room} closed with {close_code=}")
+        logger.info(f"Websocket for room {self.room} closed with {close_code=}")
         ws.app.state.broker.unsubscribe(self.tag)
 
     async def message_pump(self, ws: WebSocket, messages):

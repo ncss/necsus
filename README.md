@@ -16,8 +16,8 @@ Install the projects dependencies using [Poetry](https://python-poetry.org/):
 
 To run the NeCSuS server, use one of the following two commands:
 
-    poetry run uvicorn necsus:app --reload                          # Debug mode, reloads on file changes.
-    poetry run uvicorn necsus:app --host localhost --port 6277      # Production mode.
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --reload                          # Debug mode.
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --host localhost --port 6277      # Production mode.
 
 Then visit <http://localhost:6277/>.
 The chat room will be stored in a local SQLite database called `necsus.db`.

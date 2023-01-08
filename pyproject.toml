@@ -14,14 +14,10 @@ authors = [
 python = "^3.8"
 requests = "^2.25"
 flask = "^2.2"
-flask-swagger = "^0.2"
-flask-swagger-ui = "^4.11"
 pytz = "*"
 pypika = "^0.48"
-pyyaml = "^6.0"
-quart = "^0.18.3"
 starlette = "^0.23.1"
-uvicorn = "^0.20.0"
+uvicorn = {extras = ["standard"], version = "^0.20.0"}
 httpx = "^0.23.3"
 
 [tool.poetry.dev-dependencies]
