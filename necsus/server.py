@@ -83,7 +83,7 @@ class ApiMessages(HTTPEndpoint):
         except:
             pass
 
-        new_messages = list(request.app.state.db.messages.new(since_id, room=room))
+        new_messages = list(request.app.state.db.messages.since(room, since_id))
         return JSONResponse(new_messages)
 
 
@@ -198,7 +198,7 @@ class WebSocketRoom(WebSocketEndpoint):
             since_id = last_cleared_id
 
         current_bots = list(ws.app.state.db.bots.find_all(room=room))
-        new_messages = list(ws.app.state.db.messages.new(since_id, room=room))
+        new_messages = list(ws.app.state.db.messages.since(room, since_id))
         recv, self.tag = ws.app.state.broker.subscribe(
             room=room,
             init_bots=current_bots,

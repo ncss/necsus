@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS messages (
   state BLOB         -- Only forward to the bot if this state is a nonempty string of json data.
 );
 
+CREATE INDEX IF NOT EXISTS messages_byroom ON messages (room, id);
+
 CREATE TABLE IF NOT EXISTS bots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room TEXT CHECK (room != ""), -- There is no "default" empty-name room.

@@ -107,20 +107,19 @@ class Messages(DBList):
   table = Table('messages')
   allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'reply_to', 'state']
 
-  def new(self, since_id, **kwargs):
-    "Return a generator of messages since a given id (which may be None to return all messages)"
-
-    messages = self.find_all(**kwargs)
-
-    take_from = 0 if since_id == None else int(since_id)
-    newer_messages = (message for message in messages if int(message['id']) > take_from)
-
-    for message in newer_messages:
-      if message['state'] is not None:
-        message['state'] = json.loads(message['state'])
-
-      yield message
-
+  def since(self, room: str, since_id: int = -1):
+    """Return a list of all messages in the room with IDs strictly greater than a given ID, in ascending ID order."""
+    query = (
+      Query
+      .from_(self.table)
+      .select(self.table.star)
+      .where(self.table.room == room)
+      .where(self.table.id > since_id)
+      .orderby('id')
+    )
+    c = self.connection.cursor()
+    c.execute(query.get_sql())
+    return c.fetchall()
 
   def last(self, room: str):
     """Return the most recent message in the room."""
