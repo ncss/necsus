@@ -23,6 +23,15 @@ def index():
   }
 
 
+@app.route('/animal', methods=['POST'])
+def animal():
+  """Test the image responses."""
+  return {
+    'author': 'Animal bot',
+    'text': 'Here is a capybara',
+    'image': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Capybara_%28Hydrochoerus_hydrochaeris%29.JPG/440px-Capybara_%28Hydrochoerus_hydrochaeris%29.JPG',
+  }
+
 BOTTY = 'Botty Botsen'
 
 

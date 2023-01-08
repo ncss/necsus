@@ -22,9 +22,9 @@ def system_message(room: str, text: str):
     }
 
 
-async def trigger_message_post(db, broker, room: str, author: str, text: str):
+async def trigger_message_post(db, broker, room: str, author: str, text: str, image, media):
     special_state = db.messages.room_state(room_name=room)
-    message = db.messages.add(room=room, author=author, text=text)
+    message = db.messages.add(room=room, author=author, text=text, image=image, media=media)
     broker.publish_message(room, message)
 
     if special_state:
