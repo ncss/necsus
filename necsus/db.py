@@ -1,9 +1,10 @@
-import time
 import json
-import pytz
 import sqlite3
+import time
 
-from pypika import Query, Table, Field
+import pytz
+import pypika
+from pypika import Query, Table
 
 UTC = pytz.utc
 SYDNEY = pytz.timezone('Australia/Sydney')
@@ -59,8 +60,7 @@ class DBList(dict):
       c.execute(q.get_sql())
 
     self.connection.commit()
-    # TODO: return legit data instead of kwargs
-    return kwargs
+    return self.find(id=kwargs['id'])
 
   def add_if_new(self, **kwargs):
     c = self.connection.cursor()
@@ -105,21 +105,36 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
-  allowed_keys = ['id', 'room', 'author', 'text', 'when', 'image', 'media', 'reply_to', 'state']
+  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'reply_to', 'state']
 
-  def new(self, since_id, **kwargs):
-    "Return a generator of messages since a given id (which may be None to return all messages)"
+  def since(self, room: str, since_id: int = -1):
+    """Return a list of all messages in the room with IDs strictly greater than a given ID, in ascending ID order."""
+    query = (
+      Query
+      .from_(self.table)
+      .select(self.table.star)
+      .where(self.table.room == room)
+      .where(self.table.id > since_id)
+      .orderby('id')
+    )
+    c = self.connection.cursor()
+    c.execute(query.get_sql())
+    return c.fetchall()
 
-    messages = self.find_all(**kwargs)
-
-    take_from = 0 if since_id == None else int(since_id)
-    newer_messages = (message for message in messages if int(message['id']) >= take_from)
-
-    for message in newer_messages:
-      if message['state'] is not None:
-        message['state'] = json.loads(message['state'])
-
-      yield message
+  def last(self, room: str):
+    """Return the most recent message in the room."""
+    query = (
+      Query
+      .from_(self.table)
+      .select(self.table.star)
+      .where(self.table.room == room)
+      .orderby('id', order=pypika.Order.desc)
+      .limit(1)
+    )
+    c = self.connection.cursor()
+    c.execute(query.get_sql())
+    message = c.fetchone()
+    return message
 
 
   def add(self, **message):
@@ -134,7 +149,7 @@ class Messages(DBList):
     q = Query.into(self.table).columns(*keys).insert(*values)
     c.execute(q.get_sql())
     self.connection.commit()
-    return message
+    return self.last(room=message['room'])
 
 
   def room_state(self, room_name):
@@ -156,7 +171,22 @@ class Bots(DBList):
   table = Table('bots')
 
 
+class Clears(DBList):
+  table = Table('clears')
+
+  def set_last_cleared_id(self, room: str, last_cleared_id: int):
+    if self.find(room=room) is None:
+      self.add(room=room, last_cleared_id=last_cleared_id)
+    else:
+      c = self.connection.cursor()
+      q = Query.update(self.table).where(self.table.room == room).set('last_cleared_id', last_cleared_id)
+      c.execute(q.get_sql())
+      self.connection.commit()
+
+
 class DB():
   def __init__(self, connection):
+    self._connection = connection
     self.messages = Messages(connection)
     self.bots = Bots(connection)
+    self.clears = Clears(connection)

@@ -8,18 +8,29 @@ NeCSuS has the ability to host chats in "rooms", listen to voice commands and sp
 
 Documentation on the API can be found on [the main NeCSuS server](https://chat.ncss.cloud/docs) or at `/docs` on your local instance.
 
-## Development
+## Installation
 
-Run `python server.py` for the development server. This also inits the db if it
-isn't already.
+Install the projects dependencies using [Poetry](https://python-poetry.org/):
 
-Gunicorn is used for the production server (see the `Procfile`). `python
-server.py` must still be run at least once beforehand to init the db.
+    poetry install
+
+To run the NeCSuS server, use one of the following two commands:
+
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --reload                          # Debug mode.
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --host localhost --port 6277      # Production mode.
+
+Then visit <http://localhost:6277/>.
+The chat room will be stored in a local SQLite database called `necsus.db`.
+
+There are some example bots as well, which can be run using
+
+    poetry run python example_bots/server.py
 
 
 ## FAQ
 
 ### What is NeCSuS?
+
 A web app that allows you to create rooms in which you can import and interact with chatbots.
 
 ### Is there a simple guide?

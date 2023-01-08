@@ -32,7 +32,14 @@
         <nav class="z-depth-0">
           <div class="nav-wrapper">
             <span class="nav-name">
-              <a href="/">NeCSuS</a> | {{ room }}
+              <a href="/">NeCSuS</a>
+              |
+              {{ room }}
+              |
+              <span :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
+                {{ websocketConnected ? '🟢' : '🔴'}}
+              </span>
+
             </span>
             <ul id="nav-mobile" class="right">
               <li>
@@ -60,7 +67,7 @@
             <div
               class="card message z-depth-0"
               :necsus-message-id="message.id"
-              :class="messageAlignClass(message)"
+              :class="messageClass(message)"
               v-for="message in displayMessages"
             >
               <div class="flex">
@@ -116,6 +123,8 @@
                   v-bind:rows="rows()"
                   v-bind:disabled="sendingMessage"
                   @keydown.enter.exact.prevent
+                  @keyup.up="newMessageHistoryMove(1)"
+                  @keyup.down="newMessageHistoryMove(-1)"
                   v-on:keyup.enter.exact="submitMessage(newMessage)"
                 ></textarea>
                 <button
@@ -200,7 +209,9 @@
             <div class="card-content">
               <span class="card-title">Documentation</span>
               <div class="collection">
+                <a class="collection-item" target="_blank" href="https://docs.google.com/document/d/1oc9wd0pRq0u19OOFDLk5njxTkp3etfgGf6mmATac6Qc/edit?usp=sharing">Simple bot tutorial</a>
                 <a class="collection-item" target="_blank" href="/docs">NeCSuS API docs</a>
+                <a class="collection-item" target="_blank" href="https://github.com/ncss/necsus/blob/master/README.md">NeCSuS README</a>
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 let plainTextRenderer = new PlainTextRenderer;
+const NEW_MESSAGE_HISTORY_SIZE = 20;
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -16,9 +17,13 @@ let app = new Vue({
     toEvalMessages: [],
     modals: {},
     newMessage: '',
+    newMessageHistory: [],      // For up-arrow back-going.
+    newMessageHistoryPos: 0,    // For up-arrow back-going.
     sendingMessage: false,
     statePresent: false,
     replyToBotName: undefined,
+    websocketConnected: false,  // UI indicator.
+    websocketRetries: 0,        // Used for exponential backoff on reconnects.
   },
   created: function() {
     let vm = this;
@@ -47,16 +52,8 @@ let app = new Vue({
     */
     vm.room = decodeURIComponent(window.location.pathname.slice(1));
 
-    /*
-      Fetch the room's messages and settings
-    */
-    vm.fetchBots();
-    vm.fetchMessages({silent: true});
-
-    /*
-      Auto update message every few seconds
-    */
-    vm.autoUpdate();
+    // Updates (new messages, put/delete bots, clearing room, etc) all come over a websocket.
+    vm.createWebsocket();
 
 
     /*
@@ -156,26 +153,32 @@ let app = new Vue({
   },
   methods: {
     clearRoom: async function() {
-      let url = '/api/actions/clear-room-messages';
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/clear-room-messages', {
         method: 'POST',
         body: JSON.stringify({room: this.room}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
       });
 
       this.messages = [];
-      this.fetchMessages();
 
       this.clearRoomShow = false;
       this.clearRoomConfirm = "";
     },
+    // Now unused
     fetchBots: async function() {
-      let url = '/api/bots?room='+this.room;
-      let response = await fetch(url);
+      let response = await fetch('/api/bots?' + new URLSearchParams({room: this.room}));
       let bots = await response.json();
       this.bots = bots;
+    },
+    // putBot installs a new or updated bot into the bot list.
+    putBot: function(bot) {
+      let idx = this.bots.findIndex((x) => bot.id == x.id)
+      Vue.set(this.bots, (idx >= 0) ? idx : this.bots.length, bot)
+    },
+    deleteBot: function(bot) {
+      let idx = this.bots.findIndex((x) => bot.id == x.id)
+      if (idx >= 0)
+        this.bots.splice(idx, 1)
     },
     botWithId: function(id) {
       for (let i = 0; i < this.bots.length; i++) {
@@ -192,45 +195,34 @@ let app = new Vue({
         url: '',
         responds_to: '',
       };
-      this.bots.push(newBot);
       this.submitBot(newBot);
     },
     removeBot: async function(bot) {
-      if (bot.id) {
-        let url = '/api/actions/bot?id='+bot.id;
-        let response = await fetch(url, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        let botResult = await response.json();
-      }
-      await this.fetchBots();
+      if (!bot.id)
+        return
+
+      let response = await fetch('/api/actions/bot', {
+        method: 'DELETE',
+        body: JSON.stringify({id: bot.id}),
+        headers: {'Content-Type': 'application/json'},
+      })
+      let botResult = await response.json();
     },
     submitBot: async function(bot, noupdate) {
-      let data = {
-        room: this.room,
-        name: bot.name,
-        url: bot.url,
-        responds_to: bot.responds_to,
-      };
-      if (bot.id)
-        data.id = bot.id;
-
-      let url = '/api/actions/bot'
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/bot', {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        body: JSON.stringify({
+          room: this.room,
+          name: bot.name,
+          url: bot.url,
+          responds_to: bot.responds_to,
+          ...((bot.id) ? {id: bot.id} : {}),  // Only added if bot.id is present.
+        }),
+        headers: {'Content-Type': 'application/json'},
+      })
       let botResult = await response.json();
-
-      if (!noupdate)
-        await this.fetchBots();
     },
+    // Now unused.
     fetchMessages: async function(options) {
       let vm = this;
       options = options || {};
@@ -258,7 +250,7 @@ let app = new Vue({
         this.statePresent = lastMessage.state != null;
         if (this.statePresent) {
           let bot = this.botWithId(lastMessage.reply_to);
-          this.replyToBotName = bot.name || '???';
+          this.replyToBotName = lastMessage.author || '???';
         }
       }
 
@@ -269,50 +261,114 @@ let app = new Vue({
         });
       }
     },
+    /** Inserts a message object (recieved from the server) into the chat room. */
+    insertMessage: function(message) {
+      this.statePresent = message.state != null;
+      if (this.statePresent) {
+        let bot = this.botWithId(message.reply_to)
+        this.replyToBotName = message.author || '???';
+      }
+
+      this.toEvalMessages.push(message)
+      this.messages.push(message)
+    },
+    createWebsocket: function() {
+      let last_id = (this.lastMessage) ? this.lastMessage.id : -1
+      let ws_uri = `${location.protocol == 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/${this.room}?since=${last_id}`
+      console.log(`Connecting to websocket ... (${ws_uri})`)
+      let ws = new WebSocket(ws_uri)
+      this.ws = ws
+
+      ws.onopen = (e) => {
+        this.websocketConnected = true
+        this.websocketRetries = 0
+        console.log('Websocket connected')
+      }
+
+      ws.onmessage = (e) => {
+        console.log('Websocket message:', e.data)
+        let response = JSON.parse(e.data)
+        if (response.kind == 'message')
+          this.insertMessage(response.data)
+        else if (response.kind == 'put_bot')
+          this.putBot(response.data)
+        else if (response.kind == 'delete_bot')
+          this.deleteBot(response.data)
+        else if (response.kind == 'clear_messages')
+          this.messages = []
+      }
+
+      ws.onerror = (e) => {
+        console.log('Websocket error:', e)
+      }
+
+      // When the websocket closes (which also happens on error), retry with exponential backoff and some randomness.
+      ws.onclose = (e) => {
+        this.websocketConnected = false
+        this.websocketRetries += 1
+        let retryTime = 500 * Math.pow(2, this.websocketRetries) * (1 + Math.random())
+        console.log(`Websocket closed, will retry after ${retryTime} ms`)
+        setTimeout(() => this.createWebsocket(), retryTime)
+      }
+    },
+    // Kick the websocket off for a few seconds to simulate a disconnect (for testing purposes).
+    // This can be done by double-clicking the connected/disconnected status indicator in the UI.
+    kickWebSocket: function() {
+      if (this.ws && this.ws.readyState == WebSocket.OPEN) {
+        console.log('Kicking off the websocket for a while')
+        this.websocketRetries = 3
+        this.ws.close()
+      }
+    },
     submitMessage: async function() {
       if (this.newMessage.length <= 0) {
         return;
       }
-      let data = {
-        room: this.room,
-        author: this.settings.name,
-        text: this.newMessage,
-      };
-
       this.sendingMessage = true;
 
       try {
-        let url = '/api/actions/message';
-        let response = await fetch(url, {
+        let response = await fetch('/api/actions/message', {
           method: 'POST',
-          body: JSON.stringify(data),
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          body: JSON.stringify({
+            room: this.room,
+            author: this.settings.name,
+            text: this.newMessage,
+          }),
+          headers: {'Content-Type': 'application/json'},
         });
 
         let messageResult = await response.json();
+        console.log('Response from sending message:', messageResult)
       } catch {}
       this.sendingMessage = false;
 
+      if (this.newMessageHistory.indexOf(this.newMessage) < 0) {
+        this.newMessageHistory = [this.newMessage, ...this.newMessageHistory.slice(0, NEW_MESSAGE_HISTORY_SIZE - 1)];
+      }
+      this.newMessageHistoryPos = 0;
       this.newMessage = '';
-
+    },
+    newMessageHistoryMove: function(direction) {
+      let inBounds = (pos) => (0 <= pos && pos <= this.newMessageHistory.length)
+      if (inBounds(this.newMessageHistoryPos)) {
+        this.newMessage = this.newMessageHistory[this.newMessageHistoryPos]
+        let newPos = this.newMessageHistoryPos + direction
+        if (inBounds(newPos))
+          this.newMessageHistoryPos = newPos
+      }
     },
     clearState: async function() {
-      let data = new FormData();
-      data.append('room', this.room);
-
       this.sendingMessage = true;
-
-      let url = '/api/actions/clear-room-state'
-      let response = await fetch(url, {
+      let response = await fetch('/api/actions/clear-room-state', {
         method: 'POST',
-        body: data,
-      });
+        body: JSON.stringify({room: this.room}),
+        headers: {'Content-Type': 'application/json'},
+      })
       await response.json();
 
       this.sendingMessage = false;
     },
+    // Now unused.
     autoUpdate: function() {
       let vm = this;
 
@@ -346,7 +402,7 @@ let app = new Vue({
       return this.lines(message).length;
     },
     toggleState: function(message) {
-      message.showState = !message.showState;
+      Vue.set(message, 'showState', !message.showState)
       return message.showState;
     },
     focusMessageInput: function() {
@@ -354,10 +410,13 @@ let app = new Vue({
       setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
     },
 
-    messageAlignClass: function(message) {
-      // TODO: Handle messages which weren't sent by the current session.
-      //       Though that might be overkill for a somewhat minor UX feature.
-      return message.author == this.settings.name ? "message-right" : "message-left";
+    messageClass: function(message) {
+      return [
+        // TODO: Handle messages which weren't sent by the current session.
+        //       Though that might be overkill for a somewhat minor UX feature.
+        message.author == this.settings.name ? "message-right" : "message-left",
+        `kind-${message.kind}`,
+      ]
     },
 
     /* Room Downloading */
