@@ -20,6 +20,7 @@ main {
   --accent-2: #203448;
   --accent-3: #ee6e73;
   --accent-4-background: #f0f0f0;
+  --background-system: var(--accent-4-background);
 }
 /* DARK
 :root {
@@ -41,6 +42,10 @@ div {
 
 .card {
   background-color: var(--background) !important;
+}
+
+.kind-system, .kind-system > div {
+  background-color: var(--background-system) !important;
 }
 
 .collection .collection-item {

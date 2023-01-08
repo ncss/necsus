@@ -110,7 +110,7 @@ class ApiActionsMessage(HTTPEndpoint):
         if None in (text, room, author):
             return JSONResponse({'message': f'All of text, room, and author should be non-null, got {text=}, {room=}, {author=}'}, status_code=400)
 
-        message = events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text)
+        message = await events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text)
         return JSONResponse(message)
 
 

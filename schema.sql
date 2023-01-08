@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room TEXT CHECK (room != ""), -- There is no "default" empty-name room.
   author TEXT,
+  kind TEXT DEFAULT "user" NOT NULL, -- 'user', 'system', or 'bot'.
   text TEXT,
   "when" TEXT,
   image TEXT,

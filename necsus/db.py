@@ -105,7 +105,7 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
-  allowed_keys = ['id', 'room', 'author', 'text', 'when', 'image', 'media', 'reply_to', 'state']
+  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'reply_to', 'state']
 
   def new(self, since_id, **kwargs):
     "Return a generator of messages since a given id (which may be None to return all messages)"

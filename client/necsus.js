@@ -410,10 +410,13 @@ let app = new Vue({
       setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
     },
 
-    messageAlignClass: function(message) {
-      // TODO: Handle messages which weren't sent by the current session.
-      //       Though that might be overkill for a somewhat minor UX feature.
-      return message.author == this.settings.name ? "message-right" : "message-left";
+    messageClass: function(message) {
+      return [
+        // TODO: Handle messages which weren't sent by the current session.
+        //       Though that might be overkill for a somewhat minor UX feature.
+        message.author == this.settings.name ? "message-right" : "message-left",
+        `kind-${message.kind}`,
+      ]
     },
 
     /* Room Downloading */

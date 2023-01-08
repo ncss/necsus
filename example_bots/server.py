@@ -6,6 +6,8 @@ Some example bots to play with.
 
 import html
 import pprint
+import re
+import time
 
 from flask import Flask, request
 
@@ -56,6 +58,21 @@ def bot():
     'text': 'I am continuing the conversation. Here is a list of your previous messages: ' + ', '.join(messages),
     'author': 'Botty Botsen',
     'state': messages,
+  }
+
+
+@app.route('/sleep', methods=['POST'])
+def sleep():
+  """Slow route for testing a bot taking a long time to respond."""
+  if m := re.search(r'\d+', request.json['text']):
+    sleep_time = int(m.group())
+  else:
+    sleep_time = 10
+
+  time.sleep(sleep_time)
+  return {
+    'author': "SleepBot",
+    'text': f"I've slept for {sleep_time} seconds."
   }
 
 
