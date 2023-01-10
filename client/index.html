@@ -69,6 +69,7 @@
               :necsus-message-id="message.id"
               :class="messageClass(message)"
               v-for="message in displayMessages"
+              :key="message.id"
             >
               <div class="flex">
                 <b class="author flex-grow">{{ message.author }}</b>

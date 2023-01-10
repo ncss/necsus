@@ -105,7 +105,7 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
-  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'reply_to', 'state']
+  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'from_bot', 'state']
 
   def since(self, room: str, since_id: int = -1):
     """Return a list of all messages in the room with IDs strictly greater than a given ID, in ascending ID order."""
@@ -160,9 +160,9 @@ class Messages(DBList):
       return None
 
     last_message = room_messages[-1]
-    if last_message['reply_to'] != None:
+    if last_message['state'] != None:
       state = json.loads(last_message.get('state', None))
-      return last_message['reply_to'], state
+      return last_message['from_bot'], state
 
     return None
 

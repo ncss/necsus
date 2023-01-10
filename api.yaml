@@ -193,7 +193,7 @@ components:
           type: object
           nullable: true
           example: null
-        reply_to:
+        from_bot:
           type: integer
           example: 2
           nullable: true

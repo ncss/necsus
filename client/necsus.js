@@ -147,11 +147,47 @@ let app = new Vue({
       });
     }
 
+    for (let {id, from_bot} of vm.toEvalMessages) {
+      let domElt = document.querySelector(`div[necsus-message-id="${id}"]`)
+      domElt.querySelectorAll('form').forEach((formElt) => {
+        formElt.addEventListener('submit', (e) => this.formMessageSubmit(e))
+        formElt.dataset.from_bot = from_bot
+      })
+    }
+
     // Clear to-eval messages. If there are any duplicates we won't double-exec
     // them thanks to "text/gzip". It's more important we don't drop messages.
     vm.toEvalMessages = [];
   },
   methods: {
+    formMessageSubmit: async function(e) {
+      // Prevent form submission
+      e.preventDefault()
+
+      // Get the action URL of the form to send to the server.
+      // We need to use getAttribute since otherwise it might prepend the current domain.
+      let form = e.target
+      let actionUrl = form.getAttribute('action')
+
+      // Get the form data to send to the server. Usually when a named submit button is clicked,
+      // that (name, value) pair would also appear in the form data. Using this method, we need
+      // to put it in there ourselves.
+      let data = Object.fromEntries(new FormData(form))
+      if (e.submitter.name)
+        data[e.submitter.name] = e.submitter.value
+
+      // Submit to our alternate endpoint via AJAX.
+      await fetch('/api/actions/message-form', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          room: this.room,
+          bot_id: parseInt(form.dataset.from_bot, 10),
+          action_url: actionUrl,
+          form_data: data,
+        }),
+      })
+    },
     clearRoom: async function() {
       let response = await fetch('/api/actions/clear-room-messages', {
         method: 'POST',
@@ -249,7 +285,7 @@ let app = new Vue({
         let lastMessage = newMessages[newMessages.length - 1];
         this.statePresent = lastMessage.state != null;
         if (this.statePresent) {
-          let bot = this.botWithId(lastMessage.reply_to);
+          let bot = this.botWithId(lastMessage.from_bot);
           this.replyToBotName = lastMessage.author || '???';
         }
       }
@@ -265,7 +301,7 @@ let app = new Vue({
     insertMessage: function(message) {
       this.statePresent = message.state != null;
       if (this.statePresent) {
-        let bot = this.botWithId(message.reply_to)
+        let bot = this.botWithId(message.from_bot)
         this.replyToBotName = message.author || '???';
       }
 
