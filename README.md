@@ -4,29 +4,6 @@
 NeCSuS has the ability to host chats in "rooms", listen to voice commands and speak chat messages out loud.
 
 
-## API
-
-Documentation on the API can be found on [the main NeCSuS server](https://chat.ncss.cloud/docs) or at `/docs` on your local instance.
-
-## Installation
-
-Install the projects dependencies using [Poetry](https://python-poetry.org/):
-
-    poetry install
-
-To run the NeCSuS server, use one of the following two commands:
-
-    poetry run uvicorn necsus:app --log-config logconfig.yaml --reload                          # Debug mode.
-    poetry run uvicorn necsus:app --log-config logconfig.yaml --host localhost --port 6277      # Production mode.
-
-Then visit <http://localhost:6277/>.
-The chat room will be stored in a local SQLite database called `necsus.db`.
-
-There are some example bots as well, which can be run using
-
-    poetry run python example_bots/server.py
-
-
 ## FAQ
 
 ### What is NeCSuS?
@@ -161,8 +138,8 @@ By returning some extra state from your bot, you will switch necsus into a mode 
 
 ```JSON
 {
-  'text': 'Where did you see the cat?',
-  'state': ['any', 'non', 'null', {'json': 'object'}]
+  "text": "Where did you see the cat?",
+  "state": ["any", "non", "null", {"json": "object"}]
 }
 ```
 
@@ -179,3 +156,63 @@ all further messages will be forwarded to the bot which returned that state, and
 ```
 
 in other words, the same state it previously sent gets handed back. At this point the bot can choose to not return `state` (or return a `null` json object for state), in which case necsus switches back to normal mode. Otherwise, the stateful conversation continues.
+
+
+## NeCSuS and forms
+
+The NeCSuS client has special support for HTML forms.
+Whenever a bot returns some HTML containing a `<form>` element, a special Javascript handler is attached to the form, which will redirect the submit action of the form back to the  NeCSuS server.
+The NeCSuS server then makes a POST request back to the bot responsible to the original form, with an object containing the `form_data` key, and the bot may return a message as usual.
+
+For example, let's suppose that the "desserts" bot at the endpoint `https://example.com/bots/desserts` has returned the following HTML, as part of its `text` field in a previous interaction:
+```html
+<form>
+    <button name="dessert" value="apple-crumble">Apple crumble</button>
+    <button name="dessert" value="ice-cream">Ice cream</button>
+    <button name="dessert" value="affogato">Affogato</button>
+</form>
+```
+When the user clicks on the "Apple crumble" button, the same bot endpoint `https://example.com/bots/desserts` will recieve a POST request with the following data:
+```JSON
+{
+    "room": "some-room-name",
+    "form_data": {
+        "dessert": "apple-crumble"
+    }
+}
+```
+Note that this object is a *different* shape to a regular message to a bot, which would have the `text` field for example.
+The bot can then return a JSON object as usual, and say something like "I see that Apple Crumble is your favourite."
+
+
+### Alternative endpoints
+
+The `method=` on a `<form>` is ignored (the system will always make a POST request to the bot, no matter what), but the `action=` attribute can be used to change which endpoint the form data gets posted to.
+The action is considered relative to the bot endpoint, so for example if the bot endpoint is `https://example.com/bots/desserts`, then:
+
+- `<form>` or `<form action="">` will POST to `https://example.com/bots/desserts`,
+- `<form action="foo">` will POST to `https://example.com/bots/foo`
+- `<form action="/foo">` will POST to `https://example.com/foo`
+- `<form action="https://some.other.domain/baz">` will POST to `https://some.other.domain/baz`
+
+## API
+
+Documentation on the API can be found on [the main NeCSuS server](https://chat.ncss.cloud/docs) or at `/docs` on your local instance.
+
+## Installation
+
+Install the projects dependencies using [Poetry](https://python-poetry.org/):
+
+    poetry install
+
+To run the NeCSuS server, use one of the following two commands:
+
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --reload                          # Debug mode.
+    poetry run uvicorn necsus:app --log-config logconfig.yaml --host localhost --port 6277      # Production mode.
+
+Then visit <http://localhost:6277/>.
+The chat room will be stored in a local SQLite database called `necsus.db`.
+
+There are some example bots as well, which can be run using
+
+    poetry run python example_bots/server.py

@@ -4,6 +4,7 @@ Events contains the business logic for receiving messages and dispatching them t
 import html
 import json
 import re
+import urllib.parse
 
 import httpx
 
@@ -22,6 +23,14 @@ def system_message(room: str, text: str):
     }
 
 
+def standard_message_for_bot(room: str, author: str, text: str, params=None, state=None):
+    message = dict(room=room, author=author, text=text, params=params or {})
+    if state is not None:
+        message['state'] = state
+
+    return message
+
+
 async def trigger_message_post(db, broker, room: str, author: str, text: str, image, media):
     special_state = db.messages.room_state(room_name=room)
     message = db.messages.add(room=room, author=author, text=text, image=image, media=media)
@@ -34,11 +43,38 @@ async def trigger_message_post(db, broker, room: str, author: str, text: str, im
             return message
 
         bot = bots[0]
-        await trigger_bot(db, broker, room, author, text, bot, {}, state=state)
+        msg = standard_message_for_bot(room=room, author=author, text=text, params={}, state=state)
+        await trigger_bot(db, broker, room, bot, msg)
     else:
         await match_and_trigger_bots(db, broker, room, author, text)
 
     return message
+
+
+async def trigger_message_form_post(db, broker, room: str, bot_id: int, action_url: str, form_data):
+    bot = db.bots.find(id=bot_id)
+    if bot is None:
+        error = system_message(room, f"The bot associated to that form can't be found - perhaps it was deleted?")
+        db.messages.add(**error)
+        broker.publish_message(room, error)
+
+    # We want the action_url to be relative to the bot's endpoint. For instance, say that the bot is at
+    # http://bot.com/foo/bar, then the following URLs should tranform like
+    #  (action_url = /baz) => http://bot.com/baz
+    #  (action_url = baz) => http://bot.com/foo/baz
+    #  (action_url = http://example.com/what) => http://example.com/what
+    # We then create a new transient bot which has this corrected URL.
+    form_bot = {**bot, "url": urllib.parse.urljoin(bot['url'], action_url)}
+    msg = {'room': room, 'form_data': form_data}
+    special_state = db.messages.room_state(room_name=room)
+    if special_state is not None:
+        _, state = special_state
+        msg['state'] = state
+
+    print(form_bot, msg)
+    await trigger_bot(db, broker, room, form_bot, msg)
+
+
 
 
 def trigger_clear_room_state(db, broker, room: str):
@@ -67,12 +103,17 @@ async def match_and_trigger_bots(db, broker, room: str, author: str, text: str) 
             continue
 
         if search and match:
-            await trigger_bot(db, broker, room, author, text, bot, match.groupdict())
+            msg = standard_message_for_bot(room=room, author=author, text=text, params=match.groupdict())
+            await trigger_bot(db, broker, room, bot, msg)
 
 
-async def trigger_bot(db, broker, room: str, author: str, text: str, bot, params, state=None) -> None:
+async def trigger_bot(db, broker, room: str, bot, msg) -> None:
+    """
+    Trigger a bot, sending msg to it in JSON-encoded POST data.
+    Place the returned message back into the room, or an error message if something went wrong.
+    """
     try:
-        reply = await run_bot(room, bot, text, params, user=author, state=state)
+        reply = await run_bot(room, bot, msg)
     except Exception as e:
         error_message = f"<p>Error when running bot {bot['name']}: {type(e).__name__}: {e}.</p>"
         if (f := e.__cause__) is not None:
@@ -100,7 +141,7 @@ def trigger_clear_room_messages(db, broker, room):
 BOT_TIMEOUT = httpx.Timeout(15.0)
 
 
-async def run_bot(room, bot, text, params, user=None, state=None):
+async def run_bot(room, bot, msg):
     """
     Contact a bot using a POST request. Either returns a valid message from that bot to be inserted into the room,
     or raises a BotException.
@@ -109,19 +150,9 @@ async def run_bot(room, bot, text, params, user=None, state=None):
     if not (endpoint_url := bot.get('url')):
         raise BotException("The bot has an empty endpoint URL.")
 
-    data = {
-        'room': room,
-        'author': user,
-        'text': text,
-        'params': params,
-    }
-
-    if state is not None:
-        data['state'] = state
-
     try:
         async with httpx.AsyncClient() as client:
-            reply = await client.post(endpoint_url, json=data, timeout=BOT_TIMEOUT)
+            reply = await client.post(endpoint_url, json=msg, timeout=BOT_TIMEOUT)
     except httpx.ConnectError as e:
         raise BotException(f"Could not connect to {bot['name']} at the endpoint {endpoint_url!r}. Is the URL correct?") from e
     except httpx.TimeoutException as e:
@@ -153,7 +184,6 @@ async def run_bot(room, bot, text, params, user=None, state=None):
 
     if 'state' in message and message['state'] != None:
         safe_message['state'] = message['state']
-        safe_message['reply_to'] = bot.get('id')
 
     if 'image' in message and isinstance(message['image'], str):
         safe_message['image'] = message['image']
@@ -162,4 +192,5 @@ async def run_bot(room, bot, text, params, user=None, state=None):
         safe_message['media'] = message['media']
 
     safe_message['kind'] = 'bot'
+    safe_message['from_bot'] = bot.get('id')
     return safe_message

@@ -85,5 +85,79 @@ def sleep():
   }
 
 
+@app.route('/form', methods=['POST'])
+def form():
+  """Example route for forms."""
+  return {
+    'author': 'FormBot',
+    'text': '''
+      <p>You have two options:</p>
+      <form method="POST" action="/form/handler">
+        <button name="mybutton" value="1">Option 1</button>, or
+        <button name="mybutton" value="2">Option 2</button>.
+      </form>
+      ''',
+  }
+
+@app.route('/form/handler', methods=['POST'])
+def form_handler():
+  # Expect an object of the form {room: string, form_data: object}.
+  data = request.get_json()
+  chosen = data['form_data']['mybutton']
+  return {
+    'author': 'FormBot',
+    'text': f"Option {chosen} is an excellent choice.",
+  }
+
+
+@app.route('/numberwang', methods=['POST'])
+def numberwang():
+  def form_html(mid):
+    return f"""
+      <form>
+        <p>Is your number
+          <button name="guess" value="lower">Lower</button>,
+          <button name="guess" value="correct">{mid}</button>, or
+          <button name="guess" value="higher">Higher</button>?
+      </form>
+    """
+
+  data = request.get_json()
+  if 'state' not in data:
+    lo, hi = 1, 100
+    mid = (lo + hi) // 2
+    return {
+      'author': 'Numberwang',
+      'text': f"<p>Pick a number between 1 and 100 and I will guess it! My first guess is {mid}.</p>{form_html(mid)}",
+      'state': [lo, hi],
+    }
+
+  if 'form_data' in data:
+    guess = data['form_data']['guess']
+  else:
+    guess = 'lower' if 'lower' in data['text'].lower() else 'higher' if 'higher' in data['text'].lower() else 'correct'
+
+  if guess == 'correct':
+    return {'author': 'Numberwang', 'text': "Woohoo, I win! Let's rotate the board!"}
+
+  print(data)
+  lo, hi = data.get('state', [1, 100])
+  mid = (lo + hi) // 2
+  if guess == 'lower':
+    hi = mid - 1
+  else:
+    lo = mid + 1
+
+  mid = (lo + hi) // 2
+  return {
+    'author': 'numberwang',
+    'text': form_html(mid),
+    'state': [lo, hi],
+  }
+
+
+
+
+
 if __name__ == '__main__':
   app.run(port=1234, debug=True)

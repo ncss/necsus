@@ -116,6 +116,22 @@ class ApiActionsMessage(HTTPEndpoint):
         return JSONResponse(message)
 
 
+class ApiActionsMessageForm(HTTPEndpoint):
+    async def post(self, request: Request):
+        """A user in a room has submitted a form which was in a bot message. Pass the form data back to the bot."""
+        try:
+            data = await request.json()
+        except json.JSONDecodeError:
+            return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
+
+        room, bot_id, form_data, action_url = [data.get(key) for key in ['room', 'bot_id', 'form_data', 'action_url']]
+        if None in (room, bot_id, form_data):
+            return JSONResponse({'message': f'All of room, bot, form_data, and action_url should be non-null, got {room=}, {bot_id=}, {form_data=}, {action_url=}'}, status_code=400)
+
+        await events.trigger_message_form_post(request.app.state.db, request.app.state.broker, room, bot_id, action_url, form_data)
+        return JSONResponse({})
+
+
 class ApiActionBot(HTTPEndpoint):
     async def post(self, request: Request):
         """Create a bot, or update one with the specified ID."""
@@ -253,6 +269,7 @@ routes = [
 
     # API endpoints which are non-GET routes accepting JSON payloads.
     Route('/api/actions/message', ApiActionsMessage),
+    Route('/api/actions/message-form', ApiActionsMessageForm),
     Route('/api/actions/bot', ApiActionBot),
     Route('/api/actions/clear-room-messages', ApiActionsClearRoomMessages),
     Route('/api/actions/clear-room-state', ApiActionsClearRoomState),
