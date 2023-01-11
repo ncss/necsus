@@ -14,7 +14,7 @@ let app = new Vue({
       installedBots: [],
     },
     messages: [],
-    toEvalMessages: [],
+    toPostprocessMessages: [],
     modals: {},
     newMessage: '',
     newMessageHistory: [],      // For up-arrow back-going.
@@ -107,15 +107,26 @@ let app = new Vue({
     }.bind(this));
   },
   updated: function() {
-    let vm = this;
+    // We need to post-process messages, to redirect the forms, and eval the <script> tags.
+    // However, this updated() function is run every time the whole Vue component (the chatroom)
+    // updates, rather than when a message is inserted. So there might be a case where we have
+    // new messages to postprocess, but they have not reached the DOM yet. We need to be careful
+    // to only eval the ones that have reached the DOM.
+
+    // Find the messages to process that have reached the DOM on this update cycle.
+    let reachedDom = new Map()
+    for (let message of this.toPostprocessMessages) {
+      let domElt = document.querySelector(`div[necsus-message-id="${message.id}"]`)
+      if (domElt !== null)
+        reachedDom.set(message.id, {message, domElt})
+    }
 
     // First we are going to post-process the forms to attach our custom submit handlers,
     // for the form interactions with necsus.
-    for (let {id, from_bot} of vm.toEvalMessages) {
-      let domElt = document.querySelector(`div[necsus-message-id="${id}"]`)
+    for (let {message, domElt} of reachedDom.values()) {
       domElt.querySelectorAll('form').forEach((formElt) => {
         formElt.addEventListener('submit', (e) => this.formMessageSubmit(e))
-        formElt.dataset.from_bot = from_bot
+        formElt.dataset.from_bot = message.from_bot
       })
     }
 
@@ -126,48 +137,18 @@ let app = new Vue({
     // Unfortunately for us, XSS is a key feature of NeCSuS so we have to run
     // eval() on the <script> tags ourselves.
 
-    // Joel (2023-01-11): For some reason this sometimes throws an error on the necsus-message-id
-    // attribute, so I'm wrapping the whole thing in try-catch so that the form processing still works.
-
-    try {
-      // What is the mapping from (message-id) --> [<script>]?
-      let scriptMap = {};
-      Array.from(document.getElementsByClassName("message"))
-          .forEach(function(elem) {
-            let id = elem.attributes["necsus-message-id"].value;
-            scriptMap[id] = Array.from(elem.getElementsByTagName("script"));
-          });
-
-      // For each not-yet-eval()ed script, run it in the order received (noting
-      // that several script tags can exist in a message).
-      for (message of vm.toEvalMessages) {
-        let scripts = scriptMap[`${message.id}`];
-        if (scripts === undefined) {
-          continue;
-        }
-        scripts.forEach(function(elem, idx) {
-          // This is a fairly dodgy way of marking the script as "executed" so
-          // we don't run it twice. There is no disabled attribute (we could add
-          // a fake one but this makes sure the DOM doesn't render it by
-          // accident as well).
-          if (elem.type === "text/gzip") {
-            console.log(`Re-exec of existing <script>-${idx} in message ${message.id} skipped...`);
-            return;
-          }
-          elem.type = "text/gzip";
-
-          // TODO: Handle src=.
-          console.log(`Manually eval()ing message ${message.id} <script>-${idx} to get around Chrome XSS blocking...`);
-          window.eval(elem.innerHTML);
-        });
-      }
-    } catch (err) {
-      console.error('Error when processing scripts:', err)
+    // For each not-yet-eval()ed script, run it in the order received (noting
+    // that several script tags can exist in a message).
+    for (let {message, domElt} of reachedDom.values()) {
+      domElt.querySelectorAll('script').forEach((script) => {
+        console.log(`Manually eval()ing message ${message.id} to get around Chrome XSS blocking...`);
+        script.type = "text/gzip";
+        window.eval(script.innerHTML);
+      })
     }
 
-    // Clear to-eval messages. If there are any duplicates we won't double-exec
-    // them thanks to "text/gzip". It's more important we don't drop messages.
-    vm.toEvalMessages = [];
+    // Clear the messages we've processed.
+    this.toPostprocessMessages = this.toPostprocessMessages.filter(({id}) => !reachedDom.has(id));
   },
   methods: {
     formMessageSubmit: async function(e) {
@@ -289,7 +270,7 @@ let app = new Vue({
         });
       });
 
-      vm.toEvalMessages = newMessages;
+      vm.toPostprocessMessages = newMessages;
       vm.messages = vm.messages.concat(newMessages);
 
       // Check if the last message contains a state which we might have to clear
@@ -317,7 +298,7 @@ let app = new Vue({
         this.replyToBotName = message.author || '???';
       }
 
-      this.toEvalMessages.push(message)
+      this.toPostprocessMessages.push(message)
       this.messages.push(message)
     },
     createWebsocket: function() {
