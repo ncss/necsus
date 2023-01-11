@@ -51,6 +51,7 @@ let app = new Vue({
       Determine the room
     */
     vm.room = decodeURIComponent(window.location.pathname.slice(1));
+    document.title = `NeCSuS | ${vm.room}`
 
     // Updates (new messages, put/delete bots, clearing room, etc) all come over a websocket.
     vm.createWebsocket();
@@ -177,6 +178,7 @@ let app = new Vue({
         data[e.submitter.name] = e.submitter.value
 
       // Submit to our alternate endpoint via AJAX.
+      this.sendingMessage = true;
       await fetch('/api/actions/message-form', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -187,6 +189,7 @@ let app = new Vue({
           form_data: data,
         }),
       })
+      this.sendingMessage = false;
     },
     clearRoom: async function() {
       let response = await fetch('/api/actions/clear-room-messages', {
