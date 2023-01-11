@@ -174,6 +174,7 @@ let app = new Vue({
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           room: this.room,
+          author: this.settings.name,
           bot_id: parseInt(form.dataset.from_bot, 10),
           action_url: actionUrl,
           form_data: data,

@@ -19,7 +19,10 @@ def index():
   pretty = pprint.pformat(request.json, indent=2)
   return {
     'author': 'Debug bot',
-    'text': f'<pre>{html.escape(pretty)}</pre>',
+    'text': f'''
+      <pre>{html.escape(pretty)}</pre>
+      <p>Here's a button if you want to check that too: <form><button name="some-name" value="some-value">Click me!</button></form></p>
+    ''',
   }
 
 

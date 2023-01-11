@@ -124,11 +124,11 @@ class ApiActionsMessageForm(HTTPEndpoint):
         except json.JSONDecodeError:
             return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
 
-        room, bot_id, form_data, action_url = [data.get(key) for key in ['room', 'bot_id', 'form_data', 'action_url']]
-        if None in (room, bot_id, form_data):
-            return JSONResponse({'message': f'All of room, bot, form_data, and action_url should be non-null, got {room=}, {bot_id=}, {form_data=}, {action_url=}'}, status_code=400)
+        room, author, bot_id, form_data, action_url = [data.get(key) for key in ['room', 'author', 'bot_id', 'form_data', 'action_url']]
+        if None in (room, author, bot_id, form_data):
+            return JSONResponse({'message': f'All of room, author, bot, form_data, and action_url should be non-null, got {room=}, {author=}, {bot_id=}, {form_data=}, {action_url=}'}, status_code=400)
 
-        await events.trigger_message_form_post(request.app.state.db, request.app.state.broker, room, bot_id, action_url, form_data)
+        await events.trigger_message_form_post(request.app.state.db, request.app.state.broker, room, author, bot_id, action_url, form_data)
         return JSONResponse({})
 
 

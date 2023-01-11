@@ -51,7 +51,7 @@ async def trigger_message_post(db, broker, room: str, author: str, text: str, im
     return message
 
 
-async def trigger_message_form_post(db, broker, room: str, bot_id: int, action_url: str, form_data):
+async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: int, action_url: str, form_data):
     bot = db.bots.find(id=bot_id)
     if bot is None:
         error = system_message(room, f"The bot associated to that form can't be found - perhaps it was deleted?")
@@ -65,7 +65,7 @@ async def trigger_message_form_post(db, broker, room: str, bot_id: int, action_u
     #  (action_url = http://example.com/what) => http://example.com/what
     # We then create a new transient bot which has this corrected URL.
     form_bot = {**bot, "url": urllib.parse.urljoin(bot['url'], action_url)}
-    msg = {'room': room, 'form_data': form_data}
+    msg = {'room': room, 'author': author, 'form_data': form_data}
     special_state = db.messages.room_state(room_name=room)
     if special_state is not None:
         _, state = special_state
