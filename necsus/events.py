@@ -193,7 +193,7 @@ async def run_bot(room, bot, msg):
     else:
         safe_message['room'] = room
 
-    if 'state' in message and message['state'] != None and message['state'] != '':
+    if 'state' in message and message['state'] != None:
         safe_message['state'] = message['state']
 
     if 'image' in message and isinstance(message['image'], str):
