@@ -52,27 +52,34 @@ async def trigger_message_post(db, broker, room: str, author: str, text: str, im
 
 
 async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: int, action_url: str, form_data):
-    bot = db.bots.find(id=bot_id)
-    if bot is None:
+    from_bot = db.bots.find(id=bot_id)
+    if from_bot is None:
         error = system_message(room, f"The bot associated to that form can't be found - perhaps it was deleted?")
         db.messages.add(**error)
         broker.publish_message(room, error)
+        return
 
     # We want the action_url to be relative to the bot's endpoint. For instance, say that the bot is at
     # http://bot.com/foo/bar, then the following URLs should tranform like
     #  (action_url = /baz) => http://bot.com/baz
     #  (action_url = baz) => http://bot.com/foo/baz
     #  (action_url = http://example.com/what) => http://example.com/what
-    # We then create a new transient bot which has this corrected URL.
-    form_bot = {**bot, "url": urllib.parse.urljoin(bot['url'], action_url)}
+    # We require that this endpoint is a registered bot in the room.
+    to_url = urllib.parse.urljoin(from_bot['url'], action_url)
+    to_bot = db.bots.find(room=room, url=to_url)
+    if to_bot is None:
+        error = system_message(room, f"The bot with the endpoint '{to_url}' is not registered to the room '{room}'.")
+        db.messages.add(**error)
+        broker.publish_message(room, error)
+        return
+
     msg = {'room': room, 'author': author, 'form_data': form_data}
     special_state = db.messages.room_state(room_name=room)
     if special_state is not None:
         _, state = special_state
         msg['state'] = state
 
-    print(form_bot, msg)
-    await trigger_bot(db, broker, room, form_bot, msg)
+    await trigger_bot(db, broker, room, to_bot, msg)
 
 
 

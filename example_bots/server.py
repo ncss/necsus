@@ -159,6 +159,29 @@ def numberwang():
   }
 
 
+@app.route('/ping', methods=['POST'])
+def ping():
+  """
+  The ping bot should post a button, and upon clicking that, we should be in a conversation with the pong bot.
+  If we do "ping nowhere", then it will try to ping a bot that is not in the room.
+  """
+  action = '/nowhere' if 'nowhere' in request.json['text'].lower() else '/pong'
+  return {
+    'author': 'PingBot',
+    'text': f'<form action="{action}"><button>Go to {action}</button</form>',
+  }
+
+@app.route('/pong', methods=['POST'])
+def pong():
+  data = request.json
+
+  if 'state' in data:
+    return {'author': 'PongBot', 'text': 'Thanks for chatting. This is PongBot signing off.'}
+
+  if 'form_data' not in data:
+    return {'author': 'PongBot', 'text': 'Please activate PongBot via the PingBot.'}
+
+  return {'author': 'PongBot', 'text': 'This is PongBot. How are you today?', 'state': 0}
 
 
 
