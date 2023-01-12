@@ -57,24 +57,34 @@ async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: 
         error = system_message(room, f"The bot associated to that form can't be found - perhaps it was deleted?")
         db.messages.add(**error)
         broker.publish_message(room, error)
+        return
 
     # We want the action_url to be relative to the bot's endpoint. For instance, say that the bot is at
     # http://bot.com/foo/bar, then the following URLs should tranform like
     #  (action_url = /baz) => http://bot.com/baz
     #  (action_url = baz) => http://bot.com/foo/baz
     #  (action_url = http://example.com/what) => http://example.com/what
-    # We then create a new transient bot which has this corrected URL.
-    form_bot = {**bot, "url": urllib.parse.urljoin(bot['url'], action_url)}
+    url = urllib.parse.urljoin(bot['url'], action_url)
+
+    # Either fetch the bot with this URL, or create a new transient bot which has no ID.
+    to_bot = db.bots.find(room=room, url=url) or {'room': room, 'name': url, 'url': url}
     msg = {'room': room, 'author': author, 'form_data': form_data}
     special_state = db.messages.room_state(room_name=room)
     if special_state is not None:
         _, state = special_state
         msg['state'] = state
 
-    print(form_bot, msg)
-    await trigger_bot(db, broker, room, form_bot, msg)
+    reply = await trigger_bot(db, broker, room, to_bot, msg)
 
-
+    # If this new bot replied with some conversation state, but it's not installed into the room, we have no way
+    # of continuing the conversation with it, so immediately post a system error.
+    if 'state' in reply and to_bot.get('id') is None:
+        error = system_message(room, f"""
+            <p>The bot at endpoint {url} triggered by the form replied with some message state, but the bot has not been installed into the room.
+            Please install it into the room and try again.</p>
+        """)
+        db.messages.add(**error)
+        broker.publish_message(room, error)
 
 
 def trigger_clear_room_state(db, broker, room: str):
@@ -107,7 +117,7 @@ async def match_and_trigger_bots(db, broker, room: str, author: str, text: str) 
             await trigger_bot(db, broker, room, bot, msg)
 
 
-async def trigger_bot(db, broker, room: str, bot, msg) -> None:
+async def trigger_bot(db, broker, room: str, bot, msg):
     """
     Trigger a bot, sending msg to it in JSON-encoded POST data.
     Place the returned message back into the room, or an error message if something went wrong.
@@ -122,10 +132,11 @@ async def trigger_bot(db, broker, room: str, bot, msg) -> None:
         message = system_message(room, error_message)
         db.messages.add(**message)
         broker.publish_message(room, message)
-        return
+        return message
 
     reply = db.messages.add(**reply)
     broker.publish_message(room, reply)
+    return reply
 
 
 def trigger_clear_room_messages(db, broker, room):
