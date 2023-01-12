@@ -75,10 +75,11 @@ async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: 
         msg['state'] = state
 
     reply = await trigger_bot(db, broker, room, to_bot, msg)
+    print(reply)
 
     # If this new bot replied with some conversation state, but it's not installed into the room, we have no way
     # of continuing the conversation with it, so immediately post a system error.
-    if 'state' in reply and to_bot.get('id') is None:
+    if reply.get('state') is not None and to_bot.get('id') is None:
         error = system_message(room, f"""
             <p>The bot at endpoint {url} triggered by the form replied with some message state, but the bot has not been installed into the room.
             Please install it into the room and try again.</p>
@@ -193,7 +194,7 @@ async def run_bot(room, bot, msg):
     else:
         safe_message['room'] = room
 
-    if 'state' in message and message['state'] != None:
+    if 'state' in message and message['state'] != None and message['state'] != '':
         safe_message['state'] = message['state']
 
     if 'image' in message and isinstance(message['image'], str):
