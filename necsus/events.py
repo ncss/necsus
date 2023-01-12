@@ -44,7 +44,9 @@ async def trigger_message_post(db, broker, room: str, author: str, text: str, im
 
         bot = bots[0]
         msg = standard_message_for_bot(room=room, author=author, text=text, params={}, state=state)
-        await trigger_bot(db, broker, room, bot, msg)
+        reply = await trigger_bot(room, bot, msg)
+        reply = db.messages.add(**reply)
+        broker.publish_message(room, reply)
     else:
         await match_and_trigger_bots(db, broker, room, author, text)
 
@@ -74,18 +76,20 @@ async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: 
         _, state = special_state
         msg['state'] = state
 
-    reply = await trigger_bot(db, broker, room, to_bot, msg)
-    print(reply)
+    reply = await trigger_bot(room, to_bot, msg)
 
-    # If this new bot replied with some conversation state, but it's not installed into the room, we have no way
-    # of continuing the conversation with it, so immediately post a system error.
+    # If this new bot replied with some conversation state, but it's not installed into the room, let's just make up a
+    # new bot so that we can put an ID in the from_bot field.
     if reply.get('state') is not None and to_bot.get('id') is None:
-        error = system_message(room, f"""
-            <p>The bot at endpoint {url} triggered by the form replied with some message state, but the bot has not been installed into the room.
-            Please install it into the room and try again.</p>
-        """)
-        db.messages.add(**error)
-        broker.publish_message(room, error)
+        db.bots.add(room=room, name=f"(Auto) {url}", url=url)
+        to_bot = db.bots.find(room=room, url=url)
+        broker.put_bot(room, to_bot)
+        reply['from_bot'] = to_bot['id']
+
+    print("Reply before:", reply)
+    reply = db.messages.add(**reply)
+    print("Reply after:", reply)
+    broker.publish_message(room, reply)
 
 
 def trigger_clear_room_state(db, broker, room: str):
@@ -94,7 +98,7 @@ def trigger_clear_room_state(db, broker, room: str):
 
     if db.messages.room_state(room_name=room):
         message = system_message(room, 'The room state has been cleared')
-        db.messages.add(**message)
+        message = db.messages.add(**message)
         broker.publish_message(room, message)
 
 
@@ -109,35 +113,30 @@ async def match_and_trigger_bots(db, broker, room: str, author: str, text: str) 
             name = bot.get('name')
             t = 'responds_to' if bot.get('responds_to') else 'name'
             message = system_message(room=room, text=f'Something went wrong. Bot {name!r} has an invalid {t} regex: <pre>{search}</pre>')
-            db.messages.add(**message)
+            message = db.messages.add(**message)
             broker.publish_message(room, message)
             continue
 
         if search and match:
             msg = standard_message_for_bot(room=room, author=author, text=text, params=match.groupdict())
-            await trigger_bot(db, broker, room, bot, msg)
+            reply = await trigger_bot(room, bot, msg)
+            reply = db.messages.add(**reply)
+            broker.publish_message(room, reply)
 
 
-async def trigger_bot(db, broker, room: str, bot, msg):
+async def trigger_bot(room: str, bot, msg):
     """
     Trigger a bot, sending msg to it in JSON-encoded POST data.
-    Place the returned message back into the room, or an error message if something went wrong.
+    Return either the message from the bot, or a system error message.
     """
     try:
-        reply = await run_bot(room, bot, msg)
+        return await run_bot(room, bot, msg)
     except Exception as e:
         error_message = f"<p>Error when running bot {bot['name']}: {type(e).__name__}: {e}.</p>"
         if (f := e.__cause__) is not None:
             error_message += f"Further information: {type(f).__name__}: {f}."
 
-        message = system_message(room, error_message)
-        db.messages.add(**message)
-        broker.publish_message(room, message)
-        return message
-
-    reply = db.messages.add(**reply)
-    broker.publish_message(room, reply)
-    return reply
+        return system_message(room, error_message)
 
 
 def trigger_clear_room_messages(db, broker, room):
