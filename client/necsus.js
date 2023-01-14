@@ -235,7 +235,10 @@ let app = new Vue({
                        "Perch", "Pheasant", "Pig", "Pigeon", "Porcupine", "Quagga", "Rabbit", "Raccoon", "Rat",
                        "Rattlesnake", "Rooster", "Seal", "Sheep", "Skunk", "Sloth", "Snail", "Snake", "Spider",
                        "Tiger", "Whale", "Wolf", "Wombat", "Zebra"]
-      const shuffled = animals.sort(() => 0.5 - Math.random());
+      const shuffled = animals
+                      .map(x => ({x, sort: Math.random()}))
+                      .sort((a, b) => a.sort - b.sort)
+                      .map(({x}) => x)
       const selected = shuffled.slice(0, 3);
       let newBot = {
         name: `${selected.join("-")}`,
