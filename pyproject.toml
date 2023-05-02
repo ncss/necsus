@@ -13,7 +13,7 @@ authors = [
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = "^2.25"
-flask = "^2.2"
+flask = "^2.3"
 pytz = "*"
 pypika = "^0.48"
 starlette = "^0.23.1"
