@@ -133,7 +133,7 @@ let app = new Vue({
     // Welcome, and congratulations for looking into this. The following code
     // makes <script> tags in messages act as though it was XSS in 2005
     // (namely, it works and the browser can't detect it). Modern browsers have
-    // really annoying^Wsophisticated system for detecting XSS and blocking it.
+    // really annoying sophisticated system for detecting XSS and blocking it.
     // Unfortunately for us, XSS is a key feature of NeCSuS so we have to run
     // eval() on the <script> tags ourselves.
 

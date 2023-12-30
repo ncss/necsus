@@ -27,7 +27,36 @@ let app = new Vue({
     refreshWelcome: function() {
       let vm = this;
       vm.welcome = vm.randomChoice(vm.possibleWelcomes);
+      vm.typeSentence(vm.welcome, "lobby-welcome-text");
       window.setTimeout(() => vm.refreshWelcome(), 5000)
+    },
+    typeSentence: function (text, elementId) {
+      const element = document.getElementById(elementId);
+      const oldElementLength = element.children.length;
+      
+      // untype any existing text
+      for (let i = oldElementLength - 1; i >= 0; i--) {
+        setTimeout(() => {
+          element.removeChild(element.children[i]);
+        }, 100 * (element.children.length - i));
+      } 
+
+      // we are excited!
+      const letters = [...text.split(""), '!']; 
+      
+      // type forwards the new text
+      for (let i = 0; i < letters.length; i++) {
+        setTimeout(() => {
+          const element = document.createElement("span");
+          element.className = "letter";
+          element.innerHTML = letters[i];
+          document.getElementById(elementId).appendChild(element);
+          
+          // we need to wait for the old element to be removed
+          // before we can start the adding animation
+        }, oldElementLength * 100 + 100 * i);
+      }
+
     },
     randomChoice: function(array) {
       return array[Math.floor(Math.random() * array.length)];

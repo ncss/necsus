@@ -1,3 +1,8 @@
+html,
+body {
+  height: 100%;
+}
+
 body {
   padding: 0px;
   margin: 0px;
@@ -282,10 +287,36 @@ tr.identical-bot {
   flex-grow: 1;
 }
 
+#lobby-center-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 #lobby {
-  /* Looks like centering doesn't wanna work, I guess it's not centered now. */
-  padding-top: 10vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-grow: 1;
+}
+
+#lobby-welcome-text {
+  min-height: 35px;
+  display: inline-block;
+}
+
+.input-cursor {
+  display: inline-block;
+  background-color: black;
+  width: 2px;
+  height: 20px;
+  margin-left: 2px;
+  animation: blink .6s linear infinite alternate;
+}
+
+@keyframes blink {
+  0% {opacity: 1;}
+  40% {opacity: 1;}
+  60% {opacity: 0;}
+  100% {opacity: 0;}
 }
