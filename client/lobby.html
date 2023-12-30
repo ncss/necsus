@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NeCSuS</title>
 
     <script src="client/js/marked.min.js"></script>
@@ -23,45 +23,46 @@
 
   <body>
     <div id="necsus">
-      <div class="navbar-fixed">
-        <nav class="z-depth-0">
-          <div class="nav-wrapper">
-            <span class="nav-name">NeCSuS</span>
-          </div>
-        </nav>
-      </div>
+      <div id="lobby-center-wrapper">
+        <div class="navbar-fixed">
+          <nav class="z-depth-0">
+            <div class="nav-wrapper">
+              <span class="nav-name">NeCSuS</span>
+            </div>
+          </nav>
+        </div>
 
-      <div id="lobby">
-        <div class="card">
-          <div class="card-content">
-            <span class="card-title">{{ welcome }}!</span>
+        <div id="lobby">
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title" id="lobby-welcome-text"></span><span class="input-cursor"></span>
+              <p>
+                Welcome to the NeCSuS lobby! Please enter the room you'd like to
+                join.
+              </p>
 
-            <p>
-              Welcome to the NeCSuS lobby! Please enter the room you'd like to
-              join.
-            </p>
+              <label for="room-name">
+                <span>Room name</span>
+              </label>
 
-            <label for="room-name">
-              <span>Room name</span>
-            </label>
+              <input
+                id="room-name"
+                name="room-name"
+                v-model="room_name"
+                @keydown.enter.exact.prevent
+                v-on:keyup.enter.exact="joinRoom()"
+              />
 
-            <input
-              id="room-name"
-              name="room-name"
-              v-model="room_name"
-              @keydown.enter.exact.prevent
-              v-on:keyup.enter.exact="joinRoom()"
-            />
-
-            <button
-              id="join-room"
-              class="btn btn-wide"
-              :disabled="room_name == ''"
-              @click="joinRoom()"
-            >
-              <i class="material-icons">flight_takeoff</i>&nbsp;
-              <span>Join room {{ room_name }}</span>
-            </button>
+              <button
+                id="join-room"
+                class="btn btn-wide"
+                :disabled="room_name == ''"
+                @click="joinRoom()"
+              >
+                <i class="material-icons">flight_takeoff</i>&nbsp;
+                <span>Join room {{ room_name }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
