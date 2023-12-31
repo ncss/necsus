@@ -1,0 +1,7 @@
+# For testing, "http//:8000" binds to all interfaces (localhost, LAN IP address, etc), and forces the http protocol.
+# (Otherwise Caddy will try to be super helpful and install a root cert on your machine for https://localhost).
+# In production, change this to the domain name like "chat.ncss.cloud".
+http://:8000 {
+	reverse_proxy http://localhost:6277
+	encode gzip
+}
