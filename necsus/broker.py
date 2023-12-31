@@ -4,6 +4,10 @@ import anyio.streams.memory
 
 
 class Broker:
+  """
+  The Broker is used as a singleton, and facilitates broadcasting to WebSockets. It manages a collection of unbounded
+  queues, and each action .publish_message(), .clear_room(), etc will post into those queues.
+  """
   queues_by_room: defaultdict[str, set[anyio.streams.memory.MemoryObjectSendStream]]
 
   def __init__(self):
@@ -36,6 +40,9 @@ class Broker:
     A pair (recv, tag) is returned, where recv is a stream (queue) which messages are fed into,
     and tag is an opaque tag which can then be used to unsubscribe.
     """
+
+    # Joel: It is generally bad practice to use unbounded queues. We didn't see any problems from this in 2023, but
+    #       perhaps we should add some monitoring, and log a warning if any queue looks like it's filling up over time.
     send, recv = anyio.create_memory_object_stream(max_buffer_size=float('inf'))
     self.queues_by_room[room].add(send)
 

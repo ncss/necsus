@@ -1,3 +1,5 @@
+# Log configuration file for the uvicorn runner.
+
 version: 1
 disable_existing_loggers: False
 formatters:

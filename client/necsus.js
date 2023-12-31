@@ -333,6 +333,8 @@ let app = new Vue({
       }
 
       // When the websocket closes (which also happens on error), retry with exponential backoff and some randomness.
+      // The combination of randomness and exponential backoff allow the server to come back up gracefully on a reboot
+      // without getting crushed by a zillion coordinated requests.
       ws.onclose = (e) => {
         this.websocketConnected = false
         this.websocketRetries += 1

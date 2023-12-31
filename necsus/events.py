@@ -152,7 +152,7 @@ def trigger_clear_room_messages(db, broker, room):
 BOT_TIMEOUT = httpx.Timeout(15.0)
 
 
-async def run_bot(room, bot, msg):
+async def run_bot(room: str, bot, msg):
     """
     Contact a bot using a POST request. Either returns a valid message from that bot to be inserted into the room,
     or raises a BotException.
@@ -188,6 +188,7 @@ async def run_bot(room, bot, msg):
     else:
         safe_message['author'] = name
 
+    # TODO(Joel): We should not allow a bot to override which room it is posting back to.
     if 'room' in message and isinstance(message['room'], str):
         safe_message['room'] = message['room']
     else:

@@ -2,12 +2,9 @@ import json
 import sqlite3
 import time
 
-import pytz
 import pypika
 from pypika import Query, Table
 
-UTC = pytz.utc
-SYDNEY = pytz.timezone('Australia/Sydney')
 
 class DBList(dict):
   table = Table('')
