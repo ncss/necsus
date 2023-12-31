@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  room TEXT CHECK (room != ""), -- There is no "default" empty-name room.
+  room TEXT CHECK (room != ''), -- There is no "default" empty-name room.
   author TEXT,
-  kind TEXT DEFAULT "user" NOT NULL, -- 'user', 'system', or 'bot'.
+  kind TEXT DEFAULT 'user' NOT NULL, -- 'user', 'system', or 'bot'.
   text TEXT,
-  "when" TEXT,
+  "when" TEXT,  -- Seconds since the epoch.
   image TEXT,
   media TEXT,
   from_bot INTEGER,  -- Non-null only if this message is from a bot.
@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS messages_byroom ON messages (room, id);
 
 CREATE TABLE IF NOT EXISTS bots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  room TEXT CHECK (room != ""), -- There is no "default" empty-name room.
+  room TEXT CHECK (room != ''), -- There is no "default" empty-name room.
   name TEXT,
   responds_to TEXT,
   url TEXT
