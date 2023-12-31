@@ -1,63 +1,81 @@
 import asyncio
+import contextlib
 import json
 import logging
+import pathlib
 import sqlite3
 
 from starlette.applications import Starlette
+from starlette.config import Config
 from starlette.endpoints import HTTPEndpoint, WebSocketEndpoint
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import FileResponse, RedirectResponse, JSONResponse
+from starlette.responses import FileResponse, JSONResponse, RedirectResponse
 from starlette.routing import Mount, Route, WebSocketRoute
 from starlette.staticfiles import StaticFiles
 from starlette.websockets import WebSocket
 
 from . import (
-    db,
     broker,
+    db,
     events,
 )
 
-DATABASE = 'necsus.db'
-PRAGMAS = [
-  'PRAGMA journal_mode = WAL',    # Use write-ahead log to allow concurrent readers during a write.
-  'PRAGMA synchronous = normal',  # Default is 'full', which requires a full fsync after each commit.
-]
-DB_SCHEMA = 'schema.sql'
+# Config will be read from environment variables (first priority), falling back to a .env file.
+config = Config('.env', env_prefix='NECSUS_')
+
+BASE_DIR = pathlib.Path(__file__).parent.parent
 
 logger = logging.getLogger('necsus')
 
 
-def startup():
-    connection = sqlite3.connect(DATABASE)
+def create_db_connection(db_path: str) -> sqlite3.Connection:
+    """Create and initialise a connection to an Sqlite3 database."""
+
+    PRAGMAS = [
+        'PRAGMA journal_mode = WAL',  # Use write-ahead log to allow concurrent readers during a write.
+        'PRAGMA synchronous = normal',  # Default is 'full', which requires a full fsync after each commit.
+    ]
+
+    connection = sqlite3.connect(db_path)
     for sql in PRAGMAS:
         connection.execute(sql)
 
-    with open(DB_SCHEMA) as f:
+    with open(BASE_DIR / 'schema.sql') as f:
         connection.executescript(f.read())
 
     connection.commit()
+    return connection
+
+
+@contextlib.asynccontextmanager
+async def lifespan(app: Starlette):
+    # Read the environment variable NECSUS_DB, with a sensible default of the repo root.
+    db_path = config.get('DB', str, str(BASE_DIR / 'necsus.db'))
+
+    logger.info(f"Connecting to SQLite database {db_path!r}")
+    connection = create_db_connection(db_path)
 
     app.state.connection = connection
     app.state.db = db.DB(connection)
 
     app.state.broker = broker.Broker()
 
+    yield
 
-def shutdown():
     app.state.connection.close()
 
 
 class Lobby(HTTPEndpoint):
     async def get(self, request):
-        return FileResponse('client/lobby.html')
+        return FileResponse(BASE_DIR / 'client/lobby.html')
 
 
 class Room(HTTPEndpoint):
     async def get(self, request):
-        return FileResponse('client/index.html')
+        return FileResponse(BASE_DIR / 'client/index.html')
 
 
 class Docs(HTTPEndpoint):
@@ -67,7 +85,7 @@ class Docs(HTTPEndpoint):
 
 class ApiSpec(HTTPEndpoint):
     async def get(self, request):
-        return FileResponse('api.yaml')
+        return FileResponse(BASE_DIR / 'api.yaml')
 
 
 class ApiMessages(HTTPEndpoint):
@@ -194,6 +212,10 @@ class ApiActionsClearRoomState(HTTPEndpoint):
 
 
 class WebSocketRoom(WebSocketEndpoint):
+    """
+    The websocket endpoint /ws/{room}?since_id=-1 will deliver a read-only stream of events from a room, after the given
+    message id.
+    """
     async def on_connect(self, ws: WebSocket):
         await ws.accept()
 
@@ -251,15 +273,16 @@ class NoCacheHeader(BaseHTTPMiddleware):
         return response
 
 
+
 routes = [
     Route('/', Lobby),
 
     # Resources needed by the Lobby and Room endpoints (supporting HTML, JS, CSS).
-    Mount('/client', app=StaticFiles(directory='client')),
+    Mount('/client', app=StaticFiles(directory=BASE_DIR / 'client')),
 
     # The swagger-ui/ directory holds a copy of the dist/ directory from https://github.com/swagger-api/swagger-ui.
     # The swagger-initializer.js file has been updated to point at /api/spec.
-    Mount('/docs', app=StaticFiles(directory='swagger-ui', html=True)),
+    Mount('/docs', app=StaticFiles(directory=BASE_DIR / 'swagger-ui', html=True)),
     Route('/docs', Docs),
     Route('/api/spec', ApiSpec),
 
@@ -267,7 +290,7 @@ routes = [
     Route('/api/messages', ApiMessages),
     Route('/api/bots', ApiBots),
 
-    # API endpoints which are non-GET routes accepting JSON payloads.
+    # API endpoints which are POST or DELETE routes accepting JSON payloads.
     Route('/api/actions/message', ApiActionsMessage),
     Route('/api/actions/message-form', ApiActionsMessageForm),
     Route('/api/actions/bot', ApiActionBot),
@@ -295,6 +318,5 @@ app = Starlette(
     debug=True,
     routes=routes,
     middleware=middleware,
-    on_startup=[startup],
-    on_shutdown=[shutdown],
+    lifespan=lifespan,
 )

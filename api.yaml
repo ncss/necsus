@@ -14,7 +14,7 @@ paths:
     get:
       tags:
         - Information
-      summary: List messages in a room
+      summary: List messages in a room, in chronological order.
       parameters:
         - in: query
           name: room
