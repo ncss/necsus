@@ -116,3 +116,7 @@ dmypy.json
 
 # PyCharm
 .idea
+
+# Database backups
+backups/*.db.gz
+backups/*.db
