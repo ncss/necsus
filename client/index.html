@@ -10,10 +10,11 @@
     <script src="client/js/timeago.min.js"></script>
 
     <script src="client/js/vue.js"></script>
-    <script src="client/js/materialize.js"></script>
+<!--    <script src="client/js/materialize.js"></script>-->
 
-    <link rel="stylesheet" type="text/css" href="client/css/materialize.css" />
-    <link rel="stylesheet" type="text/css" href="client/necsus.css" />
+<!--    <link rel="stylesheet" type="text/css" href="client/css/materialize.css" />-->
+    <link rel="stylesheet" type="text/css" href="client/css/bulma.css" />
+<!--    <link rel="stylesheet" type="text/css" href="client/necsus.css" />-->
 
     <!--
       TODO: Make this local-friendly by having a copy of the fonts. But at
@@ -28,35 +29,44 @@
 
   <body>
     <div id="necsus">
-      <div class="navbar-fixed">
-        <nav class="z-depth-0">
-          <div class="nav-wrapper">
-            <span class="nav-name">
-              <a href="/">NeCSuS</a>
+      <nav class="navbar is-info" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+          <p class="navbar-item">
+            <a href="/">NeCSuS</a>
               |
               {{ room }}
               |
               <span :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
               </span>
+          </p>
+          <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </a>
+        </div>
+        <div class="navbar-menu" id="navMenu">
+          <!-- Left part of navbar -->
+          <div class="navbar-start"></div>
 
-            </span>
-            <ul id="nav-mobile" class="right">
-              <li>
-                <button
-                  @click="settings.open = !settings.open"
-                  class="btn-flat white-text"
-                >
-                  Settings
-                </button>
-              </li>
-            </ul>
+          <!-- Right part of navbar -->
+          <div class="navbar-end">
+            <div class="navbar-item has-dropdown is-hoverable">
+              <div class="navbar-link">Docs</div>
+              <div class="navbar-dropdown is-right">
+                <a class="navbar-item" target="_blank" href="https://docs.google.com/document/d/1oc9wd0pRq0u19OOFDLk5njxTkp3etfgGf6mmATac6Qc/edit?usp=sharing">Simple bot tutorial</a>
+                <a class="navbar-item" target="_blank" href="/docs">NeCSuS API docs</a>
+                <a class="navbar-item" target="_blank" href="https://github.com/ncss/necsus/blob/master/README.md">NeCSuS README</a>
+              </div>
+            </div>
+            <a class="navbar-item" @click="settings.open = !settings.open">Settings</a>
           </div>
-        </nav>
-      </div>
+        </div>
+      </nav>
 
-      <main class="row main">
-        <section class="col" :class="settings.open ? 'hide-on-small-only m6' : 's12'">
+      <main class="columns">
+        <section class="column" :class="settings.open ? 'is-half' : 'is-full'">
           <div id="messages-list">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
@@ -65,59 +75,67 @@
               </button>
             </div>
             <div
-              class="card message z-depth-0"
+              class="block media"
               :necsus-message-id="message.id"
               :class="messageClass(message)"
               v-for="message in displayMessages"
               :key="message.id"
             >
-              <div class="flex">
-                <b class="author flex-grow">{{ message.author }}</b>
-                <span class="when">{{ message.displayTime }}</span>
-              </div>
-              <div class="content" v-html="message.text"></div>
-              <div v-if="message.image" class="image">
-                <img v-bind:src="message.image" />
-              </div>
-              <div v-if="message.media" class="media">
-                <video controls="" autoplay="" name="media">
-                  <source v-bind:src="message.media" type="audio/mpeg" />
-                </video>
-              </div>
-              <div
-                v-if="message.state != null && message.showState"
-                class="state-show-toggle"
-              >
-                <a @click="toggleState(message)" href="#">hide state</a>
-              </div>
-              <div
-                v-if="message.state != null && !message.showState"
-                class="state-show-toggle"
-              >
-                <a @click="toggleState(message)" href="#">show state</a>
-              </div>
-              <div
-                v-if="message.state != null && message.showState"
-                class="state"
-              >
-                <code> {{ message.state }} </code>
+              <!-- Optional left content -->
+              <div class="media-left"></div>
+              <div class="media-content">
+                <div class="content">
+                  <b class="author">{{ message.author }}</b>
+                  <span class="when">{{ message.displayTime }}</span>
+                </div>
+                <div class="content" v-html="message.text"></div>
+                <div v-if="message.image" class="image">
+                  <img v-bind:src="message.image" />
+                </div>
+                <div v-if="message.media" class="media">
+                  <video controls="" autoplay="" name="media">
+                    <source v-bind:src="message.media" type="audio/mpeg" />
+                  </video>
+                </div>
+                <div
+                  v-if="message.state != null && message.showState"
+                  class="state-show-toggle"
+                >
+                  <a @click="toggleState(message)" href="#">hide state</a>
+                </div>
+                <div
+                  v-if="message.state != null && !message.showState"
+                  class="state-show-toggle"
+                >
+                  <a @click="toggleState(message)" href="#">show state</a>
+                </div>
+                <div
+                  v-if="message.state != null && message.showState"
+                  class="state"
+                >
+                  <code> {{ message.state }} </code>
+                </div>
               </div>
             </div>
           </div>
 
-          <div id="new-message" class="card">
-            <div class="card-content z-depth-2">
-              <div class="flex">
+          <div id="new-message" class="level">
+            <div class="field">
+              <p class="control">
                 <button
-                  class="btn-flat waves-effect btn-small message-btn"
+                  class="button message-btn"
                   @click="listen()"
                   v-bind:disabled="sendingMessage"
                 >
                   <i class="inline-icon material-icons">mic</i>
                 </button>
+              </p>
+            </div>
+            <div class="field">
+              <div class="control is-expanded">
                 <textarea
                   id="message-input"
-                  class="materialize-textarea flex-grow"
+                  class="textarea"
                   v-model="newMessage"
                   v-bind="{placeholder: 'Message '+ room}"
                   autofocus
@@ -128,8 +146,12 @@
                   @keyup.down="newMessageHistoryMove(-1)"
                   v-on:keyup.enter.exact="submitMessage(newMessage)"
                 ></textarea>
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
                 <button
-                  class="btn-flat waves-effect btn-small message-btn"
+                  class="button message-btn"
                   @click="submitMessage(newMessage)"
                   v-bind:disabled="sendingMessage"
                 >
@@ -140,79 +162,61 @@
                   >
                 </button>
               </div>
-              <div class="progress" v-if="sendingMessage">
-                <div class="indeterminate"></div>
-              </div>
+            </div>
+            <div class="progress" v-if="sendingMessage">
+              <div class="indeterminate"></div>
             </div>
           </div>
         </section>
 
-        <section id="settings" v-if="settings.open" class="col m6 s12">
-          <div class="card">
-            <div class="card-content">
-              <span class="card-title">General Settings</span>
-
-              <label>
-                <span>Name</span>
-                <input id="name" name="name" v-model="settings.name" />
-              </label>
-
-              <label>
-                <input
-                  class="filled-in"
-                  id="speech"
-                  name="speech"
-                  type="checkbox"
-                  v-model="settings.speech"
-                  @click="autoUpdate"
-                />
-                <span>Speech Synthesis Enabled?</span>
-              </label>
+        <section id="settings" v-if="settings.open" class="column is-half">
+          <div class="panel">
+            <p class="panel-heading">General settings</p>
+            <div class="panel-block">
+              <div class="field is-horizontal">
+                <div class="field-label">
+                  <label class="label">Name</label>
+                </div>
+                <div class="field-body">
+                  <div class="control">
+                    <input class="input" id="name" name="name" v-model="settings.name" />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-content">
-              <span class="card-title">Clear Room</span>
-              <button
-                id="clear-room"
-                class="btn btn-wide"
-                v-if="!clearRoomShow"
-                @click="clearRoomShow = true"
-              >
-                <i class="material-icons">clear_all</i>&nbsp;
-                <span>Remove all messages in room</span>
-              </button>
-              <label for="confirm-clear-room-input" v-if="clearRoomShow">
-                Enter room name ({{ room }}) to confirm deletion of chat history:
-              </label>
+            <label class="panel-block">
               <input
-                id="confirm-clear-room-input"
-                name="confirm-clear-room"
-                v-if="clearRoomShow"
-                v-model="clearRoomConfirm"
+                class="filled-in"
+                id="speech"
+                name="speech"
+                type="checkbox"
+                v-model="settings.speech"
+                @click="autoUpdate"
               />
-
-              <button
-                id="confirm-clear-room"
-                class="btn btn-wide danger"
-                v-if="clearRoomShow"
-                :disabled="clearRoomConfirm.toUpperCase() != room.toUpperCase()"
-                @click="clearRoom()"
-              >
-                <i class="material-icons">clear_all</i>&nbsp;
-                <span>Remove all messages in room</span>
+              Speech synthesis enabled?
+            </label>
+            <div class="panel-block" v-if="!clearRoomShow">
+              <button id="clear-room" class="button is-outlined is-fullwidth" v-if="!clearRoomShow" @click="clearRoomShow = true">
+                Clear room
               </button>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-content">
-              <span class="card-title">Documentation</span>
-              <div class="collection">
-                <a class="collection-item" target="_blank" href="https://docs.google.com/document/d/1oc9wd0pRq0u19OOFDLk5njxTkp3etfgGf6mmATac6Qc/edit?usp=sharing">Simple bot tutorial</a>
-                <a class="collection-item" target="_blank" href="/docs">NeCSuS API docs</a>
-                <a class="collection-item" target="_blank" href="https://github.com/ncss/necsus/blob/master/README.md">NeCSuS README</a>
+            <div class="panel-block" v-if="clearRoomShow">
+              <div class="field has-addons is-horizontal">
+                <p class="control is-expanded">
+                  <input class="input" id="confirm-clear-room-input" name="confirm-clear-room" v-model="clearRoomConfirm">
+                </p>
+                <p class="control">
+                  <button
+                    class="button is-danger"
+                    id="confirm-clear-room"
+                    v-if="clearRoomShow"
+                    :disabled="clearRoomConfirm.toUpperCase() != room.toUpperCase()"
+                    @click="clearRoom()"
+                  >
+                    Clear
+                  </button>
+                </p>
+                <p class="help">Enter room name ({{ room }}) to confirm deletion of chat history:</p>
               </div>
             </div>
           </div>

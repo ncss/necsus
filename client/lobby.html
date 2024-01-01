@@ -10,65 +10,108 @@
     <script src="client/js/timeago.min.js"></script>
 
     <script src="client/js/vue.js"></script>
-    <script src="client/js/materialize.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="client/css/materialize.css" />
-    <link rel="stylesheet" type="text/css" href="client/necsus.css" />
-
+    <link rel="stylesheet" type="text/css" href="client/css/bulma.css" />
+<!--    <link rel="stylesheet" type="text/css" href="client/necsus.css" />-->
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
+    <script>
+      // Burger code
+      document.addEventListener('DOMContentLoaded', () => {
+
+        // Get all "navbar-burger" elements
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+        // Add a click event on each of them
+        $navbarBurgers.forEach( el => {
+          el.addEventListener('click', () => {
+
+            // Get the target from the "data-target" attribute
+            const target = el.dataset.target;
+            const $target = document.getElementById(target);
+
+            // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+            el.classList.toggle('is-active');
+            $target.classList.toggle('is-active');
+
+          });
+        });
+
+      });
+  </script>
+
   </head>
 
   <body>
     <div id="necsus">
-      <div id="lobby-center-wrapper">
-        <div class="navbar-fixed">
-          <nav class="z-depth-0">
-            <div class="nav-wrapper">
-              <span class="nav-name">NeCSuS</span>
-            </div>
-          </nav>
+      <nav class="navbar is-info" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+          <p class="navbar-item">NeCSuS</p>
+          <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </a>
         </div>
+        <div class="navbar-menu" id="navMenu">
+          <!-- Left part of navbar -->
+          <div class="navbar-start">
 
-        <div id="lobby">
-          <div class="card">
-            <div class="card-content">
-              <span class="card-title" id="lobby-welcome-text"></span><span class="input-cursor"></span>
-              <p>
-                Welcome to the NeCSuS lobby! Please enter the room you'd like to
-                join.
-              </p>
+          </div>
 
-              <label for="room-name">
-                <span>Room name</span>
-              </label>
-
-              <input
-                id="room-name"
-                name="room-name"
-                v-model="room_name"
-                @keydown.enter.exact.prevent
-                v-on:keyup.enter.exact="joinRoom()"
-              />
-
-              <button
-                id="join-room"
-                class="btn btn-wide"
-                :disabled="room_name == ''"
-                @click="joinRoom()"
-              >
-                <i class="material-icons">flight_takeoff</i>&nbsp;
-                <span>Join room {{ room_name }}</span>
-              </button>
+          <!-- Right part of navbar -->
+          <div class="navbar-end">
+            <div class="navbar-item has-dropdown is-hoverable">
+              <div class="navbar-link">Docs</div>
+              <div class="navbar-dropdown is-right">
+                <a class="navbar-item">Simple bot tutorial</a>
+                <a class="navbar-item">NeCSuS API docs</a>
+                <a class="navbar-item">NeCSuS README</a>
+              </div>
+            </div>
+            <div class="navbar-item">
+              <a class="button">Settings</a>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      <section class="section" id="lobby">
+        <div class="columns">
+          <div class="column"></div>
+          <div class="column is-narrow">
+            <div class="content">
+              <h3><span id="lobby-welcome-text"></span><span class="input-cursor"></span></h3>
+              <p>Welcome to the NeCSuS lobby! Please enter the room you'd like to join.</p>
+            </div>
+
+            <div class="field is-grouped">
+              <p class="control is-expanded">
+                <input
+                  class="input"
+                  type="text"
+                  placeholder="Room name"
+                  id="room-name"
+                  name="room-name"
+                  v-model="room_name"
+                  @keydown.enter.exact.prevent
+                  v-on:keyup.enter.exact="joinRoom()"
+                >
+              </p>
+              <p class="control">
+                <button class="button is-info" id="join-room" :disabled="room_name == ''" @click="joinRoom()">
+                  Join room <i class="material-icons">flight_takeoff</i>
+                </button>
+              </p>
+            </div>
+          </div>
+          <div class="column"></div>
+        </div>
+      </section>
     </div>
 
     <script src="client/lobby.js"></script>
   </body>
 </html>
-
