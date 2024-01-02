@@ -198,10 +198,16 @@ async def run_bot(room: str, bot, msg):
         safe_message['state'] = message['state']
 
     if 'image' in message and isinstance(message['image'], str):
-        safe_message['image'] = message['image']
+        safe_message['image'] = urllib.parse.urljoin(bot['url'], message['image'])
 
     if 'media' in message and isinstance(message['media'], str):
-        safe_message['media'] = message['media']
+        safe_message['media'] = urllib.parse.urljoin(bot['url'], message['media'])
+
+    if 'mjs' in message and isinstance(message['mjs'], str):
+        safe_message['mjs'] = urllib.parse.urljoin(bot['url'], message['mjs'])
+
+    if 'css' in message and isinstance(message['css'], str):
+        safe_message['css'] = urllib.parse.urljoin(bot['url'], message['css'])
 
     safe_message['kind'] = 'bot'
     safe_message['from_bot'] = bot.get('id')

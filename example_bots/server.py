@@ -11,8 +11,10 @@ import re
 import time
 
 from flask import Flask, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Required to load resource-linked Javascript from /static or any other handler.
 
 
 @app.post('/hellobot')
@@ -223,3 +225,14 @@ def pong():
         return {'author': 'PongBot', 'text': 'Please activate PongBot via the PingBot.'}
 
     return {'author': 'PongBot', 'text': 'This is PongBot. How are you today?', 'state': 0}
+
+
+@app.post('/buttonbot')
+def buttonbot():
+    """ButtonBot is an example of how to use resource-linked CSS and Javascript."""
+    return {
+        'author': 'ButtonBot',
+        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'css': '/static/buttonbot.css',
+        'mjs': '/static/buttonbot.mjs',
+    }

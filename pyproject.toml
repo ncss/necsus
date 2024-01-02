@@ -23,6 +23,7 @@ anyio = "~4.1.0"
 
 # For example bots
 flask = "~3.0.0"
+flask-cors = "^4.0.0"
 
 # For testing
 pytest = "~7.4.3"
