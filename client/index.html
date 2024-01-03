@@ -14,6 +14,7 @@
 
 <!--    <link rel="stylesheet" type="text/css" href="client/css/materialize.css" />-->
     <link rel="stylesheet" type="text/css" href="client/css/bulma.css" />
+    <link rel="stylesheet" type="text/css" href="client/index.css" />
 <!--    <link rel="stylesheet" type="text/css" href="client/necsus.css" />-->
 
     <!--
@@ -24,19 +25,23 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" 
+      rel="stylesheet" 
+    />
 
   </head>
 
   <body>
     <div id="necsus">
-      <nav class="navbar is-info" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
+      <nav class="navbar is-info necsus-nav" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand is-size-4">
           <p class="navbar-item">
-            <a href="/">NeCSuS</a>
-              |
-              {{ room }}
-              |
-              <span :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
+            <a class="has-text-white pr-1" href="/">NeCSuS:</a>
+              
+              <span id="room-name" class="px-1">{{ room }}</span>
+              
+              <span class="pl-1" :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
               </span>
           </p>
@@ -67,7 +72,7 @@
 
       <main class="columns">
         <section class="column" :class="settings.open ? 'is-half' : 'is-full'">
-          <div id="messages-list">
+          <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-6">
             <div v-if="statePresent" id="replying">
               <button class="btn" @click="clearState()">
                 <i class="material-icons">exit_to_app</i>&nbsp;
@@ -75,20 +80,20 @@
               </button>
             </div>
             <div
-              class="block media"
+              class="block card message-card"
               :necsus-message-id="message.id"
               :class="messageClass(message)"
               v-for="message in displayMessages"
               :key="message.id"
             >
-              <!-- Optional left content -->
-              <div class="media-left"></div>
-              <div class="media-content">
+              <div class="card-content">
                 <div class="content">
-                  <b class="author">{{ message.author }}</b>
-                  <span class="when">{{ message.displayTime }}</span>
+                  <div class="is-flex is-justify-content-space-between mb-2">
+                    <span class="is-size-6 has-text-weight-bold mr-2 author">{{ message.author }}</span>
+                    <span class="is-size-6 has-text-grey-light when">{{ message.displayTime }}</span>
+                  </div>
+                  <div v-html="message.text"></div>
                 </div>
-                <div class="content" v-html="message.text"></div>
                 <div v-if="message.image" class="image">
                   <img v-bind:src="message.image" />
                 </div>
@@ -98,20 +103,20 @@
                   </video>
                 </div>
                 <div
-                  v-if="message.state != null && message.showState"
-                  class="state-show-toggle"
+                v-if="message.state != null && message.showState"
+                class="state-show-toggle"
                 >
                   <a @click="toggleState(message)" href="#">hide state</a>
                 </div>
                 <div
-                  v-if="message.state != null && !message.showState"
-                  class="state-show-toggle"
+                v-if="message.state != null && !message.showState"
+                class="state-show-toggle"
                 >
                   <a @click="toggleState(message)" href="#">show state</a>
                 </div>
                 <div
-                  v-if="message.state != null && message.showState"
-                  class="state"
+                v-if="message.state != null && message.showState"
+                class="state"
                 >
                   <code> {{ message.state }} </code>
                 </div>
@@ -119,8 +124,8 @@
             </div>
           </div>
 
-          <div id="new-message" class="level">
-            <div class="field">
+          <div class="pt-4">
+            <div id="new-message" class="field has-addons px-6 pb-0">
               <p class="control">
                 <button
                   class="button message-btn"
@@ -130,12 +135,10 @@
                   <i class="inline-icon material-icons">mic</i>
                 </button>
               </p>
-            </div>
-            <div class="field">
               <div class="control is-expanded">
-                <textarea
+                <input
                   id="message-input"
-                  class="textarea"
+                  class="input is-fullwidth"
                   v-model="newMessage"
                   v-bind="{placeholder: 'Message '+ room}"
                   autofocus
@@ -145,10 +148,8 @@
                   @keyup.up="newMessageHistoryMove(1)"
                   @keyup.down="newMessageHistoryMove(-1)"
                   v-on:keyup.enter.exact="submitMessage(newMessage)"
-                ></textarea>
+                ></input>
               </div>
-            </div>
-            <div class="field">
               <div class="control">
                 <button
                   class="button message-btn"
@@ -156,15 +157,16 @@
                   v-bind:disabled="sendingMessage"
                 >
                   <i
+                    v-if="!sendingMessage"
                     class="inline-icon material-icons"
                     :disabled="sendingMessage"
                     >send</i
                   >
+                  <i v-if="sendingMessage" class="inline-icon material-icons material-symbols-outlined rotate">
+                    progress_activity
+                  </i>
                 </button>
               </div>
-            </div>
-            <div class="progress" v-if="sendingMessage">
-              <div class="indeterminate"></div>
             </div>
           </div>
         </section>
