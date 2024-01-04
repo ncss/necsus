@@ -1,18 +1,10 @@
+:root {
+  --gray-accent: #ededed;
+  --light-gray-accent: #f9f9f9;
+}
+
 .navbar.necsus-nav {
   min-height: 4rem;
-}
-
-.rotate {
-  animation: rotation 1.5s infinite linear;
-}
-
-@keyframes rotation {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(359deg);
-  }
 }
 
 #messages-list {
@@ -28,11 +20,11 @@
 }
 
 .card-header {
-  background-color: #ededed;
+  background-color: var(--gray-accent);
 }
 
 #bot-list .card-content {
-  border: 1px solid #ededed;
+  border: 1px solid var(--gray-accent);
 }
 
 .message-left {
@@ -60,5 +52,5 @@
 }
 
 tr.identical-bot {
-  background-color: #f9f9f9;
+  background-color: var(--light-gray-accent);
 }
