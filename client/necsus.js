@@ -79,17 +79,15 @@ let app = new Vue({
         });
       };
     }
-
-    /* 
-      Setup modal state
-    */
-    vm.modals = {
-      'paste_conf_modal': {isOpen: false},
-      'copy_conf_modal': {isOpen: false},
-    };
-
   },
   mounted: function() {
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+          $modal.classList.remove('is-active');
+        });    
+      }
+    });
     this.$refs.import_selector.addEventListener('change', function (event) {
       const fileList = event.target.files;
       if (fileList.length > 0) {
@@ -148,6 +146,24 @@ let app = new Vue({
     this.toPostprocessMessages = this.toPostprocessMessages.filter(({id}) => !reachedDom.has(id));
   },
   methods: {
+    openCopyConfModal: function () {
+      this.$refs.copy_conf_modal.classList.add('is-active');
+    },
+    closeCopyConfModal: function () {
+      this.$refs.copy_conf_modal.classList.remove('is-active');
+    },
+    openPasteConfModal: function () {
+      this.$refs.paste_conf_modal.classList.add('is-active');
+    },    
+    closePasteConfModal: function () {
+      this.$refs.paste_conf_modal.classList.remove('is-active');
+      // Reset importing state
+      this.importing = {
+        text: '',
+        importBots: null,
+        installedBots: [],
+      }
+    },
     formMessageSubmit: async function(e) {
       // Prevent form submission
       e.preventDefault()
@@ -543,7 +559,7 @@ let app = new Vue({
       }.bind(this));
 
       this.fetchBots().then(function() {
-        this.modals.paste_conf_modal.isOpen = false;
+        this.closePasteConfModal();
       }.bind(this))
     }
   },

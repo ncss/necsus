@@ -34,9 +34,7 @@
         <div class="navbar-brand is-size-4">
           <p class="navbar-item">
             <a class="has-text-white pr-1" href="/">NeCSuS:</a>
-              
-              <span id="room-name" class="px-1">{{ room }}</span>
-              
+              <span id="room-name" class="px-1">{{ room }}</span>           
               <span class="pl-1" :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
               </span>
@@ -223,11 +221,11 @@
               <p class="card-header-title">Bots</p>
             </div>
             <div class="card-content">
-              <div class="field is-grouped is-fullwidth">    
+              <div class="field is-grouped">    
                 <div class="control is-expanded">
                   <button
                     class="button is-info is-fullwidth"
-                    @click="modals.copy_conf_modal.isOpen = true"
+                    @click="openCopyConfModal"
                   >
                     <i class="material-icons">content_copy</i>&nbsp;
                     <span>Download Room</span>
@@ -236,7 +234,7 @@
                 <div class="control is-expanded">
                   <button
                     class="button is-info is-fullwidth"
-                    @click="modals.paste_conf_modal.isOpen = true"
+                    @click="openPasteConfModal"
                   >
                     <i class="material-icons">content_paste</i>&nbsp;
                     <span>Upload Room</span>
@@ -297,8 +295,8 @@
         </section>
       </main>
 
-      <div id="copy_conf_modal" class="modal" :class="{'is-active': modals.copy_conf_modal.isOpen}">
-        <div class="modal-background"></div>
+      <div id="copy_conf_modal" ref="copy_conf_modal" class="modal">
+        <div class="modal-background" @click="closeCopyConfModal"></div>
         <div class="modal-content">
           <div class="box">         
             <h1 class="title">Download Bot Configuration</h1>
@@ -325,29 +323,25 @@
               <p class="pb-2">
                 Or, copy the text below and paste it into another room to import it there.
               </p>
-              <pre>
-    {{ get_exportable_text(bots) }}
-              </pre>
+              <pre>{{ get_exportable_text(bots) }}</pre>
             </div>
             <div class="field">
               <div class="control">
-                <button class="button" @click="modals.copy_conf_modal.isOpen = false">
+                <button class="button" @click="closeCopyConfModal">
                   <span>Done</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" @click="modals.copy_conf_modal.isOpen = false"></button>
       </div>
 
-      <div id="paste_conf_modal" class="modal" :class="{'is-active': modals.paste_conf_modal.isOpen}">
-        <div class="modal-background"></div>
+      <div id="paste_conf_modal" ref="paste_conf_modal" class="modal">
+        <div class="modal-background" @click="closePasteConfModal"></div>
         <div class="modal-content">
           <div class="box">
             <h1 class="title">Upload Bot Configuration</h1>
             <div v-if="!importing.importBots">
-
               <div class="block">
                 <p class="pb-2">Either upload a JSON file containing your configuration, or paste the text in.</p>
                 <div class="file">
@@ -364,14 +358,12 @@
                   </label>
                 </div>
               </div>
-
               <ul class="notification is-warning" v-if="importing.errors">
                 <li class="is-flex is-align-items-center" v-for="e in importing.errors">
                   <i class="material-icons">error_outline</i>&nbsp;
                   <span>{{ e }}</span>
                 </li>
               </ul>
-
               <div class="block">
                 <div class="field">
                   <div class="control">
@@ -389,7 +381,6 @@
                 </div>
               </div>
             </div>
-       
             <div v-else>
               <h2 class="is-size-4">Existing Bots</h2>
               <table class="table is-fullwidth">
@@ -452,7 +443,7 @@
                   </button>
                 </div>
                 <div class="control">
-                  <button class="button" @click="modals.paste_conf_modal.isOpen = false">
+                  <button class="button" @click="closePasteConfModal">
                     <i class="material-icons">cancel</i>&nbsp;
                     <span>Cancel</span>
                   </button>
@@ -461,7 +452,6 @@
             </div>  
           </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" @click="modals.paste_conf_modal.isOpen = false"></button>
       </div>
     </div>
 
