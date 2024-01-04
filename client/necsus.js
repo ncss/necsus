@@ -79,18 +79,17 @@ let app = new Vue({
         });
       };
     }
-  },
-  mounted: function() {
-    this.modals = {
-      'paste_conf_modal': M.Modal.init(this.$refs.paste_conf_modal, {
-        onCloseEnd: function() {
-          // Clear importing state.
-          this.importing = {text: '', importBots: null, installedBots: []};
-        }.bind(this),
-      }),
-      'copy_conf_modal': M.Modal.init(this.$refs.copy_conf_modal),
+
+    /* 
+      Setup modal state
+    */
+    vm.modals = {
+      'paste_conf_modal': {isOpen: false},
+      'copy_conf_modal': {isOpen: false},
     };
 
+  },
+  mounted: function() {
     this.$refs.import_selector.addEventListener('change', function (event) {
       const fileList = event.target.files;
       if (fileList.length > 0) {
@@ -98,9 +97,7 @@ let app = new Vue({
         reader.addEventListener('load', function (event) {
           this.importing.text = event.target.result;
           this.$refs.import_selector.value = null;
-          this.$nextTick(function() {
-            M.textareaAutoResize(this.$refs.import_text);
-          }.bind(this));
+          // TODO: It would be nice to resize the textarea here
         }.bind(this));
         reader.readAsText(fileList[0]);
       }
@@ -546,7 +543,7 @@ let app = new Vue({
       }.bind(this));
 
       this.fetchBots().then(function() {
-        this.modals.paste_conf_modal.close();
+        this.modals.paste_conf_modal.isOpen = false;
       }.bind(this))
     }
   },

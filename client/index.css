@@ -22,6 +22,19 @@
   ); /* This is a hack, the magic number ensures the perfect v-space */
 }
 
+#settings {
+  height: 92vh;
+  overflow: scroll;
+}
+
+.card-header {
+  background-color: #ededed;
+}
+
+#bot-list .card-content {
+  border: 1px solid #ededed;
+}
+
 .message-left {
   align-self: flex-start;
 }
@@ -44,4 +57,8 @@
 #messages-list {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+tr.identical-bot {
+  background-color: #f9f9f9;
 }
