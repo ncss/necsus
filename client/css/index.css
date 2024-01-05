@@ -9,15 +9,19 @@ nav.navbar {
   height: var(--nav-height);  /* Fix height so that we can use a calc to determine message list vheight */
 }
 #chat-column {
-  height: calc(100vh - var(--nav-height));  /* All vertical space aside from header. */
-  display: flex;                            /* Display elements in a column, we will flex-grow the message list. */
+  /* You may not have seen 'dvh' before, this is a special invention of Apple to deal with their own
+     mess of the floating address bar at the bottom of the iPhone. What Apple giveth Apple taketh away.
+     https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/#solving-pain-points
+  */
+  height: calc(100dvh - var(--nav-height));  /* All vertical space aside from header. */
+  display: flex;                             /* Display elements in a column, we will flex-grow the message list. */
   flex-direction: column;
 }
 #messages-list {
   flex-grow: 1;
 }
 #settings {
-  height: calc(100vh - var(--nav-height));
+  height: calc(100dvh - var(--nav-height));
   overflow: scroll;
 }
 
