@@ -81,16 +81,13 @@ let app = new Vue({
     }
   },
   mounted: function() {
-    this.modals = {
-      'paste_conf_modal': M.Modal.init(this.$refs.paste_conf_modal, {
-        onCloseEnd: function() {
-          // Clear importing state.
-          this.importing = {text: '', importBots: null, installedBots: []};
-        }.bind(this),
-      }),
-      'copy_conf_modal': M.Modal.init(this.$refs.copy_conf_modal),
-    };
-
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+          $modal.classList.remove('is-active');
+        });    
+      }
+    });
     this.$refs.import_selector.addEventListener('change', function (event) {
       const fileList = event.target.files;
       if (fileList.length > 0) {
@@ -98,9 +95,7 @@ let app = new Vue({
         reader.addEventListener('load', function (event) {
           this.importing.text = event.target.result;
           this.$refs.import_selector.value = null;
-          this.$nextTick(function() {
-            M.textareaAutoResize(this.$refs.import_text);
-          }.bind(this));
+          // TODO: It would be nice to resize the textarea here
         }.bind(this));
         reader.readAsText(fileList[0]);
       }
@@ -151,6 +146,24 @@ let app = new Vue({
     this.toPostprocessMessages = this.toPostprocessMessages.filter(({id}) => !reachedDom.has(id));
   },
   methods: {
+    openCopyConfModal: function () {
+      this.$refs.copy_conf_modal.classList.add('is-active');
+    },
+    closeCopyConfModal: function () {
+      this.$refs.copy_conf_modal.classList.remove('is-active');
+    },
+    openPasteConfModal: function () {
+      this.$refs.paste_conf_modal.classList.add('is-active');
+    },    
+    closePasteConfModal: function () {
+      this.$refs.paste_conf_modal.classList.remove('is-active');
+      // Reset importing state
+      this.importing = {
+        text: '',
+        importBots: null,
+        installedBots: [],
+      }
+    },
     formMessageSubmit: async function(e) {
       // Prevent form submission
       e.preventDefault()
@@ -546,7 +559,7 @@ let app = new Vue({
       }.bind(this));
 
       this.fetchBots().then(function() {
-        this.modals.paste_conf_modal.close();
+        this.closePasteConfModal();
       }.bind(this))
     }
   },
