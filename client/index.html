@@ -67,11 +67,13 @@
       <main class="columns px-4">
         <section class="column" :class="settings.open ? 'is-half' : 'is-full'">
           <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-2">
-            <div v-if="statePresent" id="replying">
-              <button class="btn" @click="clearState()">
-                <i class="material-icons">exit_to_app</i>&nbsp;
-                <span>Leave Conversation with {{ replyToBotName }}</span>
-              </button>
+            <div class="field" v-if="statePresent" id="replying">
+              <div class="control is-expaned">
+                <button class="button is-info is-fullwidth" @click="clearState()">
+                  <i class="material-icons">exit_to_app</i>&nbsp;
+                  <span>Leave Conversation with {{ replyToBotName }}</span>
+                </button>
+              </div>
             </div>
             <div
               class="block card message-card"
@@ -87,32 +89,32 @@
                     <span class="is-size-6 has-text-grey-light when">{{ message.displayTime }}</span>
                   </div>
                   <div v-html="message.text"></div>
-                </div>
-                <div v-if="message.image" class="image">
-                  <img v-bind:src="message.image" />
-                </div>
-                <div v-if="message.media" class="media">
-                  <video controls="" autoplay="" name="media">
-                    <source v-bind:src="message.media" type="audio/mpeg" />
-                  </video>
-                </div>
-                <div
-                v-if="message.state != null && message.showState"
-                class="state-show-toggle"
-                >
-                  <a @click="toggleState(message)" href="#">hide state</a>
-                </div>
-                <div
-                v-if="message.state != null && !message.showState"
-                class="state-show-toggle"
-                >
-                  <a @click="toggleState(message)" href="#">show state</a>
-                </div>
-                <div
-                v-if="message.state != null && message.showState"
-                class="state"
-                >
-                  <code> {{ message.state }} </code>
+                  <div v-if="message.image" class="image">
+                    <img v-bind:src="message.image" />
+                  </div>
+                  <div v-if="message.media" class="media">
+                    <video controls="" autoplay="" name="media">
+                      <source v-bind:src="message.media" type="audio/mpeg" />
+                    </video>
+                  </div>
+                  <div
+                  v-if="message.state != null && message.showState"
+                  class="state-show-toggle is-size-7 has-text-weight-light"
+                  >
+                    <a @click="toggleState(message)" href="#">hide state</a>
+                  </div>
+                  <div
+                  v-if="message.state != null && !message.showState"
+                  class="state-show-toggle is-size-7 has-text-weight-light"
+                  >
+                    <a @click="toggleState(message)" href="#">show state</a>
+                  </div>
+                  <div
+                  v-if="message.state != null && message.showState"
+                  class="state"
+                  >
+                    <code> {{ message.state }} </code>
+                  </div>
                 </div>
               </div>
             </div>

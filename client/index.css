@@ -40,6 +40,10 @@
   margin-bottom: 1.5rem;
 }
 
+.kind-system, .kind-system > div {
+  background-color: var(--gray-accent);
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 #messages-list::-webkit-scrollbar {
   display: none;
