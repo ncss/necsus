@@ -54,7 +54,17 @@ def animal():
     return {
         'author': 'ImageBot',
         'text': 'Here is a capybara.',
-        'image': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Capybara_%28Hydrochoerus_hydrochaeris%29.JPG/440px-Capybara_%28Hydrochoerus_hydrochaeris%29.JPG',
+        'image': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Hydrochoeris_hydrochaeris_in_Brazil_in_Petr%C3%B3polis%2C_Rio_de_Janeiro%2C_Brazil_09.jpg/800px-Hydrochoeris_hydrochaeris_in_Brazil_in_Petr%C3%B3polis%2C_Rio_de_Janeiro%2C_Brazil_09.jpg',
+    }
+
+
+@app.post('/mediabot')
+def media():
+    """MediaBot responds with an audio file."""
+    return {
+        'author': 'MediaBot',
+        'text': 'Here is some media.',
+        'media': 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3',
     }
 
 

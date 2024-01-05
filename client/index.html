@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>NeCSuS</title>
 
     <script src="client/js/marked.min.js"></script>
@@ -10,22 +10,10 @@
     <script src="client/js/timeago.min.js"></script>
 
     <script src="client/js/vue.js"></script>
-<!--    <script src="client/js/materialize.js"></script>-->
 
-<!--    <link rel="stylesheet" type="text/css" href="client/css/materialize.css" />-->
-    <link rel="stylesheet" type="text/css" href="client/css/bulma.css" />
-    <link rel="stylesheet" type="text/css" href="client/index.css" />
-<!--    <link rel="stylesheet" type="text/css" href="client/necsus.css" />-->
-
-    <!--
-      TODO: Make this local-friendly by having a copy of the fonts. But at
-      least we have string fallbacks :grimace:.
-      -->
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-
+    <link rel="stylesheet" type="text/css" href="client/css/bulma.css">
+    <link rel="stylesheet" type="text/css" href="client/css/index.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" >
   </head>
 
   <body>
@@ -98,21 +86,21 @@
                     </video>
                   </div>
                   <div
-                  v-if="message.state != null && message.showState"
-                  class="state-show-toggle is-size-7 has-text-weight-light"
-                  >
+                    v-if="message.state != null && message.showState"
+                    class="state-show-toggle is-size-7 has-text-weight-light"
+                    >
                     <a @click="toggleState(message)" href="#">hide state</a>
                   </div>
                   <div
-                  v-if="message.state != null && !message.showState"
-                  class="state-show-toggle is-size-7 has-text-weight-light"
-                  >
+                    v-if="message.state != null && !message.showState"
+                    class="state-show-toggle is-size-7 has-text-weight-light"
+                    >
                     <a @click="toggleState(message)" href="#">show state</a>
                   </div>
                   <div
-                  v-if="message.state != null && message.showState"
-                  class="state"
-                  >
+                    v-if="message.state != null && message.showState"
+                    class="state"
+                    >
                     <code> {{ message.state }} </code>
                   </div>
                 </div>
@@ -148,7 +136,7 @@
               </div>
               <div class="control">
                 <button
-                  class="button message-btn"
+                  class="button message-btn is-info"
                   :class="{'is-loading': sendingMessage}"
                   @click="submitMessage(newMessage)"
                   v-bind:disabled="sendingMessage"
