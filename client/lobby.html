@@ -11,21 +11,13 @@
     <link rel="stylesheet" type="text/css" href="client/index.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script>
-      // Burger code
+      // Magic burger code for the Bulma Burger Button
       document.addEventListener('DOMContentLoaded', () => {
-
-        // Get all "navbar-burger" elements
         const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-
-        // Add a click event on each of them
-        $navbarBurgers.forEach( el => {
+        $navbarBurgers.forEach(el => {
           el.addEventListener('click', () => {
-
-            // Get the target from the "data-target" attribute
             const target = el.dataset.target;
             const $target = document.getElementById(target);
-
-            // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
             el.classList.toggle('is-active');
             $target.classList.toggle('is-active');
           });

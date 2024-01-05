@@ -13,7 +13,22 @@
 
     <link rel="stylesheet" type="text/css" href="client/css/bulma.css">
     <link rel="stylesheet" type="text/css" href="client/css/index.css">
-    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" >
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <script>
+      // Magic burger code for the Bulma Burger Button
+      document.addEventListener('DOMContentLoaded', () => {
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+        $navbarBurgers.forEach(el => {
+          el.addEventListener('click', () => {
+            const target = el.dataset.target;
+            const $target = document.getElementById(target);
+            el.classList.toggle('is-active');
+            $target.classList.toggle('is-active');
+          });
+        });
+      });
+    </script>
   </head>
 
   <body>
@@ -53,8 +68,8 @@
       </nav>
 
       <main class="columns px-4">
-        <section class="column" :class="settings.open ? 'is-half' : 'is-full'">
-          <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-2">
+        <section id="chat-column" class="column" :class="settings.open ? 'is-half is-hidden-mobile' : 'is-full'">
+          <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-2 no-scrollbar">
             <div class="field" v-if="statePresent" id="replying">
               <div class="control is-expaned">
                 <button class="button is-info is-fullwidth" @click="clearState()">
@@ -211,7 +226,7 @@
               <p class="card-header-title">Bots</p>
             </div>
             <div class="card-content">
-              <div class="field is-grouped">    
+              <div class="field is-grouped">
                 <div class="control is-expanded">
                   <button
                     class="button is-info is-fullwidth"
