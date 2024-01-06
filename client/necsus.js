@@ -232,9 +232,29 @@ let app = new Vue({
       return null
     },
     addBot: function() {
+      // GH-style names w. animals, eg. Owl-Cod-Otter
+      const animals = ["Aardvark", "Alligator", "Alpaca", "Anaconda", "Ant", "Anteater", "Antelope", "Aphid",
+                       "Armadillo", "Asp", "Baboon", "Badger", "Barracuda", "Bass", "Bat", "Beaver", "Bedbug",
+                       "Bee", "Bee-eater", "Bird", "Bison", "Bobcat", "Buffalo", "Butterfly", "Buzzard",
+                       "Camel", "Carp", "Cat", "Caterpillar", "Catfish", "Cheetah", "Chicken", "Chimpanzee",
+                       "Chipmunk", "Cobra", "Cod", "Condor", "Cougar", "Cow", "Coyote", "Crab", "Cricket",
+                       "Crocodile", "Crow", "Cuckoo", "Deer", "Dinosaur", "Dog", "Dolphin", "Donkey", "Dove",
+                       "Dragonfly", "Duck", "Eagle", "Eel", "Elephant", "Emu", "Falcon", "Ferret", "Finch",
+                       "Fish", "Flamingo", "Flea", "Fly", "Fox", "Frog", "Goat", "Goose", "Gopher", "Gorilla",
+                       "Hamster", "Hare", "Hawk", "Hippopotamus", "Horse", "Hummingbird", "Husky", "Iguana",
+                       "Impala", "Kangaroo", "Lemur", "Leopard", "Lion", "Lizard", "Llama", "Lobster", "Margay",
+                       "Monkey", "Moose", "Mosquito", "Moth", "Mouse", "Mule", "Octopus", "Orca", "Ostrich",
+                       "Otter", "Owl", "Ox", "Oyster", "Panda", "Parrot", "Peacock", "Pelican", "Penguin",
+                       "Perch", "Pheasant", "Pig", "Pigeon", "Porcupine", "Quagga", "Rabbit", "Raccoon", "Rat",
+                       "Rattlesnake", "Rooster", "Seal", "Sheep", "Skunk", "Sloth", "Snail", "Snake", "Spider",
+                       "Tiger", "Whale", "Wolf", "Wombat", "Zebra"]
+      const shuffled = animals
+                      .map(x => ({x, sort: Math.random()}))
+                      .sort((a, b) => a.sort - b.sort)
+                      .map(({x}) => x)
+      const selected = shuffled.slice(0, 3);
       let newBot = {
-        // TODO: Give these more fun GH-style names.
-        name: `Bot ${this.bots.length}`,
+        name: `${selected.join("-")}`,
         url: '',
         responds_to: '',
       };
