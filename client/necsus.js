@@ -1,7 +1,7 @@
 let plainTextRenderer = new PlainTextRenderer;
 const NEW_MESSAGE_HISTORY_SIZE = 20;
-const ACTIVE_STYLESHEETS = new Set();  // Set of URLs for dynamically added stylesheets.
-const ACTIVE_MODULES = new Map();      // Maps module URLs to module objects (or null, if the module is still loading).
+const ACTIVE_STYLESHEETS = new Map();  // Maps URLs to <link> DOM elements.
+const ACTIVE_SCRIPTS = new Map();      // Maps URLs to <script> DOM elements.
 
 let app = new Vue({
   el: '#necsus',
@@ -131,36 +131,27 @@ let app = new Vue({
     // Take any new CSS stylesheets which were attached to messages, and hoist them into a <link> in the <head>.
     for (let {message, domElt} of reachedDom.values()) {
       if (message.css != null && !ACTIVE_STYLESHEETS.has(message.css)) {
-        ACTIVE_STYLESHEETS.add(message.css);
-
         let link = document.createElement('link');
         link.setAttribute('rel', 'stylesheet');
         link.setAttribute('href', message.css);
 
         console.log(`Inserting stylesheet into <head> from ${message.id}: ${link.outerHTML}`);
         document.head.appendChild(link);
+        ACTIVE_STYLESHEETS.set(message.css, link);
       }
     }
 
-    // Take any JavaScript modules which were attached, and load them. (This will load asynchronously).
+    // Take any new JS scripts which were attached to messages, and hoist them into a <link> in the <head>.
     for (let {message, domElt} of reachedDom.values()) {
-      if (message.mjs != null && !ACTIVE_MODULES.has(message.mjs)) {
-        ACTIVE_MODULES.set(message.mjs, null)
+      if (message.js != null && !ACTIVE_SCRIPTS.has(message.js)) {
+        let script = document.createElement('script')
+        script.setAttribute('src', message.js)
+        script.setAttribute('type', 'text/javascript')
+        script.setAttribute('async', true)
 
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import
-        import(message.mjs).then((module) => {
-          console.log(`Loaded module ${message.mjs}`, module);
-          ACTIVE_MODULES.set(message.mjs, module);
-          if ('NAME' in module) {
-            window[module['NAME']] = module;
-          }
-          if ('onNecsusMessage' in module) {
-            module['onNecsusMessage']();
-          }
-        }).catch((error) => {
-          console.log(`Error loading module ${message.mjs}`, error)
-          ACTIVE_MODULES.clear(message.mjs)
-        })
+        console.log(`Inserting script into <head> from ${message.id}: ${script.outerHTML}`);
+        document.head.appendChild(script);
+        ACTIVE_SCRIPTS.set(message.js, script);
       }
     }
 
@@ -183,11 +174,6 @@ let app = new Vue({
 
     // Clear the messages we've processed.
     this.toPostprocessMessages = this.toPostprocessMessages.filter(({id}) => !reachedDom.has(id));
-
-    // Fire onNecsusMessage() to any of our module listeners.
-    ACTIVE_MODULES.forEach((module) => {
-      if (module != null && 'onNecsusMessage' in module) { module['onNecsusMessage'](); }
-    });
   },
   methods: {
     openCopyConfModal: function () {

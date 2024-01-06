@@ -215,7 +215,7 @@ def test_relative_urls(bot_url: str, resource_url: str, expected_absolute_url: s
                 'image': resource_url,
                 'media': resource_url,
                 'css': resource_url,
-                'mjs': resource_url,
+                'js': resource_url,
             }
         ))
 
@@ -226,5 +226,5 @@ def test_relative_urls(bot_url: str, resource_url: str, expected_absolute_url: s
         last_message = necsus.get('/api/messages', params={'room': TEST_ROOM}).json()[-1]
 
         # Check that the resources have the correct modified absolute URL.
-        for field in ['image', 'media', 'css', 'mjs']:
+        for field in ['image', 'media', 'css', 'js']:
             assert last_message[field] == expected_absolute_url, field

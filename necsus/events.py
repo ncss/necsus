@@ -203,8 +203,8 @@ async def run_bot(room: str, bot, msg):
     if 'media' in message and isinstance(message['media'], str):
         safe_message['media'] = urllib.parse.urljoin(bot['url'], message['media'])
 
-    if 'mjs' in message and isinstance(message['mjs'], str):
-        safe_message['mjs'] = urllib.parse.urljoin(bot['url'], message['mjs'])
+    if 'js' in message and isinstance(message['js'], str):
+        safe_message['js'] = urllib.parse.urljoin(bot['url'], message['js'])
 
     if 'css' in message and isinstance(message['css'], str):
         safe_message['css'] = urllib.parse.urljoin(bot['url'], message['css'])

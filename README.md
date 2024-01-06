@@ -262,8 +262,8 @@ Or if you wanted to log a message to the development Javascript console,
 
 ### Resource-linked CSS and Javascript tutorial
 
-Down in the [bot specification](#bot-matching-usual-mode-of-operation) section, you'll see that the `BotResponse` object (the JSON returned from your bot) is allowed to have `css` and `mjs` fields.
-Each of these is interpreted as a URL (either absolute, or relative to the URL of your bot) from which to load a CSS Stylesheet or Javascript module.
+Down in the [bot specification](#bot-matching-usual-mode-of-operation) section, you'll see that the `BotResponse` object (the JSON returned from your bot) is allowed to have `css` and `js` fields.
+Each of these is interpreted as a URL (either absolute, or relative to the URL of your bot) from which to load a CSS Stylesheet or Javascript script.
 We'll walk through a simple example where we want our bot to respond with a CSS-styled button, and have some Javascript run when the button is clicked.
 
 Here is our example "ButtonBot", which simply posts an HTML `<button>` with a particular class (so that we can style it using CSS).
@@ -285,7 +285,7 @@ def index():
 def buttonbot():
     return {
         'author': 'ButtonBot',
-        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'text': '<button class="buttonbot" onclick="buttonBotClick()">Click me!</button>',
     }
 
 app.run(host='0.0.0.0', debug=True)
@@ -297,7 +297,7 @@ Next, create a `static` directory on your server next to the `main.py` file, and
 Paste this into `style.css`:
 
 ```css
-.buttonbot { background-color: green !important; }  /* TODO(Joel): Change client CSS so this !important is not necessary. */
+.buttonbot { background-color: green; }
 ```
 
 You should be able to find this file online, at `{your_bots_url}/static/style.css`.
@@ -309,7 +309,7 @@ Next, update the return value of `buttonbot()` to include a link to this stylesh
 def buttonbot():
     return {
         'author': 'ButtonBot',
-        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'text': '<button class="buttonbot" onclick="buttonBotClick()">Click me!</button>',
         'css': '/static/style.css',
     }
 ```
@@ -317,14 +317,10 @@ def buttonbot():
 Post another message to your bot, which will load up the stylesheet and turn your buttons green.
 
 Next we're going to install a Javascript function called `buttonBotClick()` to give that button some custom behaviour.
-Create a `static/script.mjs` file, and put this into it:
+Create a `static/script.js` file, and put this into it:
 
 ```javascript
-// The NeCSuS frontend will look for a NAME string, and make all exports in this file available under that name.
-// For instance, ButtonBot.onClick() can be used from anywhere on the page.
-export const NAME = 'ButtonBot';
-
-export function onClick() {
+function buttonBotClick() {
     alert("Hello from ButtonBot!");
 }
 ```
@@ -338,7 +334,7 @@ def buttonbot():
         'author': 'ButtonBot',
         'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
         'css': '/static/style.css',
-        'mjs': '/static/script.mjs',
+        'js': '/static/script.js',
     }
 ```
 
@@ -347,11 +343,6 @@ def buttonbot():
 
 Resource-linked stylesheets and Javascript modules are only loaded once per URL, no matter how many messages they appear in.
 This means that during development, it is enough to refresh the NeCSuS chat room to see updates to styles and scripts.
-
-There is a little (not too much) magic done during the loading of Javascript modules.
-
-- The first piece of magic is the `NAME` export, which causes the module to be mounted onto the global `window` object at that name. This makes running event handlers much easier, and reduces the possibility for namespace collisions with different bots.
-- The second piece of magic is that the NeCSuS client will look for an exported function `onNecsusMessage()` in the module, and will call this function each time new messages are loaded into the room. This allows a script to (for instance) traverse the DOM and make some modifications once new messages are loaded in. This function may not be called once per message, but will be called just after one or a small batch of messages are loaded into the DOM.
 
 
 # NeCSuS development and deployment

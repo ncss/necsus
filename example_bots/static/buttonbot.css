@@ -1,1 +1,2 @@
-.buttonbot { background-color: green !important; }  /* TODO(Joel): Change client CSS so this !important is not necessary. */
+.buttonbot { background-color: green; }
+.buttonbot-error { background-color: red; }

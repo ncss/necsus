@@ -232,7 +232,10 @@ def buttonbot():
     """ButtonBot is an example of how to use resource-linked CSS and Javascript."""
     return {
         'author': 'ButtonBot',
-        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'text': '''
+            <p>Click this button to run good Javascript: <button class="buttonbot" onclick="buttonBotClick()">Click me!</button></p>
+            <p>Click this button to throw a JS error: <button class="buttonbot-error" onclick="buttonBotError()">Don't click me!</button></p>
+        ''',
         'css': '/static/buttonbot.css',
-        'mjs': '/static/buttonbot.mjs',
+        'js': '/static/buttonbot.js',
     }
