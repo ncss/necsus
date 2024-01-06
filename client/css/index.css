@@ -6,15 +6,19 @@
 
 /* Layout */
 nav.navbar {
-  height: var(--nav-height);  /* Fix height so that we can use a calc to determine message list vheight */
+  height: var(
+    --nav-height
+  ); /* Fix height so that we can use a calc to determine message list vheight */
 }
 #chat-column {
   /* You may not have seen 'dvh' before, this is a special invention of Apple to deal with their own
      mess of the floating address bar at the bottom of the iPhone. What Apple giveth Apple taketh away.
      https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/#solving-pain-points
   */
-  height: calc(100dvh - var(--nav-height));  /* All vertical space aside from header. */
-  display: flex;                             /* Display elements in a column, we will flex-grow the message list. */
+  height: calc(
+    100dvh - var(--nav-height)
+  ); /* All vertical space aside from header. */
+  display: flex; /* Display elements in a column, we will flex-grow the message list. */
   flex-direction: column;
 }
 #messages-list {
@@ -47,7 +51,8 @@ nav.navbar {
   margin-bottom: 1.5rem;
 }
 
-.kind-system, .kind-system > div {
+.kind-system,
+.kind-system > div {
   background-color: var(--gray-accent);
 }
 
@@ -58,13 +63,11 @@ nav.navbar {
   scrollbar-width: none; /* Firefox */
 }
 .no-scrollbar::-webkit-scrollbar {
-  display: none;  /* Hide scrollbar for Chrome, Safari and Opera */
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
 #messages-list {
-
-
 }
 
 /* For the bot import dialog. */
