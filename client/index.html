@@ -9,6 +9,12 @@
     <script src="client/js/marked-plaintext.js"></script>
     <script src="client/js/timeago.min.js"></script>
 
+    <link rel="apple-touch-icon" sizes="180x180" href="client/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="client/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="client/static/favicon-16x16.png">
+    <link rel="manifest" href="client/static/site.webmanifest">
+
+
     <script src="client/js/vue.js"></script>
 
     <link rel="stylesheet" type="text/css" href="client/css/bulma.css">
@@ -68,7 +74,7 @@
       </nav>
 
       <main class="columns px-4">
-        <section id="chat-column" class="column" :class="settings.open ? 'is-half is-hidden-mobile' : 'is-full'">
+        <section id="chat-column" class="column" :class="settings.open ? 'is-two-thirds is-hidden-mobile' : 'is-full'">
           <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-2 no-scrollbar">
             <div class="field" v-if="statePresent" id="replying">
               <div class="control is-expaned">
@@ -167,7 +173,7 @@
           </div>
         </section>
 
-        <section id="settings" v-if="settings.open" class="column is-half pt-5">
+        <section id="settings" v-if="settings.open" class="column is-one-third pt-5">
           <div class="card block">
             <div class="card-header">
               <p class="card-header-title">General settings</p>
@@ -226,8 +232,8 @@
               <p class="card-header-title">Bots</p>
             </div>
             <div class="card-content">
-              <div class="field is-grouped">
-                <div class="control is-expanded">
+              <div class="field is-multiline columns">
+                <div class="column control is-expanded">
                   <button
                     class="button is-info is-fullwidth"
                     @click="openCopyConfModal"
@@ -236,7 +242,7 @@
                     <span>Download Room</span>
                   </button>
                 </div>
-                <div class="control is-expanded">
+                <div class="column control is-expanded">
                   <button
                     class="button is-info is-fullwidth"
                     @click="openPasteConfModal"
