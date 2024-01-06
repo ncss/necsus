@@ -23,6 +23,7 @@ nav.navbar {
 #settings {
   height: calc(100dvh - var(--nav-height));
   overflow: scroll;
+  background-color: var(--light-gray-accent);
 }
 
 .card-header {
