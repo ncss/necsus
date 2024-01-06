@@ -68,7 +68,7 @@
       </nav>
 
       <main class="columns px-4">
-        <section id="chat-column" class="column" :class="settings.open ? 'is-half is-hidden-mobile' : 'is-full'">
+        <section id="chat-column" class="column" :class="settings.open ? 'is-two-thirds is-hidden-mobile' : 'is-full'">
           <div id="messages-list" class="is-flex is-flex-direction-column-reverse px-2 no-scrollbar">
             <div class="field" v-if="statePresent" id="replying">
               <div class="control is-expaned">
@@ -167,7 +167,7 @@
           </div>
         </section>
 
-        <section id="settings" v-if="settings.open" class="column is-half pt-5">
+        <section id="settings" v-if="settings.open" class="column is-one-third pt-5">
           <div class="card block">
             <div class="card-header">
               <p class="card-header-title">General settings</p>
