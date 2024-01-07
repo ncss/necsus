@@ -149,7 +149,7 @@ let app = new Vue({
         script.setAttribute('type', 'text/javascript')
         script.setAttribute('async', true)
 
-        console.log(`Inserting script into <head> from ${message.id}: ${script.outerHTML}`);
+console.log(`Inserting script '${message.js}' into <head> from ${message.id}: ${script.outerHTML}`);
         document.head.appendChild(script);
         ACTIVE_SCRIPTS.set(message.js, script);
       }
