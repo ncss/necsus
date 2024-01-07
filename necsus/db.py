@@ -102,7 +102,7 @@ class DBList(dict):
 
 class Messages(DBList):
   table = Table('messages')
-  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'from_bot', 'state']
+  allowed_keys = ['id', 'room', 'author', 'kind', 'text', 'when', 'image', 'media', 'js', 'css', 'from_bot', 'state']
 
   def since(self, room: str, since_id: int = -1):
     """Return a list of all messages in the room with IDs strictly greater than a given ID, in ascending ID order."""

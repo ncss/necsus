@@ -197,3 +197,34 @@ def test_schema(tmp_path: pathlib.Path):
     backup_path = str(tmp_path / 'necsus.backup.db')
     backup_result = subprocess.run(['sqlite3', db_path, f"""VACUUM INTO '{backup_path}'"""])
     assert backup_result.returncode == 0
+
+
+@pytest.mark.parametrize('bot_url,resource_url,expected_absolute_url', [
+    (f'{EXAMPLE_BOTS_URL}/path/to/relbot', 'resource', f'{EXAMPLE_BOTS_URL}/path/to/resource'),
+    (f'{EXAMPLE_BOTS_URL}/path/to/relbot', '/resource', f'{EXAMPLE_BOTS_URL}/resource'),
+    (f'{EXAMPLE_BOTS_URL}/path/to/relbot', 'http://some.other.place/resource', 'http://some.other.place/resource'),
+])
+def test_relative_urls(bot_url: str, resource_url: str, expected_absolute_url: str, necsus: TestClient):
+    """Check that the image, media, css, and mjs items are correctly relativised to the bot's URL."""
+    with respx.mock:
+        # Mock a response from our bot.
+        route = respx.post(bot_url).mock(return_value=httpx.Response(
+            status_code=200,
+            json={
+                'text': 'Hello there',
+                'image': resource_url,
+                'media': resource_url,
+                'css': resource_url,
+                'js': resource_url,
+            }
+        ))
+
+        # Install the bot, post a message to it, and grab the reply as the last message in the room.
+        necsus.post('/api/actions/bot', json={'room': TEST_ROOM, 'name': 'RelBot', 'url': bot_url})
+        necsus.post('/api/actions/message', json={'room': TEST_ROOM, 'author': TEST_AUTHOR, 'text': 'Hi RelBot'})
+        assert route.called
+        last_message = necsus.get('/api/messages', params={'room': TEST_ROOM}).json()[-1]
+
+        # Check that the resources have the correct modified absolute URL.
+        for field in ['image', 'media', 'css', 'js']:
+            assert last_message[field] == expected_absolute_url, field

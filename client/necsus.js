@@ -1,5 +1,8 @@
 let plainTextRenderer = new PlainTextRenderer;
 const NEW_MESSAGE_HISTORY_SIZE = 20;
+const ACTIVE_STYLESHEETS = new Map();  // Maps URLs to <link> DOM elements.
+const ACTIVE_SCRIPTS = new Map();      // Maps URLs to <script> DOM elements.
+
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -123,6 +126,33 @@ let app = new Vue({
         formElt.addEventListener('submit', (e) => this.formMessageSubmit(e))
         formElt.dataset.from_bot = message.from_bot
       })
+    }
+
+    // Take any new CSS stylesheets which were attached to messages, and hoist them into a <link> in the <head>.
+    for (let {message, domElt} of reachedDom.values()) {
+      if (message.css != null && !ACTIVE_STYLESHEETS.has(message.css)) {
+        let link = document.createElement('link');
+        link.setAttribute('rel', 'stylesheet');
+        link.setAttribute('href', message.css);
+
+        console.log(`Inserting stylesheet into <head> from ${message.id}: ${link.outerHTML}`);
+        document.head.appendChild(link);
+        ACTIVE_STYLESHEETS.set(message.css, link);
+      }
+    }
+
+    // Take any new JS scripts which were attached to messages, and hoist them into a <link> in the <head>.
+    for (let {message, domElt} of reachedDom.values()) {
+      if (message.js != null && !ACTIVE_SCRIPTS.has(message.js)) {
+        let script = document.createElement('script')
+        script.setAttribute('src', message.js)
+        script.setAttribute('type', 'text/javascript')
+        script.setAttribute('async', true)
+
+        console.log(`Inserting script into <head> from ${message.id}: ${script.outerHTML}`);
+        document.head.appendChild(script);
+        ACTIVE_SCRIPTS.set(message.js, script);
+      }
     }
 
     // Welcome, and congratulations for looking into this. The following code

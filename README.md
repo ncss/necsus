@@ -11,6 +11,10 @@
   * [Stateful conversations](#stateful-conversations)
   * [NeCSuS and forms](#necsus-and-forms)
     * [Alternative endpoints](#alternative-endpoints)
+  * [Custom CSS and Javascript](#custom-css-and-javascript)
+    * [Inline CSS and Javascript](#inline-css-and-javascript)
+    * [Resource-linked CSS and Javascript tutorial](#resource-linked-css-and-javascript-tutorial)
+    * [Resource-linked CSS and Javascript: Extra details](#resource-linked-css-and-javascript-extra-details)
 * [NeCSuS development and deployment](#necsus-development-and-deployment)
   * [Installation and usage](#installation-and-usage)
     * [Reverse proxies](#reverse-proxies)
@@ -234,6 +238,113 @@ The action is considered relative to the bot endpoint, so for example if the bot
 - `<form action="https://some.other.domain/baz">` will POST to `https://some.other.domain/baz`
 
 
+## Custom CSS and Javascript
+
+NeCSuS supports adding custom CSS and Javascript to your messages, both in a quick-and-easy inline way, or in a more sustainable style which links to a resource in your bot's `/static` folder.
+When writing larger chunks of CSS and Javascript, it is much easier to use the resource-linked style, if only for nice syntax highlighting and debugging.
+
+
+### Inline CSS and Javascript
+
+The inline way is to add a `<style>` or `<script>` tag into the HTML of a message.
+For instance, if you wanted to turn all the author names in the chat room red, put something like this in your message:
+
+```
+<style> .author { color: red; } </style>
+```
+
+Or if you wanted to log a message to the development Javascript console, 
+
+```
+<script> console.log("Hello from Javascript!") </script>
+```
+
+
+### Resource-linked CSS and Javascript tutorial
+
+Down in the [bot specification](#bot-matching-usual-mode-of-operation) section, you'll see that the `BotResponse` object (the JSON returned from your bot) is allowed to have `css` and `js` fields.
+Each of these is interpreted as a URL (either absolute, or relative to the URL of your bot) from which to load a CSS Stylesheet or Javascript script.
+We'll walk through a simple example where we want our bot to respond with a CSS-styled button, and have some Javascript run when the button is clicked.
+
+Here is our example "ButtonBot", which simply posts an HTML `<button>` with a particular class (so that we can style it using CSS).
+Note that we also need to include this `CORS` library and call it on our app (this is not required for CSS, but is required for Javascript).
+
+```python
+from flask import Flask
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)              # Enables Javascript
+
+@app.get('/')
+def index():
+    """Not used by the bot, but handy to check that your HTTP server is up and going."""
+    return 'Hello, world! The server is running.'
+
+@app.post('/buttonbot')
+def buttonbot():
+    return {
+        'author': 'ButtonBot',
+        'text': '<button class="buttonbot" onclick="buttonBotClick()">Click me!</button>',
+    }
+
+app.run(host='0.0.0.0', debug=True)
+```
+
+Start up your bot server, install the ButtonBot into a new room, and make sure you see the button in the room.
+
+Next, create a `static` directory on your server next to the `main.py` file, and in this `static` directory create a file called `style.css`.
+Paste this into `style.css`:
+
+```css
+.buttonbot { background-color: green; }
+```
+
+You should be able to find this file online, at `{your_bots_url}/static/style.css`.
+Next, update the return value of `buttonbot()` to include a link to this stylesheet.
+(You only need to use a relative link: the server will automatically add your bot's URL at the front).
+
+```python
+@app.post('/buttonbot')
+def buttonbot():
+    return {
+        'author': 'ButtonBot',
+        'text': '<button class="buttonbot" onclick="buttonBotClick()">Click me!</button>',
+        'css': '/static/style.css',
+    }
+```
+
+Post another message to your bot, which will load up the stylesheet and turn your buttons green.
+
+Next we're going to install a Javascript function called `buttonBotClick()` to give that button some custom behaviour.
+Create a `static/script.js` file, and put this into it:
+
+```javascript
+function buttonBotClick() {
+    alert("Hello from ButtonBot!");
+}
+```
+
+Then modify your handler to also return a link to the Javascript:
+
+```python
+@app.post('/buttonbot')
+def buttonbot():
+    return {
+        'author': 'ButtonBot',
+        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'css': '/static/style.css',
+        'js': '/static/script.js',
+    }
+```
+
+
+### Resource-linked CSS and Javascript: Extra details
+
+Resource-linked stylesheets and Javascript modules are only loaded once per URL, no matter how many messages they appear in.
+This means that during development, it is enough to refresh the NeCSuS chat room to see updates to styles and scripts.
+
+
 # NeCSuS development and deployment
 
 Read this section if you want to run or develop the NeCSuS server, not just use it.
@@ -376,6 +487,8 @@ type BotResponse = {
     author?: str   # Optional name, defaults to name of bot record in the room.
     image?: str    # Optional image URL
     media?: str    # Optional media URL.
+    css?: str      # Optional CSS URL.
+    mjs?: str      # Optional Javascript module URL.
     state?: JSON   # Optional state for a stateful conversation.
     room?: str     # Joel: Should this be allowed?
 }
@@ -383,6 +496,8 @@ type BotResponse = {
 
 Note that only the `text` field is required, all other fields may be omitted.
 Furthermore, `text` can in fact be any HTML --- the frontend will make sure that this HTML gets properly injected into the chat room.
+The `image`, `media`, `css`, and `mjs` fields will all be treated as URLs relative to the bot's URL, as in [forms](#necsus-and-forms).
+This transformation is applied as the message comes in from the bot, and is "frozen" in place thereafter (changing a bot URL will result in these URLs being old).
 
 As each bot completes its HTTP request, the message returned by the bot is posted to the room.
 The NeCSuS server will not allow a bot to be activated by another bot's message (to prevent some infinite loop footguns).
@@ -440,8 +555,11 @@ type Message = {
     kind: str             # "user", "bot", "system".
     text: str             # Message text or HTML.
     when: float           # Seconds since the UTC Epoch 1970-01-01.
-    image: str | None     # ???
-    media: str | None     # ???
+    image: str | None     # An optional absolute url to an image resource.
+    media: str | None     # An optional absolute url to a media (mpeg) resource.
+    css: str | None       # An optional absolute url to a stylesheet which should be added to the page.
+    mjs: str | None       # An optional absolute url to a Javascript module which should be loaded onto the page.
+    
     from_bot: int | None  # A bot ID if this message is from a bot, otherwise None.
     state: JSON | None    # None in normal operation, any non-null JSON object in a stateful conversation.
 }
@@ -451,7 +569,7 @@ There are a few fields to point out here:
 
 - The `id` field monotonically increases, and should be used to order messages in a room. It is also used for when a client needs to play catch-up for whatever reason (a disconnect from the server, for example): the client may send the last message `id` it saw, and the server will only send back messages which are new since then.
 - The `kind` field indicates whether a message was from the user, a bot, or the NeCSuS system. This should be used to visually distinguish messages: the `system` messages are usually errors.
-- The `state` field is covered below in <<INSERT LINK TO STATEFUL CONVERSATIONS HERE>>.
+- The `state` field is covered below in [stateful conversations](#stateful-conversations-1).
 
 
 ## `Bot` schema

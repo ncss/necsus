@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS messages (
   "when" TEXT,  -- Seconds since the epoch.
   image TEXT,
   media TEXT,
+  js TEXT,   -- URL to a script to load on the page.
+  css TEXT,  -- URL to a stylesheet to load on the page.
   from_bot INTEGER,  -- Non-null only if this message is from a bot.
   state BLOB         -- Only forward to the bot if this state is a nonempty string of json data.
 );
