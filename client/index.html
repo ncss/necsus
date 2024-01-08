@@ -42,10 +42,13 @@
       <nav class="navbar is-info necsus-nav" role="navigation" aria-label="main navigation">
         <div class="navbar-brand is-size-4">
           <p class="navbar-item">
-            <a class="has-text-white pr-1" href="/">NeCSuS:</a>
-              <span id="room-name" class="px-1">{{ room }}</span>           
+            <a class="has-text-white pr-1" href="/">NeCSuS</a>
+              <span id="room-name" class="px-1" v-if="!lectureMode">{{ room }}</span>
               <span class="pl-1" :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
+              </span>
+              <span class="pl-1" title="Toggle lecture mode" @dblclick="lectureMode = !lectureMode">
+                &nbsp; &nbsp; &nbsp;
               </span>
           </p>
           <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
@@ -145,7 +148,7 @@
                   id="message-input"
                   class="input is-fullwidth"
                   v-model="newMessage"
-                  v-bind="{placeholder: 'Message '+ room}"
+                  v-bind="{placeholder: 'Message '+ (lectureMode ? 'room' : room)}"
                   autofocus
                   v-bind:rows="rows()"
                   v-bind:disabled="sendingMessage"

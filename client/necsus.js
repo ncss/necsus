@@ -27,6 +27,7 @@ let app = new Vue({
     replyToBotName: undefined,
     websocketConnected: false,  // UI indicator.
     websocketRetries: 0,        // Used for exponential backoff on reconnects.
+    lectureMode: false,         // Hide room name during lectures
   },
   created: function() {
     let vm = this;
