@@ -4,17 +4,22 @@ These are also used to run automated tests on the NeCSuS server.
 
 The bots below are in ascending order of complexity (ish).
 """
-
+import ast
 import html
 import pprint
 import re
 import time
 
-from flask import Flask, request
+from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Required to load resource-linked Javascript from /static or any other handler.
+
+
+@app.get('/')
+def index():
+    return "Hello world! I'm the example bot server!"
 
 
 @app.post('/hellobot')
@@ -238,4 +243,27 @@ def buttonbot():
         ''',
         'css': '/static/buttonbot.css',
         'js': '/static/buttonbot.js',
+    }
+
+
+@app.post('/errorbot')
+def errorbot():
+    """
+    A bot for triggering all sorts of errors:
+    - Errorbot status code XXX => Any status code you like.
+    - Erorrbot payload <any python object here> => Eval the python object and return it as JSON.
+    """
+    text = request.json['text']
+    if match := re.search('(?:error|status|response) code (\d+)', text, flags=re.IGNORECASE):
+        abort(int(match.group(1)))
+    if match := re.search('payload (.+)', text, flags=re.IGNORECASE):
+        expr = match.group(1)
+        try:
+            message = ast.literal_eval(expr)
+            return jsonify(message)
+        except Exception as e:
+            return {'text': f"Sorry, the expression <code>{expr}</code> did not parse: {e}"}
+
+    return {
+        'text': "I am the ErrorBot."
     }

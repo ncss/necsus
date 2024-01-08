@@ -228,3 +228,29 @@ def test_relative_urls(bot_url: str, resource_url: str, expected_absolute_url: s
         # Check that the resources have the correct modified absolute URL.
         for field in ['image', 'media', 'css', 'js']:
             assert last_message[field] == expected_absolute_url, field
+
+
+@pytest.mark.parametrize('status_code, bot_message, error_text', [
+    (404, {}, '404 (not found)'),
+    (404, {}, 'bot url'),
+    (405, {}, '@app.post'),
+    (200, 1, '<code>int</code> instead of <code>dict</code>'),
+    (200, [], '<code>list</code> instead of <code>dict</code>'),
+    (200, {}, 'missing the <code>text</code> key'),
+    (200, {'text': []}, '<code>text</code> key had the wrong type'),
+])
+def test_text_error_message(status_code, bot_message, error_text, necsus: TestClient):
+    bot_url = 'http://bot.com/example'
+    with respx.mock:
+        route = respx.post(bot_url).mock(return_value=httpx.Response(
+            status_code=status_code,
+            json=bot_message,
+        ))
+        # Install the bot, post a message to it, and grab the reply as the last message in the room.
+        necsus.post('/api/actions/bot', json={'room': TEST_ROOM, 'name': 'RelBot', 'url': bot_url})
+        necsus.post('/api/actions/message', json={'room': TEST_ROOM, 'author': TEST_AUTHOR, 'text': 'Hi RelBot'})
+        assert route.called
+        last_message = necsus.get('/api/messages', params={'room': TEST_ROOM}).json()[-1]
+
+        assert last_message['kind'] == 'system'
+        assert error_text in last_message['text'].lower()
