@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS messages (
   js TEXT,   -- URL to a script to load on the page.
   css TEXT,  -- URL to a stylesheet to load on the page.
   from_bot INTEGER,  -- Non-null only if this message is from a bot.
+  base_url TEXT,     -- Any non-absolute URLs in this message (in the HTML text, or image/media/js/css) should be taken
+                     -- relative to this base_url. This is the bot url if the message is from a bot. If left as null,
+                     -- relative URLs work as usual in the browser.
   state BLOB         -- Only forward to the bot if this state is a nonempty string of json data.
 );
 

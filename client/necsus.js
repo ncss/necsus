@@ -3,6 +3,16 @@ const NEW_MESSAGE_HISTORY_SIZE = 20;
 const ACTIVE_STYLESHEETS = new Map();  // Maps URLs to <link> DOM elements.
 const ACTIVE_SCRIPTS = new Map();      // Maps URLs to <script> DOM elements.
 
+const EXT_RESOURCE_TAGS = [
+  ['img', 'src'],
+  ['embed', 'src'],
+  ['object', 'data'],
+  ['link', 'href'],
+  ['script', 'src'],
+  ['audio', 'src'],
+  ['video', 'src'],
+];
+
 let app = new Vue({
   el: '#necsus',
   data: {
@@ -134,7 +144,7 @@ let app = new Vue({
       if (message.css != null && !ACTIVE_STYLESHEETS.has(message.css)) {
         let link = document.createElement('link');
         link.setAttribute('rel', 'stylesheet');
-        link.setAttribute('href', message.css);
+        link.setAttribute('href', urljoin(message.base_url, message.css));
 
         console.log(`Inserting stylesheet into <head> from ${message.id}: ${link.outerHTML}`);
         document.head.appendChild(link);
@@ -146,13 +156,24 @@ let app = new Vue({
     for (let {message, domElt} of reachedDom.values()) {
       if (message.js != null && !ACTIVE_SCRIPTS.has(message.js)) {
         let script = document.createElement('script')
-        script.setAttribute('src', message.js)
+        script.setAttribute('src', urljoin(message.base_url, message.js))
         script.setAttribute('type', 'text/javascript')
         script.setAttribute('async', true)
 
         console.log(`Inserting script into <head> from ${message.id}: ${script.outerHTML}`);
         document.head.appendChild(script);
         ACTIVE_SCRIPTS.set(message.js, script);
+      }
+    }
+
+    // Take any tags which reference external resources, and relativise them as well.
+    for (let {message, domElt} of reachedDom.values()) {
+      for (let [tag, attr] of EXT_RESOURCE_TAGS) {
+        domElt.querySelectorAll(tag).forEach((el) => {
+          if (el.hasAttribute(attr)) {
+            el.setAttribute(attr, urljoin(message.base_url, el.getAttribute(attr)));
+          }
+        });
       }
     }
 
@@ -656,3 +677,38 @@ let app = new Vue({
     }
   }
 });
+
+/** Absolutify {url} relative to {base_url}. If {url} is already absolute, it is left alone. */
+function urljoin(base_url, url) {
+  if (!base_url) {
+    return url;
+  }
+  try {
+    return new URL(url, base_url).href;
+  } catch (error) {
+    return url;
+  }
+}
+
+// Let's test this sucker because I don't know exactly all the edge cases.
+const URLJOIN_TESTS = [
+  // Empty/null base url should mean {url} is passed through.
+  [null, 'https://absolute.com/foo', 'https://absolute.com/foo'],
+  ['', 'https://absolute.com/foo', 'https://absolute.com/foo'],
+  ['', 'relative/url', 'relative/url'],
+
+  // Invalid base url should mean {url} is passed through.
+  ['garbledefoo', 'https://absolute.com/foo', 'https://absolute.com/foo'],
+  ['not/a/base/url', 'relative/url', 'relative/url'],
+
+  // The actual correct case works.
+  ['http://bot.com/mybot/path', 'http://absolute.com/static/image.png', 'http://absolute.com/static/image.png'],
+  ['http://bot.com/mybot/path', '/static/image.png', 'http://bot.com/static/image.png'],
+  ['http://bot.com/mybot/path', 'static/image.png', 'http://bot.com/mybot/static/image.png'],
+];
+for (let [base_url, url, expected] of URLJOIN_TESTS) {
+  let result = urljoin(base_url, url);
+  if (expected !== result) {
+    console.error(`Test failed: urljoin(${base_url}, ${url}) => ${result}, should have been ${expected}`);
+  }
+}

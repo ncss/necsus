@@ -74,6 +74,21 @@ def media():
         'media': 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/de/Back_Rounds.ogg/Back_Rounds.ogg.mp3',
     }
 
+@app.post('/memebot')
+def meme():
+    """Memebot sends memes using relative links in both <img> tags and the 'image' JSON key."""
+    if 'html' in request.json['text'].lower():
+        return {
+            'author': 'MemeBot',
+            'text': 'Here is a meme embedded in an <code>&lt;img&gt;</code> tag: <img src="/static/integration.jpg">',
+        }
+    else:
+        return {
+            'author': 'MemeBot',
+            'text': 'Here is a meme embedded using the <code>image</code> JSON key:',
+            'image': '/static/integration.jpg',
+        }
+
 
 @app.post('/statebot')
 def statebot():
@@ -133,7 +148,7 @@ def sleepbot():
     }
 
 
-@app.route('/form', methods=['POST'])
+@app.route('/formbot', methods=['POST'])
 def form():
     """Example route for forms."""
     return {

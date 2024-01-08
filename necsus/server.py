@@ -126,11 +126,11 @@ class ApiActionsMessage(HTTPEndpoint):
         except json.JSONDecodeError:
             return JSONResponse({'message': 'Invalid JSON'}, status_code=400)
 
-        text, room, author, image, media = [data.get(key) for key in ['text', 'room', 'author', 'image', 'media']]
+        text, room, author, image, media, css, js, base_url = [data.get(key) for key in ['text', 'room', 'author', 'image', 'media', 'css', 'js', 'base_url']]
         if None in (text, room, author):
             return JSONResponse({'message': f'All of text, room, and author should be non-null, got {text=}, {room=}, {author=}'}, status_code=400)
 
-        message = await events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text, image, media)
+        message = await events.trigger_message_post(request.app.state.db, request.app.state.broker, room, author, text, image, media, css, js, base_url)
         return JSONResponse(message)
 
 

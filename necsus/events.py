@@ -31,9 +31,9 @@ def standard_message_for_bot(room: str, author: str, text: str, params=None, sta
     return message
 
 
-async def trigger_message_post(db, broker, room: str, author: str, text: str, image, media):
+async def trigger_message_post(db, broker, room: str, author: str, text: str, image, media, css, js, base_url):
     special_state = db.messages.room_state(room_name=room)
-    message = db.messages.add(room=room, author=author, text=text, image=image, media=media)
+    message = db.messages.add(room=room, author=author, text=text, image=image, media=media, css=css, js=js, base_url=base_url)
     broker.publish_message(room, message)
 
     if special_state:
@@ -56,7 +56,7 @@ async def trigger_message_post(db, broker, room: str, author: str, text: str, im
 async def trigger_message_form_post(db, broker, room: str, author: str, bot_id: int, action_url: str, form_data):
     bot = db.bots.find(id=bot_id)
     if bot is None:
-        error = system_message(room, f"The bot associated to that form can't be found - perhaps it was deleted?")
+        error = system_message(room, "The bot associated to that form can't be found - perhaps it was deleted?")
         db.messages.add(**error)
         broker.publish_message(room, error)
         return
@@ -217,17 +217,18 @@ async def run_bot(room: str, bot, msg):
         safe_message['state'] = message['state']
 
     if 'image' in message and isinstance(message['image'], str):
-        safe_message['image'] = urllib.parse.urljoin(bot['url'], message['image'])
+        safe_message['image'] = message['image']
 
     if 'media' in message and isinstance(message['media'], str):
-        safe_message['media'] = urllib.parse.urljoin(bot['url'], message['media'])
+        safe_message['media'] = message['media']
 
     if 'js' in message and isinstance(message['js'], str):
-        safe_message['js'] = urllib.parse.urljoin(bot['url'], message['js'])
+        safe_message['js'] = message['js']
 
     if 'css' in message and isinstance(message['css'], str):
-        safe_message['css'] = urllib.parse.urljoin(bot['url'], message['css'])
+        safe_message['css'] = message['css']
 
     safe_message['kind'] = 'bot'
     safe_message['from_bot'] = bot.get('id')
+    safe_message['base_url'] = bot.get('url')
     return safe_message
