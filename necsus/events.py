@@ -151,6 +151,16 @@ def trigger_clear_room_messages(db, broker, room):
 # Timeout before ignoring a bot and considering it unresponsive, in seconds.
 BOT_TIMEOUT = httpx.Timeout(15.0)
 
+# Common reasons that students might be getting status codes.
+ERROR_GUESSES = {
+    # Not found.
+    404: "Make sure you have an <code>@app.post('/your_bot_name_here')</code>, and your bot URL <code>{url}</code> is correct.",
+    # Method not allowed.
+    405: "Make sure your route is decorated using <code>@app.post</code> instead of <code>@app.route</code> or <code>@app.get</code>.",
+    # Internal server error.
+    500: "You should check the server logs for your Flask application.",
+}
+
 
 async def run_bot(room: str, bot, msg):
     """
@@ -170,18 +180,27 @@ async def run_bot(room: str, bot, msg):
         raise BotException(f"The bot {bot['name']} timed out after {BOT_TIMEOUT.read} seconds(s)") from e
 
     if reply.status_code != httpx.codes.OK:
-        raise BotException(f"The bot {bot['name']} responded with a non-ok status code of {reply.status_code}")
+        err = f"<p>The bot {bot['name']} responded with a non-ok status code of {reply.status_code} ({reply.reason_phrase})</p>"
+        if guess := ERROR_GUESSES.get(reply.status_code):
+            err += '<p>' + guess.format(**bot) + '</p>'
+
+        raise BotException(err)
 
     try:
         message = reply.json()
     except json.decoder.JSONDecodeError as e:
         raise BotException(f"The bot {bot['name']} responded with status code {reply.status_code}, but returned invalid JSON: <pre>{html.escape(reply.text)}</pre>") from e
 
-    safe_message = {}
-    if isinstance(message, dict) and 'text' in message and isinstance(message['text'], str):
-        safe_message['text'] = message['text']
-    else:
-        raise BotException(f"The bot {bot['name']} responded, but was missing a 'text' key of type string")
+    if not isinstance(message, dict):
+        raise BotException(f"The bot {bot['name']} responded, but its JSON message was <code>{type(message).__name__}</code> instead of <code>dict</code>.")
+
+    if 'text' not in message:
+        raise BotException(f"The bot {bot['name']} responded, but its JSON message was missing the <code>text</code> key.")
+
+    if not isinstance(message['text'], str):
+        raise BotException(f"The bot {bot['name']} responded, but the <code>text</code> key had the wrong type (should be a string).")
+
+    safe_message = {'text': message['text']}
 
     if 'author' in message and isinstance(message['author'], str):
         safe_message['author'] = message['author']
