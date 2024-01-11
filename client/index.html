@@ -90,6 +90,7 @@
             <div
               class="block card message-card"
               :necsus-message-id="message.id"
+              :data-necsus-author="message.author"
               :class="messageClass(message)"
               v-for="message in displayMessages"
               :key="message.id"

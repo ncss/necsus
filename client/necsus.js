@@ -13,7 +13,7 @@ const EXT_RESOURCE_TAGS = [
   ['video', 'src'],
 ];
 
-let app = new Vue({
+let Necsus = new Vue({
   el: '#necsus',
   data: {
     room: '',
@@ -27,6 +27,7 @@ let app = new Vue({
       installedBots: [],
     },
     messages: [],
+    messagesById: new Map(),
     toPostprocessMessages: [],
     modals: {},
     newMessage: '',
@@ -38,6 +39,8 @@ let app = new Vue({
     websocketConnected: false,  // UI indicator.
     websocketRetries: 0,        // Used for exponential backoff on reconnects.
     lectureMode: false,         // Hide room name during lectures
+
+    messageListeners: new Map(),  // Maps user-installed functions to lists of yet-to-be-processed messages.
   },
   created: function() {
     let vm = this;
@@ -157,7 +160,7 @@ let app = new Vue({
       if (message.js != null && !ACTIVE_SCRIPTS.has(message.js)) {
         let script = document.createElement('script')
         script.setAttribute('src', urljoin(message.base_url, message.js))
-        script.setAttribute('type', 'text/javascript')
+        script.setAttribute('type', message.js.endsWith('.mjs') ? 'module' : 'text/javascript')
         script.setAttribute('async', true)
 
         console.log(`Inserting script into <head> from ${message.id}: ${script.outerHTML}`);
@@ -196,6 +199,9 @@ let app = new Vue({
 
     // Clear the messages we've processed.
     this.toPostprocessMessages = this.toPostprocessMessages.filter(({id}) => !reachedDom.has(id));
+
+    // Fire event listeners on anything for external Javascript hooks.
+    this.runEventListeners();
   },
   methods: {
     openCopyConfModal: function () {
@@ -255,6 +261,8 @@ let app = new Vue({
       });
 
       this.messages = [];
+      this.messagesById = new Map();
+      this.clearListenerQueues();
 
       this.clearRoomShow = false;
       this.clearRoomConfirm = "";
@@ -386,6 +394,8 @@ let app = new Vue({
 
       this.toPostprocessMessages.push(message)
       this.messages.push(message)
+      this.messagesById.set(message.id, message)
+      this.enqueueMessageIdForListeners(message.id)
     },
     createWebsocket: function() {
       let last_id = (this.lastMessage) ? this.lastMessage.id : -1
@@ -409,8 +419,11 @@ let app = new Vue({
           this.putBot(response.data)
         else if (response.kind == 'delete_bot')
           this.deleteBot(response.data)
-        else if (response.kind == 'clear_messages')
+        else if (response.kind == 'clear_messages') {
           this.messages = []
+          this.messagesById = new Map()
+          Necsus.clearListenerQueues()
+        }
       }
 
       ws.onerror = (e) => {
@@ -522,9 +535,55 @@ let app = new Vue({
       Vue.set(message, 'showState', !message.showState)
       return message.showState;
     },
-    focusMessageInput: function() {
+
+    // Focus the message input box. Optionally set the message there too (for bots to use).
+    focusMessageInput: function(text) {
+      if (text) {
+        this.newMessage = text;
+      }
       let vm = this;
       setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
+    },
+
+    // Public function: use this hook!
+    addEventListener(kind, fn) {
+      // Only handled type currently is 'message'.
+      if (kind == 'message') {
+        this.messageListeners.set(fn, this.messages.map(({id}) => id))
+      } else {
+        throw new Error(`Unrecognised event kind '${kind}' in Necsus.addEventListener()`);
+      }
+
+      this.runEventListeners()
+    },
+
+    // Private function.
+    runEventListeners() {
+      for (let [fn, ids] of this.messageListeners.entries()) {
+        let remaining = []
+        for (let id of ids) {
+          // Run all the events for messages which have reched the DOM.
+          let domElt = document.querySelector(`div[necsus-message-id="${id}"]`)
+          if (domElt !== null)
+            fn(domElt, this.messagesById.get(id))
+          else
+            remaining.push(id)
+        }
+
+        this.messageListeners.set(fn, remaining)
+      }
+    },
+
+    // Private function.
+    clearListenerQueues() {
+      for (let fn of this.messageListeners.keys())
+        this.messageListeners.set(fn, [])
+    },
+
+    // Private function.
+    enqueueMessageIdForListeners(id) {
+      for (let value of this.messageListeners.values())
+        value.push(id)
     },
 
     messageClass: function(message) {

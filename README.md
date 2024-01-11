@@ -344,6 +344,33 @@ def buttonbot():
 Resource-linked stylesheets and Javascript modules are only loaded once per URL, no matter how many messages they appear in.
 This means that during development, it is enough to refresh the NeCSuS chat room to see updates to styles and scripts.
 
+If the path of the `js` resource ends in `.mjs`, the script will be loaded as a [Javascript module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) instead of as a regular Javascript file.
+
+
+### Client-side APIs in the Necsus frontend
+
+If you want to style messages sent my your bot only, then look for the `data-necsus-author` attribute on the message `<div>`.
+This will be set to the name of the message author (under the `author` key sent in the JSON sent back from your bot), and can be used in CSS like this, for example on a bot called `Emmy`:
+
+```css
+.message-card[data-necsus-author="Emmy"] {
+  background-color: green;
+}
+```
+
+There is a small Javascript interface for running a function each time a message gets inserted into the DOM.
+You might want to do this, for instance, if you want to make some mechanical transformation on the contents of the message using Javascript.
+The interface is:
+
+```javascript
+Necsus.addEventListener('message', function(domElt, message) {
+  console.log('Hello from the event handler!', domElt, message);
+})
+```
+
+The function will be called with `domElt` will be set to the DOM element corresponding to the message, and `message` set to the message JSON.
+This function will be called on *every* message to the room: to select only your bot's messages, look at the `message.author` field for instance.
+
 
 # NeCSuS development and deployment
 
@@ -488,7 +515,7 @@ type BotResponse = {
     image?: str    # Optional image URL
     media?: str    # Optional media URL.
     css?: str      # Optional CSS URL.
-    mjs?: str      # Optional Javascript module URL.
+    js?: str       # Optional Javascript URL.
     state?: JSON   # Optional state for a stateful conversation.
     room?: str     # Joel: Should this be allowed?
 }
@@ -558,8 +585,10 @@ type Message = {
     image: str | None     # An optional absolute url to an image resource.
     media: str | None     # An optional absolute url to a media (mpeg) resource.
     css: str | None       # An optional absolute url to a stylesheet which should be added to the page.
-    mjs: str | None       # An optional absolute url to a Javascript module which should be loaded onto the page.
+    js: str | None        # An optional absolute url to a Javascript script which should be loaded onto the page.
+                          # If the URL ends in .mjs, the script will be loaded as a module instead.
     
+    base_url: str | None  # A URL to take all other resources relative to (if they are relative links).
     from_bot: int | None  # A bot ID if this message is from a bot, otherwise None.
     state: JSON | None    # None in normal operation, any non-null JSON object in a stateful conversation.
 }
