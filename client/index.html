@@ -47,7 +47,7 @@
               <span class="pl-1" :title="websocketConnected ? 'Connected' : 'Disconnected'" @dblclick="kickWebSocket()">
                 {{ websocketConnected ? '🟢' : '🔴'}}
               </span>
-              <span class="pl-1" title="Toggle lecture mode" @dblclick="lectureMode = !lectureMode">
+              <span class="pl-1" title="Toggle lecture mode" @dblclick="toggleLectureMode()">
                 &nbsp; &nbsp; &nbsp;
               </span>
           </p>

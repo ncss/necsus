@@ -535,6 +535,15 @@ let Necsus = new Vue({
       Vue.set(message, 'showState', !message.showState)
       return message.showState;
     },
+    toggleLectureMode() {
+      if (!this.lectureMode) {
+        history.pushState({}, "", "/");
+        this.lectureMode = true
+      } else {
+        history.back()
+        this.lectureMode = false
+      }
+    },
 
     // Focus the message input box. Optionally set the message there too (for bots to use).
     focusMessageInput: function(text) {
