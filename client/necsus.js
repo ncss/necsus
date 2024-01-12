@@ -345,45 +345,6 @@ let Necsus = new Vue({
       })
       let botResult = await response.json();
     },
-    // Now unused.
-    fetchMessages: async function(options) {
-      let vm = this;
-      options = options || {};
-
-      let last_id = (this.lastMessage || {}).id;
-      let url = '/api/messages?room='+this.room
-      if (last_id != undefined)
-        url += '&since='+last_id;
-
-      let response = await fetch(url);
-      let fetchedMessages = await response.json();
-      let newMessages = fetchedMessages.filter(function(newMessage) {
-        // Only messages with a new ID are new messages
-        return !vm.messages.some(function(message) {
-          return message.id == newMessage.id;
-        });
-      });
-
-      vm.toPostprocessMessages = newMessages;
-      vm.messages = vm.messages.concat(newMessages);
-
-      // Check if the last message contains a state which we might have to clear
-      if (newMessages.length > 0) {
-        let lastMessage = newMessages[newMessages.length - 1];
-        this.statePresent = lastMessage.state != null;
-        if (this.statePresent) {
-          let bot = this.botWithId(lastMessage.from_bot);
-          this.replyToBotName = lastMessage.author || '???';
-        }
-      }
-
-      if (!options.silent && this.settings.speech) {
-        newMessages.forEach(function(message) {
-          if (message.author != vm.settings.name)
-            vm.speak(vm.markdownToText(message.text));
-        });
-      }
-    },
     /** Inserts a message object (recieved from the server) into the chat room. */
     insertMessage: function(message) {
       this.statePresent = message.state != null;
@@ -497,14 +458,6 @@ let Necsus = new Vue({
       await response.json();
 
       this.sendingMessage = false;
-    },
-    // Now unused.
-    autoUpdate: function() {
-      let vm = this;
-
-      vm.fetchMessages().finally(function() {
-        window.setTimeout(() => vm.autoUpdate(), 2000)
-      });
     },
     speak: function(text) {
       if (this.settings.speech) {
