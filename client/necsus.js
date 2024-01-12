@@ -535,13 +535,11 @@ let Necsus = new Vue({
       Vue.set(message, 'showState', !message.showState)
       return message.showState;
     },
-    toggleLectureMode() {
+    setLectureMode() {
       if (!this.lectureMode) {
         history.pushState({}, "", "/");
+        document.title = "NeCSuS"
         this.lectureMode = true
-      } else {
-        history.back()
-        this.lectureMode = false
       }
     },
 

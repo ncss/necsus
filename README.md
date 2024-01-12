@@ -332,7 +332,7 @@ Then modify your handler to also return a link to the Javascript:
 def buttonbot():
     return {
         'author': 'ButtonBot',
-        'text': '<button class="buttonbot" onclick="ButtonBot.onClick()">Click me!</button>',
+        'text': '<button class="buttonbot" onclick="buttonBotClick()">Click me!</button>',
         'css': '/static/style.css',
         'js': '/static/script.js',
     }
