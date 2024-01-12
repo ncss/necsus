@@ -246,7 +246,7 @@ class WebSocketRoom(WebSocketEndpoint):
             should_clear=should_clear,
         )
 
-        asyncio.create_task(self.message_pump(ws, recv))
+        asyncio.create_task(self.message_pump(ws, recv), name=f'Websocket:{room}')
 
     async def on_disconnect(self, ws: WebSocket, close_code: int):
         logger.info(f"Websocket for room {self.room} closed with {close_code=}")

@@ -3,10 +3,10 @@ Events contains the business logic for receiving messages and dispatching them t
 """
 import html
 import json
-import re
 import urllib.parse
 
 import httpx
+import regex
 
 
 class BotException(Exception):
@@ -108,7 +108,12 @@ async def match_and_trigger_bots(db, broker, room: str, author: str, text: str) 
     for bot in room_bots:
         search = bot.get('responds_to') or bot.get('name')
         try:
-            match = re.search(search, text, flags=re.IGNORECASE)
+            match = regex.search(search, text, flags=regex.IGNORECASE, timeout=0.01)
+        except TimeoutError:
+            message = system_message(room=room, text=f'The regular expression <code>{search}</code> timed out on input: <pre><code>{search}</code></pre>')
+            message = db.messages.add(**message)
+            broker.publish_message(room, message)
+            continue
         except:
             name = bot.get('name')
             t = 'responds_to' if bot.get('responds_to') else 'name'

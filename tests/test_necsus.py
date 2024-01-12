@@ -199,6 +199,8 @@ def test_schema(tmp_path: pathlib.Path):
     assert backup_result.returncode == 0
 
 
+# This is now done in the frontend.
+@pytest.mark.skip
 @pytest.mark.parametrize('bot_url,resource_url,expected_absolute_url', [
     (f'{EXAMPLE_BOTS_URL}/path/to/relbot', 'resource', f'{EXAMPLE_BOTS_URL}/path/to/resource'),
     (f'{EXAMPLE_BOTS_URL}/path/to/relbot', '/resource', f'{EXAMPLE_BOTS_URL}/resource'),
@@ -254,3 +256,27 @@ def test_text_error_message(status_code, bot_message, error_text, necsus: TestCl
 
         assert last_message['kind'] == 'system'
         assert error_text in last_message['text'].lower()
+
+
+@pytest.mark.parametrize('regex,text,does_match', [
+    (r'^(.+)+_$', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', False),
+    ('a?'*30 + 'a'*30, 'a'*30, True),
+    ('^(aa|aa)*$', 'a'*71, False),
+])
+def test_pathological_regexes(regex, text, does_match, necsus: TestClient):
+    bot_url = 'http://bot.com/example'
+    with respx.mock:
+        route = respx.post(bot_url).mock(return_value=httpx.Response(
+            status_code=200,
+            json={'text': 'Hi'},
+        ))
+        # Install the bot, post a message to it, and grab the reply as the last message in the room.
+        necsus.post(
+            '/api/actions/bot',
+            json={'room': TEST_ROOM, 'name': 'PathologicalRe', 'url': bot_url, 'responds_to': regex},
+        )
+        necsus.post('/api/actions/message', json={'room': TEST_ROOM, 'author': TEST_AUTHOR, 'text': text})
+        last_message = necsus.get('/api/messages', params={'room': TEST_ROOM}).json()[-1]
+
+        if does_match:
+            assert route.called or last_message['kind'] == 'system'
