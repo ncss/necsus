@@ -108,8 +108,10 @@ async def match_and_trigger_bots(db, broker, room: str, author: str, text: str) 
     for bot in room_bots:
         search = bot.get('responds_to') or bot.get('name')
         try:
+            print(f"Testing pattern {search!r} in room {room!r} against the message {text!r}")
             match = regex.search(search, text, flags=regex.IGNORECASE, timeout=0.01)
         except TimeoutError:
+            print("Timed out")
             message = system_message(room=room, text=f'The regular expression <code>{search}</code> timed out on input: <pre><code>{search}</code></pre>')
             message = db.messages.add(**message)
             broker.publish_message(room, message)
@@ -154,7 +156,8 @@ def trigger_clear_room_messages(db, broker, room):
 
 
 # Timeout before ignoring a bot and considering it unresponsive, in seconds.
-BOT_TIMEOUT = httpx.Timeout(15.0)
+# This used to be 15 seconds, but changed to 120 seconds for bots which use the OpenAI API.
+BOT_TIMEOUT = httpx.Timeout(120.0)
 
 # Common reasons that students might be getting status codes.
 ERROR_GUESSES = {
