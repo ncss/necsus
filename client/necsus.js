@@ -110,7 +110,7 @@ const Necsus = createApp({
         (document.querySelectorAll('.modal') || []).forEach(($modal) => {
           $modal.classList.remove('is-active');
         });
-        
+
         if(this.preventAutoScroll && document.activeElement === document.getElementById('message-input')) {
           this.preventAutoScroll = false;
           this.autoScroll(true);
@@ -416,9 +416,8 @@ const Necsus = createApp({
       let ws_uri = `${location.protocol == 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/${this.room}?since=${last_id}`
       if(URL_PREFIX !== '') {
         try {
-          const url = new URL(ws_uri);
-          url.pathname = URL_PREFIX + url.pathname;
-          ws_uri = url.toString();
+          const url = new URL(URL_PREFIX);
+          ws_uri = `${url.protocol == 'https:' ? 'wss:' : 'ws:'}//${url.host}/ws/${this.room}?since=${last_id}`
         } catch {
           console.error(`Failed to parse WS URI: ${ws_uri}`);
         }

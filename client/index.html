@@ -105,6 +105,7 @@
               :class="messageClass(message)"
               v-for="message in displayMessages"
               :key="message.id"
+              v-memo="[message.text, message.errors, message.showErrors, message.state, message.showState, message.image, message.media]"
             >
               <div class="card-content">
                 <div class="content">
