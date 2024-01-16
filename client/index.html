@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>NeCSuS</title>
 
-    <script src="client/js/marked.min.js"></script>
-    <script src="client/js/marked-plaintext.js"></script>
-    <script src="client/js/timeago.min.js"></script>
+    <script src="/client/js/marked.min.js"></script>
+    <script src="/client/js/marked-plaintext.js"></script>
+    <script src="/client/js/timeago.min.js"></script>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="client/static/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="client/static/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="client/static/favicon-16x16.png">
-    <link rel="manifest" href="client/static/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="/client/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/client/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/client/static/favicon-16x16.png">
+    <link rel="manifest" href="/client/static/site.webmanifest">
 
 
-    <script src="client/js/vue.js"></script>
+    <script src="/client/js/vue.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="client/css/bulma.css">
-    <link rel="stylesheet" type="text/css" href="client/css/index.css">
+    <link rel="stylesheet" type="text/css" href="/client/css/bulma.css">
+    <link rel="stylesheet" type="text/css" href="/client/css/index.css">
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
     <script>
@@ -40,7 +40,7 @@
   <body>
     <div id="necsus">
       <nav class="navbar is-info necsus-nav" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand is-size-4">
+        <div class="navbar-brand is-size-4 is-justify-content-space-between">
           <p class="navbar-item">
             <a class="has-text-white pr-1" href="/">NeCSuS</a>
               <span id="room-name" class="px-1" v-if="!lectureMode">{{ room }}</span>
@@ -51,12 +51,23 @@
                 &nbsp; &nbsp; &nbsp;
               </span>
           </p>
-          <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-          </a>
+          <div class="is-flex">
+            <a role="button"
+               class="navbar-item is-hidden-desktop is-hoverable is-unselectable"
+               @click="settings.open = !settings.open"
+               aria-label="settings"
+               aria-expanded="false"
+               data-target="settingsMenu">
+                <i class="material-icons has-text-white">settings</i>
+            </a>
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+            </a>
+          </div>
         </div>
+
         <div class="navbar-menu" id="navMenu">
           <!-- Left part of navbar -->
           <div class="navbar-start"></div>
@@ -71,7 +82,7 @@
                 <a class="navbar-item" target="_blank" href="https://github.com/ncss/necsus/blob/master/README.md">NeCSuS README</a>
               </div>
             </div>
-            <a class="navbar-item" @click="settings.open = !settings.open">Settings</a>
+            <a class="navbar-item is-hidden-mobile" @click="settings.open = !settings.open">Settings</a>
           </div>
         </div>
       </nav>
@@ -99,7 +110,9 @@
                 <div class="content">
                   <div class="is-flex is-justify-content-space-between mb-2">
                     <span class="is-size-6 has-text-weight-bold mr-2 author">{{ message.author }}</span>
-                    <span class="is-size-6 has-text-grey-light when">{{ message.displayTime }}</span>
+                    <div :id="`message-${message.id}-info`" class="message-info is-flex">
+                      <span class="has-text-grey-light when">{{ message.displayTime }}</span>
+                    </div>
                   </div>
                   <div v-html="message.text"></div>
                   <div v-if="message.image" class="image">
@@ -132,8 +145,16 @@
               </div>
             </div>
           </div>
+          <div
+            @click="autoScroll(true)"
+            v-if="preventAutoScroll"
+            class="is-unselectable is-flex is-align-items-center auto-scroll"
+          >
+            <i class="material-icons">arrow_downward</i>
+            <span class="auto-scroll-text">Jump to bottom</span>
+          </div>
 
-          <div class="px-2 pt-4">
+          <div>
             <div id="new-message" class="field has-addons pb-0">
               <p class="control">
                 <button
@@ -203,15 +224,15 @@
               </div>
               <div class="field" v-if="!clearRoomShow">
                 <div class="control">
-                  <button id="clear-room" class="button is-outlined is-fullwidth" v-if="!clearRoomShow" @click="clearRoomShow = true">
-                    Clear room
+                  <button id="clear-room" class="button is-fullwidth is-danger" v-if="!clearRoomShow" @click="clearRoomShow = true" title="Clear room messages... (Confirmation required)">
+                    Clear room messages...
                   </button>
                 </div>
               </div>
               <div class="field" v-if="clearRoomShow">
                 <div class="field has-addons is-horizontal">
                   <p class="control is-expanded">
-                    <input class="input" id="confirm-clear-room-input" name="confirm-clear-room" v-model="clearRoomConfirm">
+                    <input @keydown.enter="clearRoom()" class="input" id="confirm-clear-room-input" name="confirm-clear-room" v-model="clearRoomConfirm">
                   </p>
                   <div class="control">
                     <button
@@ -268,7 +289,7 @@
                       v-model="bot.name"
                       @change="submitBot(bot)"
                       />
-                      <button @click="removeBot(bot)" class="button ml-2 is-danger">
+                      <button @click="removeBot(bot)" class="button ml-2 is-danger" title="Delete Bot">
                         <i class="material-icons">delete</i>
                       </button>
                     </div>
@@ -469,6 +490,6 @@
       </div>
     </div>
 
-    <script src="client/necsus.js"></script>
+    <script src="/client/necsus.js"></script>
   </body>
 </html>

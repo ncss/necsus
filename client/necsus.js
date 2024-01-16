@@ -1,7 +1,12 @@
+const { createApp, ref } = Vue
+
 let plainTextRenderer = new PlainTextRenderer;
 const NEW_MESSAGE_HISTORY_SIZE = 20;
 const ACTIVE_STYLESHEETS = new Map();  // Maps URLs to <link> DOM elements.
 const ACTIVE_SCRIPTS = new Map();      // Maps URLs to <script> DOM elements.
+
+// Can be used to set production or another NCSS Chat instance prefix for development. Keep empty for relative endpoint.
+const URL_PREFIX = '';
 
 const EXT_RESOURCE_TAGS = [
   ['img', 'src'],
@@ -13,9 +18,8 @@ const EXT_RESOURCE_TAGS = [
   ['video', 'src'],
 ];
 
-let Necsus = new Vue({
-  el: '#necsus',
-  data: {
+const Necsus = createApp({
+  data: () => ({
     room: '',
     settings: {},
     clearRoomShow: false,
@@ -41,11 +45,14 @@ let Necsus = new Vue({
     lectureMode: false,         // Hide room name during lectures
 
     messageListeners: new Map(),  // Maps user-installed functions to lists of yet-to-be-processed messages.
-  },
+    /** Prevents auto-scrolling when the user has scrolled up manually of a significant distance. If the user has sent a message, it will always scroll to the bottom. */
+    preventAutoScroll: false
+  }),
   created: function() {
     let vm = this;
 
     try {
+      const mobile = screen.width <= 768
       // Try to load previous settings.
       let oldsettings = JSON.parse(window.localStorage.getItem("settings"));
       if (oldsettings.open === undefined ||
@@ -102,7 +109,7 @@ let Necsus = new Vue({
       if (event.code === 'Escape') {
         (document.querySelectorAll('.modal') || []).forEach(($modal) => {
           $modal.classList.remove('is-active');
-        });    
+        });
       }
     });
     this.$refs.import_selector.addEventListener('change', function (event) {
@@ -117,6 +124,8 @@ let Necsus = new Vue({
         reader.readAsText(fileList[0]);
       }
     }.bind(this));
+    const chatList = document.getElementById('messages-list');
+    chatList.addEventListener('scroll', this.handlePreventAutoScroll);
   },
   updated: function() {
     // We need to post-process messages, to redirect the forms, and eval the <script> tags.
@@ -190,11 +199,24 @@ let Necsus = new Vue({
     // For each not-yet-eval()ed script, run it in the order received (noting
     // that several script tags can exist in a message).
     for (let {message, domElt} of reachedDom.values()) {
-      domElt.querySelectorAll('script').forEach((script) => {
-        console.log(`Manually eval()ing message ${message.id} to get around Chrome XSS blocking...`);
-        script.type = "text/gzip";
-        window.eval(script.innerHTML);
-      })
+        domElt.querySelectorAll('script').forEach((script) => {
+          try {
+            console.log(`Manually eval()ing message ${message.id} to get around Chrome XSS blocking...`);
+            script.type = "text/gzip";
+            window.eval(script.innerHTML);
+          } catch (error) {
+            const errorString = (`${error.stack}\n\nScript was:\n${script.innerHTML}}`);
+            console.error(`Error eval()ing user script message ${message.id} (this is not a bug with NeCSuS): ${errorString}`);
+
+            // Append an icon to the information/time-date section of the offending message to indicate that a script error occurred.
+            const icon = document.createElement('i');
+            icon.title = errorString;
+            icon.style.color = 'orange';
+            icon.classList.add('material-icons');
+            icon.innerText = 'error_outline';
+            domElt.querySelector(`#message-${message.id}-info`).appendChild(icon);
+          }
+        })
     }
 
     // Clear the messages we've processed.
@@ -212,7 +234,7 @@ let Necsus = new Vue({
     },
     openPasteConfModal: function () {
       this.$refs.paste_conf_modal.classList.add('is-active');
-    },    
+    },
     closePasteConfModal: function () {
       this.$refs.paste_conf_modal.classList.remove('is-active');
       // Reset importing state
@@ -240,7 +262,7 @@ let Necsus = new Vue({
 
       // Submit to our alternate endpoint via AJAX.
       this.sendingMessage = true;
-      await fetch('/api/actions/message-form', {
+      await fetch(URL_PREFIX + '/api/actions/message-form', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -252,9 +274,12 @@ let Necsus = new Vue({
         }),
       })
       this.sendingMessage = false;
+      this.autoScroll(true);
     },
     clearRoom: async function() {
-      let response = await fetch('/api/actions/clear-room-messages', {
+      if(this.clearRoomConfirm !== this.room) return;
+
+      let response = await fetch(URL_PREFIX + '/api/actions/clear-room-messages', {
         method: 'POST',
         body: JSON.stringify({room: this.room}),
         headers: {'Content-Type': 'application/json'},
@@ -269,14 +294,18 @@ let Necsus = new Vue({
     },
     // Now unused
     fetchBots: async function() {
-      let response = await fetch('/api/bots?' + new URLSearchParams({room: this.room}));
+      let response = await fetch(URL_PREFIX + '/api/bots?' + new URLSearchParams({room: this.room}));
       let bots = await response.json();
       this.bots = bots;
     },
     // putBot installs a new or updated bot into the bot list.
     putBot: function(bot) {
       let idx = this.bots.findIndex((x) => bot.id == x.id)
-      Vue.set(this.bots, (idx >= 0) ? idx : this.bots.length, bot)
+      if(idx !== -1) {
+        this.bots[idx] = bot;
+      } else {
+        this.bots.push(bot);
+      }
     },
     deleteBot: function(bot) {
       let idx = this.bots.findIndex((x) => bot.id == x.id)
@@ -324,7 +353,7 @@ let Necsus = new Vue({
       if (!bot.id)
         return
 
-      let response = await fetch('/api/actions/bot', {
+      let response = await fetch(URL_PREFIX + '/api/actions/bot', {
         method: 'DELETE',
         body: JSON.stringify({id: bot.id}),
         headers: {'Content-Type': 'application/json'},
@@ -332,7 +361,7 @@ let Necsus = new Vue({
       let botResult = await response.json();
     },
     submitBot: async function(bot, noupdate) {
-      let response = await fetch('/api/actions/bot', {
+      let response = await fetch(URL_PREFIX + '/api/actions/bot', {
         method: 'POST',
         body: JSON.stringify({
           room: this.room,
@@ -357,10 +386,39 @@ let Necsus = new Vue({
       this.messages.push(message)
       this.messagesById.set(message.id, message)
       this.enqueueMessageIdForListeners(message.id)
+
+      this.autoScroll()
+    },
+    /** Scroll to the bottom of the messages list.
+     * @param force { boolean } - If true, scroll to the bottom even if preventAutoScroll is true.
+     */
+    autoScroll(force) {
+      if(this.preventAutoScroll && !force) return;
+      this.$nextTick(() => {
+        const element = document.getElementById('messages-list');
+        element.scrollTop = element.scrollHeight;
+      })
+    },
+    /** Handle the prevention of auto-scrolling when the user has scrolled up manually.
+     *
+     * @param e { Event }
+     */
+    handlePreventAutoScroll(e) {
+      const element = e.target;
+      this.preventAutoScroll = element.scrollTop < -200;
     },
     createWebsocket: function() {
       let last_id = (this.lastMessage) ? this.lastMessage.id : -1
       let ws_uri = `${location.protocol == 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/${this.room}?since=${last_id}`
+      if(URL_PREFIX !== '') {
+        try {
+          const url = new URL(ws_uri);
+          url.pathname = URL_PREFIX + url.pathname;
+          ws_uri = url.toString();
+        } catch {
+          console.error(`Failed to parse WS URI: ${ws_uri}`);
+        }
+      }
       console.log(`Connecting to websocket ... (${ws_uri})`)
       let ws = new WebSocket(ws_uri)
       this.ws = ws
@@ -418,7 +476,7 @@ let Necsus = new Vue({
       this.sendingMessage = true;
 
       try {
-        let response = await fetch('/api/actions/message', {
+        let response = await fetch(URL_PREFIX + '/api/actions/message', {
           method: 'POST',
           body: JSON.stringify({
             room: this.room,
@@ -438,6 +496,7 @@ let Necsus = new Vue({
       }
       this.newMessageHistoryPos = 0;
       this.newMessage = '';
+      this.autoScroll(true)
     },
     newMessageHistoryMove: function(direction) {
       let inBounds = (pos) => (0 <= pos && pos <= this.newMessageHistory.length)
@@ -450,7 +509,7 @@ let Necsus = new Vue({
     },
     clearState: async function() {
       this.sendingMessage = true;
-      let response = await fetch('/api/actions/clear-room-state', {
+      let response = await fetch(URL_PREFIX + '/api/actions/clear-room-state', {
         method: 'POST',
         body: JSON.stringify({room: this.room}),
         headers: {'Content-Type': 'application/json'},
@@ -485,7 +544,7 @@ let Necsus = new Vue({
       return this.lines(message).length;
     },
     toggleState: function(message) {
-      Vue.set(message, 'showState', !message.showState)
+      message.showState = !message.showState
       return message.showState;
     },
     setLectureMode() {
@@ -502,7 +561,7 @@ let Necsus = new Vue({
         this.newMessage = text;
       }
       let vm = this;
-      setTimeout(function() { vm.$el.querySelector('#message-input').focus() });
+      setTimeout(function() { document.querySelector('#message-input').focus() });
     },
 
     // Public function: use this hook!
@@ -695,7 +754,7 @@ let Necsus = new Vue({
         this.focusMessageInput();
     }
   }
-});
+}).mount('#necsus')
 
 /** Absolutify {url} relative to {base_url}. If {url} is already absolute, it is left alone. */
 function urljoin(base_url, url) {
