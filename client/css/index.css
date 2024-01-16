@@ -26,7 +26,7 @@ nav.navbar {
 }
 #settings {
   height: calc(100dvh - var(--nav-height));
-  overflow: scroll;
+  overflow: auto;
   background-color: var(--light-gray-accent);
 }
 
@@ -73,4 +73,15 @@ nav.navbar {
 /* For the bot import dialog. */
 tr.identical-bot {
   background-color: var(--light-gray-accent);
+}
+
+.auto-scroll {
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  background: #F5F5F5FF;
+  padding: 4px 4px 4px 16px;
+}
+
+.auto-scroll-text {
+  padding-left: 16px;
 }

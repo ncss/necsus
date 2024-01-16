@@ -1,6 +1,7 @@
-let app = new Vue({
-  el: '#necsus',
-  data: {
+const { createApp, ref } = Vue
+
+const app = createApp({
+  data: () => ({
     room_name: '',
     welcome: undefined,
     possibleWelcomes: [
@@ -19,8 +20,9 @@ let app = new Vue({
       "Ahoy",
       "Arrr me hearties, yo-ho",
     ],
-  },
-  created: function() {
+  }),
+  // Changed from created to mounted because the DOM isn't ready yet in created throwing an error
+  mounted: function() {
     this.refreshWelcome();
   },
   methods: {
@@ -68,4 +70,4 @@ let app = new Vue({
       }
     },
   },
-});
+}).mount('#necsus');
