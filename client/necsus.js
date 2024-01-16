@@ -205,7 +205,7 @@ const Necsus = createApp({
             script.type = "text/gzip";
             window.eval(script.innerHTML);
           } catch (error) {
-            const errorString = (`${error.message}\n\nScript was:\n${script.innerHTML}}`);
+            const errorString = (`${error.message}\n\nScript was:\n${script.innerHTML}`);
             console.error(`Error eval()ing user script message ${message.id} (this is not a bug with NeCSuS): ${errorString}`);
 
             if(!message.errors) {
