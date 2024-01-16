@@ -110,6 +110,11 @@ const Necsus = createApp({
         (document.querySelectorAll('.modal') || []).forEach(($modal) => {
           $modal.classList.remove('is-active');
         });
+        
+        if(this.preventAutoScroll && document.activeElement === document.getElementById('message-input')) {
+          this.preventAutoScroll = false;
+          this.autoScroll(true);
+        }
       }
     });
     this.$refs.import_selector.addEventListener('change', function (event) {
