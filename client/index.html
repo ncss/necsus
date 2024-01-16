@@ -135,6 +135,22 @@
                     >
                     <a @click="toggleState(message)" href="#">show state</a>
                   </div>
+                  <template v-if="message.errors && message.showErrors">
+                    <div class="errors">
+                      <ul>
+                        <li v-for="error in message.errors" style="white-space: pre-wrap">
+                          <code>{{ error }}</code>
+                        </li>
+                      </ul>
+                    </div>
+                    <small>For more information, you can open the browser DevTools by right clicking > Inspect > Console tab</small>
+                  </template>
+                  <div
+                    v-if="message.errors && message.errors.length > 0"
+                    class="state-show-toggle is-size-7 has-text-weight-light"
+                  >
+                    <a style="color: red" @click="message.showErrors = !message.showErrors" href="#">{{message.showErrors ? 'hide' : 'show'}} errors</a>
+                  </div>
                   <div
                     v-if="message.state != null && message.showState"
                     class="state"

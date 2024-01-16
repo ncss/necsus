@@ -205,16 +205,15 @@ const Necsus = createApp({
             script.type = "text/gzip";
             window.eval(script.innerHTML);
           } catch (error) {
-            const errorString = (`${error.stack}\n\nScript was:\n${script.innerHTML}}`);
+            const errorString = (`${error.message}\n\nScript was:\n${script.innerHTML}}`);
             console.error(`Error eval()ing user script message ${message.id} (this is not a bug with NeCSuS): ${errorString}`);
 
-            // Append an icon to the information/time-date section of the offending message to indicate that a script error occurred.
-            const icon = document.createElement('i');
-            icon.title = errorString;
-            icon.style.color = 'orange';
-            icon.classList.add('material-icons');
-            icon.innerText = 'error_outline';
-            domElt.querySelector(`#message-${message.id}-info`).appendChild(icon);
+            if(!message.errors) {
+              message.showErrors = false;
+              message.errors = [];
+            }
+
+            message.errors.push(errorString);
           }
         })
     }
