@@ -16,7 +16,7 @@ setuptools = "*"
 
 # For the main server
 uvicorn = {extras = ["standard"], version = "~0.24"}
-starlette = "~0.33"
+starlette = "~0.36"
 httpx = "~0.25.2"
 pypika = "~0.48"
 anyio = "~4.1.0"
